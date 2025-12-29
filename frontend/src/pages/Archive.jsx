@@ -1,0 +1,198 @@
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
+import { 
+  ArrowLeft, 
+  Scroll, 
+  Calendar,
+  MessageSquare,
+  Loader2,
+  BookOpen
+} from "lucide-react";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+export default function Archive({ user, token, onLogout }) {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedChat, setSelectedChat] = useState(null);
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const response = await fetch(`${API}/chat/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setHistory(data);
+      } else {
+        toast.error("Errore", { description: "Impossibile caricare l'archivio" });
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("it-IT", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-void stone-texture flex flex-col">
+      {/* Navigation */}
+      <nav className="nav-gothic sticky top-0 z-50 px-4 md:px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gold hover:bg-gold/10"
+                data-testid="back-btn"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline font-cinzel">INDIETRO</span>
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-gold" />
+              <h1 className="font-gothic text-xl md:text-2xl text-gold">
+                Archivio
+              </h1>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+        <div className="grid lg:grid-cols-3 gap-6 h-full">
+          {/* History List */}
+          <div className="lg:col-span-1">
+            <div className="card-gothic rounded-sm overflow-hidden h-full" data-testid="archive-list">
+              <div className="p-4 border-b border-border/50">
+                <h2 className="font-cinzel text-gold uppercase tracking-widest text-sm">
+                  Le Tue Consultazioni
+                </h2>
+              </div>
+              
+              <ScrollArea className="h-[calc(100vh-280px)]">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-gold" />
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="text-center py-12 px-4">
+                    <Scroll className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <p className="font-cinzel text-muted-foreground">
+                      Nessuna consultazione
+                    </p>
+                    <p className="font-body text-muted-foreground/70 text-sm mt-2">
+                      Le tue domande appariranno qui
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/30">
+                    {history.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => setSelectedChat(item)}
+                        className={`w-full text-left p-4 hover:bg-gold/5 transition-colors ${
+                          selectedChat?.id === item.id ? "bg-gold/10 border-l-2 border-gold" : ""
+                        }`}
+                        data-testid={`archive-item-${item.id}`}
+                      >
+                        <p className="font-body text-parchment line-clamp-2 mb-2">
+                          {item.question}
+                        </p>
+                        <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                          <Calendar className="w-3 h-3" />
+                          <span className="font-body">{formatDate(item.created_at)}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+          </div>
+
+          {/* Detail View */}
+          <div className="lg:col-span-2">
+            <div className="card-gothic rounded-sm h-full overflow-hidden" data-testid="archive-detail">
+              {selectedChat ? (
+                <ScrollArea className="h-[calc(100vh-220px)]">
+                  <div className="p-6 space-y-6">
+                    {/* Question */}
+                    <div className="fade-in">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MessageSquare className="w-4 h-4 text-gold" />
+                        <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                          La Tua Domanda
+                        </span>
+                      </div>
+                      <div className="chat-message-user p-4 rounded-sm">
+                        <p className="font-body text-gold leading-relaxed">
+                          {selectedChat.question}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Answer */}
+                    <div className="fade-in">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Scroll className="w-4 h-4 text-gold" />
+                        <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                          Risposta dell'Oracolo
+                        </span>
+                      </div>
+                      <div className="chat-message-ai p-4 rounded-sm">
+                        <p className="font-body text-parchment leading-relaxed whitespace-pre-wrap">
+                          {selectedChat.answer}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Timestamp */}
+                    <div className="text-center pt-4 border-t border-border/30">
+                      <p className="font-body text-muted-foreground text-sm">
+                        Consultazione del {formatDate(selectedChat.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                  <BookOpen className="w-16 h-16 text-muted-foreground/20 mb-4" />
+                  <p className="font-cinzel text-muted-foreground text-lg mb-2">
+                    Seleziona una consultazione
+                  </p>
+                  <p className="font-body text-muted-foreground/70 text-sm max-w-md">
+                    Clicca su una delle tue domande passate per visualizzare 
+                    i dettagli della consultazione.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

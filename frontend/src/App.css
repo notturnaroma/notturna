@@ -1,34 +1,68 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
-}
+/* Gothic Theme App Styles */
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
-    background-color: #0f0f10;
+.App {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+    background-color: #050505;
 }
 
-.App-link {
-    color: #61dafb;
+/* Hero section background */
+.hero-gradient {
+    background: radial-gradient(ellipse at center, rgba(138, 0, 0, 0.15) 0%, transparent 70%);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Navigation styles */
+.nav-gothic {
+    background: rgba(5, 5, 5, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(184, 134, 11, 0.2);
+}
+
+/* Page transitions */
+.page-enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.4s ease-out;
+}
+
+/* Link hover effects */
+a {
+    transition: color 0.3s ease;
+}
+
+/* Form container */
+.form-gothic {
+    background: linear-gradient(180deg, rgba(10, 10, 10, 0.9) 0%, rgba(5, 5, 5, 0.95) 100%);
+    border: 1px solid rgba(184, 134, 11, 0.3);
+}
+
+/* Stat cards */
+.stat-card {
+    background: linear-gradient(135deg, #0a0a0a 0%, #050505 100%);
+    border: 1px solid rgba(184, 134, 11, 0.2);
+}
+
+/* Table styles */
+.table-gothic {
+    background: rgba(10, 10, 10, 0.8);
+}
+
+.table-gothic th {
+    background: rgba(0, 0, 51, 0.3);
+    color: #b8860b;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.table-gothic td {
+    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+}
+
+.table-gothic tr:hover td {
+    background: rgba(138, 0, 0, 0.1);
 }

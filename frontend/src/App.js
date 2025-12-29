@@ -1,52 +1,96 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import Landing from "@/pages/Landing";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Dashboard from "@/pages/Dashboard";
+import Archive from "@/pages/Archive";
+import AdminPanel from "@/pages/AdminPanel";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function App() {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [loading, setLoading] = useState(true);
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const savedToken = localStorage.getItem("token");
+      if (savedToken) {
+        try {
+          const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+          const response = await fetch(`${API}/auth/me`, {
+            headers: { Authorization: `Bearer ${savedToken}` }
+          });
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+            setToken(savedToken);
+          } else {
+            localStorage.removeItem("token");
+            setToken(null);
+          }
+        } catch (e) {
+          localStorage.removeItem("token");
+          setToken(null);
+        }
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogin = (newToken, userData) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+  };
+
+  const refreshUser = async () => {
+    if (token) {
+      try {
+        const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+        const response = await fetch(`${API}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        }
+      } catch (e) {
+        console.error("Error refreshing user:", e);
+      }
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-void flex items-center justify-center">
+        <div className="text-gold font-cinzel text-xl animate-pulse">Caricamento...</div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
+    <div className="App min-h-screen bg-void">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={!token ? <Landing /> : <Navigate to="/dashboard" />} />
+          <Route path="/login" element={!token ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+          <Route path="/register" element={!token ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+          <Route path="/dashboard" element={token ? <Dashboard user={user} token={token} onLogout={handleLogout} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
+          <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={token && user?.role === "admin" ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
         </Routes>
       </BrowserRouter>
+      <Toaster position="top-right" richColors />
     </div>
   );
 }
