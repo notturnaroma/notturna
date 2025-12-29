@@ -108,12 +108,41 @@ def create_token(user_id: str, role: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
+async def check_monthly_reset(user: dict) -> dict:
+    """Reset azioni se è passato un mese dall'ultimo reset"""
+    now = datetime.now(timezone.utc)
+    last_reset_str = user.get("last_action_reset")
+    
+    if last_reset_str:
+        last_reset = datetime.fromisoformat(last_reset_str.replace('Z', '+00:00'))
+        # Controlla se siamo in un mese diverso dall'ultimo reset
+        if now.year > last_reset.year or (now.year == last_reset.year and now.month > last_reset.month):
+            # Reset mensile
+            await db.users.update_one(
+                {"id": user["id"]},
+                {"$set": {"used_actions": 0, "last_action_reset": now.isoformat()}}
+            )
+            user["used_actions"] = 0
+            user["last_action_reset"] = now.isoformat()
+            logger.info(f"Monthly reset for user {user['id']}")
+    else:
+        # Se non esiste last_action_reset, lo creiamo
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {"last_action_reset": now.isoformat()}}
+        )
+        user["last_action_reset"] = now.isoformat()
+    
+    return user
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
         if not user:
             raise HTTPException(status_code=401, detail="Utente non trovato")
+        # Controlla e applica reset mensile se necessario
+        user = await check_monthly_reset(user)
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token scaduto")
@@ -134,6 +163,7 @@ async def register(data: UserCreate):
         raise HTTPException(status_code=400, detail="Email già registrata")
     
     user_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
     user_doc = {
         "id": user_id,
         "email": data.email,
@@ -142,7 +172,8 @@ async def register(data: UserCreate):
         "role": "player",
         "max_actions": 10,
         "used_actions": 0,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": now.isoformat(),
+        "last_action_reset": now.isoformat()
     }
     await db.users.insert_one(user_doc)
     
