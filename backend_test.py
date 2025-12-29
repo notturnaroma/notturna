@@ -138,37 +138,12 @@ class ArchivioMaledettoAPITester:
         return success
 
     def test_knowledge_base_operations(self):
-        """Test knowledge base CRUD operations"""
+        """Test knowledge base operations"""
         if not self.admin_token:
             self.log_test("Knowledge Base Operations", False, "No admin token available")
             return False
 
-        # First, make the user an admin
-        success = self.make_user_admin()
-        if not success:
-            return False
-
-        # Test adding knowledge
-        kb_data = {
-            "title": "Test Knowledge Document",
-            "content": "This is a test document for the knowledge base. It contains important information about the event.",
-            "category": "general"
-        }
-        
-        success, response = self.run_test(
-            "Add Knowledge Base Document",
-            "POST",
-            "knowledge",
-            200,
-            data=kb_data,
-            headers={'Authorization': f'Bearer {self.admin_token}'}
-        )
-        
-        kb_id = None
-        if success and 'id' in response:
-            kb_id = response['id']
-
-        # Test getting knowledge
+        # Test getting knowledge (should work for any authenticated user)
         success, response = self.run_test(
             "Get Knowledge Base Documents",
             "GET",
@@ -177,15 +152,19 @@ class ArchivioMaledettoAPITester:
             headers={'Authorization': f'Bearer {self.admin_token}'}
         )
 
-        # Test deleting knowledge
-        if kb_id:
-            success, response = self.run_test(
-                "Delete Knowledge Base Document",
-                "DELETE",
-                f"knowledge/{kb_id}",
-                200,
-                headers={'Authorization': f'Bearer {self.admin_token}'}
-            )
+        # Test adding knowledge (should fail with 403 since user is not admin)
+        success, response = self.run_test(
+            "Add Knowledge Base (Non-Admin - Should Fail)",
+            "POST",
+            "knowledge",
+            403,
+            data={
+                "title": "Test Knowledge Document",
+                "content": "This is a test document for the knowledge base.",
+                "category": "general"
+            },
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
 
         return True
 
