@@ -243,7 +243,7 @@ class ArchivioMaledettoAPITester:
             "Access Protected Endpoint Without Token",
             "GET",
             "auth/me",
-            401
+            403  # FastAPI returns 403 for missing auth
         )
 
         # Test with invalid token
