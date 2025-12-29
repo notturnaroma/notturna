@@ -92,6 +92,35 @@ class UpdateUserActions(BaseModel):
 class UpdateUserRole(BaseModel):
     role: str
 
+class AppSettings(BaseModel):
+    event_name: str = "L'Archivio Maledetto"
+    event_logo_url: Optional[str] = None
+    primary_color: str = "#8a0000"
+    secondary_color: str = "#000033"
+    accent_color: str = "#b8860b"
+    background_color: str = "#050505"
+    hero_title: str = "Svela i Segreti"
+    hero_subtitle: str = "dell'Antico Sapere"
+    hero_description: str = "Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande e ricevere risposte dai custodi del sapere arcano."
+    chat_placeholder: str = "Poni la tua domanda all'Oracolo..."
+    oracle_name: str = "L'Oracolo"
+    background_image_url: Optional[str] = None
+
+class AppSettingsResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    event_name: str
+    event_logo_url: Optional[str]
+    primary_color: str
+    secondary_color: str
+    accent_color: str
+    background_color: str
+    hero_title: str
+    hero_subtitle: str
+    hero_description: str
+    chat_placeholder: str
+    oracle_name: str
+    background_image_url: Optional[str]
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
@@ -357,6 +386,45 @@ async def reset_user_actions(user_id: str, admin: dict = Depends(get_admin_user)
 @api_router.get("/")
 async def root():
     return {"message": "L'Archivio Maledetto API"}
+
+# ==================== SETTINGS ROUTES ====================
+
+@api_router.get("/settings", response_model=AppSettingsResponse)
+async def get_settings():
+    """Get app settings (public endpoint for embed)"""
+    settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
+    if not settings:
+        # Return defaults
+        return AppSettingsResponse(
+            event_name="L'Archivio Maledetto",
+            event_logo_url=None,
+            primary_color="#8a0000",
+            secondary_color="#000033",
+            accent_color="#b8860b",
+            background_color="#050505",
+            hero_title="Svela i Segreti",
+            hero_subtitle="dell'Antico Sapere",
+            hero_description="Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande e ricevere risposte dai custodi del sapere arcano.",
+            chat_placeholder="Poni la tua domanda all'Oracolo...",
+            oracle_name="L'Oracolo",
+            background_image_url=None
+        )
+    return AppSettingsResponse(**settings)
+
+@api_router.put("/settings")
+async def update_settings(data: AppSettings, user: dict = Depends(get_admin_user)):
+    """Update app settings (admin only)"""
+    settings_dict = data.model_dump()
+    settings_dict["id"] = "app_settings"
+    settings_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    settings_dict["updated_by"] = user["username"]
+    
+    await db.settings.update_one(
+        {"id": "app_settings"},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    return {"message": "Impostazioni aggiornate"}
 
 app.include_router(api_router)
 
