@@ -1,0 +1,182 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "The Anti-AI Designer",
+    "mission": "Create a visceral, immersive Gothic/Medieval interface that breaks standard SaaS conventions.",
+    "principles": [
+      "Fusion over Imitation: Mix Medieval aesthetics with modern UX.",
+      "Emotion First: Every interaction must feel mysterious and weighty.",
+      "Content is King: The text is an ancient script; the data is arcane knowledge.",
+      "Zoom In: Focus on texture and detail (stone, paper, metal).",
+      "Negative Space: Use deep shadows as negative space."
+    ]
+  },
+  "theme": {
+    "name": "The Cursed Archive",
+    "mode": "dark",
+    "vibe": "Gothic, Medieval, Mysterious, Blood & Night",
+    "emotional_archetype": "Jewel & Luxury (Dark Variant)",
+    "visual_style": "Ornate, Textured, High Contrast"
+  },
+  "typography": {
+    "fonts": [
+      {
+        "family": "UnifrakturMaguntia",
+        "type": "Display",
+        "usage": "Main Headings (H1, H2), Hero Text",
+        "fallback": "cursive",
+        "import_url": "https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap"
+      },
+      {
+        "family": "Cinzel",
+        "type": "Serif",
+        "usage": "Subheadings (H3, H4), UI Labels, Buttons, Navigation",
+        "fallback": "serif",
+        "import_url": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap"
+      },
+      {
+        "family": "Lato",
+        "type": "Sans-Serif",
+        "usage": "Body Text, Chat Messages, Inputs",
+        "fallback": "sans-serif",
+        "import_url": "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
+      }
+    ],
+    "rules": [
+      "Use 'UnifrakturMaguntia' for all major titles to establish the medieval theme immediately.",
+      "Use 'Cinzel' in uppercase with wide tracking (tracking-widest) for UI labels (e.g., 'ARCHIVE', 'LOGIN').",
+      "Use 'Lato' for long-form text and chat messages to ensure perfect readability.",
+      "Headings must be large (text-4xl+) and dramatic.",
+      "Text colors should never be pure white; use 'Antique White' (#e0e0e0) or 'Parchment' (#d4c4a8)."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": "0 0% 2%",
+      "foreground": "40 20% 90%",
+      "card": "0 0% 4%",
+      "card_foreground": "40 20% 90%",
+      "popover": "0 0% 4%",
+      "popover_foreground": "40 20% 90%",
+      "primary": "0 100% 27%",
+      "primary_foreground": "0 0% 98%",
+      "secondary": "220 100% 10%",
+      "secondary_foreground": "210 40% 98%",
+      "muted": "0 0% 15%",
+      "muted_foreground": "0 0% 60%",
+      "accent": "45 90% 38%",
+      "accent_foreground": "0 0% 5%",
+      "destructive": "0 62.8% 30.6%",
+      "destructive_foreground": "0 0% 98%",
+      "border": "0 0% 20%",
+      "input": "0 0% 10%",
+      "ring": "0 100% 27%"
+    },
+    "semantic_names": {
+      "background": "Void Black (#050505)",
+      "primary": "Blood Red (#8a0000)",
+      "secondary": "Deep Night Blue (#000033)",
+      "accent": "Antique Gold (#b8860b)",
+      "text_main": "Parchment White (#e5e5e5)",
+      "text_muted": "Stone Grey (#9ca3af)"
+    },
+    "usage_rules": [
+      "Backgrounds must be deep black or very dark grey.",
+      "Use 'Blood Red' for primary actions (CTAs, Submit) and critical alerts.",
+      "Use 'Deep Night Blue' for secondary backgrounds or active states.",
+      "Use 'Antique Gold' for borders, icons, and highlights to add a 'royal' touch.",
+      "Gradients: Use subtle radial gradients (black to dark red/blue) to create a 'vignette' or 'torchlight' effect."
+    ]
+  },
+  "visual_enhancers": {
+    "textures": [
+      {
+        "name": "Stone Wall",
+        "url": "https://images.unsplash.com/photo-1681582744988-b50eed2ab566?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwZ290aGljJTIwY2FzdGxlJTIwdGV4dHVyZSUyMHN0b25lJTIwd2FsbCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzY3MDM5OTY2fDA&ixlib=rb-4.1.0&q=85",
+        "usage": "Background overlay with low opacity (5-10%) and blend-mode-overlay."
+      },
+      {
+        "name": "Old Parchment",
+        "url": "https://images.unsplash.com/photo-1634720092181-7b4a5908c5d5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxvbGQlMjBwYXJjaG1lbnQlMjBwYXBlciUyMHRleHR1cmUlMjBkYXJrJTIwdmludGFnZXxlbnwwfHx8fDE3NjcwMzk5Njl8MA&ixlib=rb-4.1.0&q=85",
+        "usage": "Card backgrounds or modal backgrounds with multiply blend mode."
+      }
+    ],
+    "effects": [
+      "Glassmorphism: Use heavy blur (backdrop-blur-xl) with a dark tint (bg-black/80) for overlays.",
+      "Glows: Use drop-shadow-[0_0_15px_rgba(138,0,0,0.5)] for 'magical' elements.",
+      "Borders: Use double borders or gold borders (border-accent) to simulate metal frames.",
+      "Corners: Use sharp corners or slightly rounded (rounded-sm) - avoid fully rounded 'pill' shapes unless it's a magical orb."
+    ]
+  },
+  "layout": {
+    "grid_system": "The Dungeon Grid",
+    "spacing": "Generous (p-8, p-12) to create a sense of grandeur and scale.",
+    "container_style": "Containers should look like stone tablets or ancient scrolls.",
+    "rules": [
+      "Mobile-First: Stack elements vertically on mobile.",
+      "Desktop: Use asymmetric grids (e.g., Chat panel 2/3 width, Info panel 1/3 width).",
+      "Alignment: Center headings for dramatic effect, but keep body text left-aligned for readability."
+    ]
+  },
+  "components": {
+    "buttons": {
+      "style": "Sharp edges or slight bevel. Primary button: Blood Red bg, White text, Gold border. Secondary: Transparent bg, Gold border, Gold text.",
+      "hover": "Scale up slightly (scale-105), increase glow."
+    },
+    "inputs": {
+      "style": "Dark background (bg-black/50), Gold border (border-accent/50), Parchment text.",
+      "focus": "Ring-2 ring-primary (Blood Red glow)."
+    },
+    "cards": {
+      "style": "Dark stone background (bg-card), thin border (border-border), shadow-lg.",
+      "texture": "Optional parchment texture overlay."
+    },
+    "chat_interface": {
+      "style": "The 'Scribe's Log'. Messages appear on a dark, semi-transparent surface.",
+      "user_message": "Aligned right, Dark Blue background (bg-secondary), Gold text.",
+      "ai_message": "Aligned left, Dark Grey background (bg-muted), White text, Gothic font for the sender name."
+    },
+    "navigation": {
+      "style": "Sticky top or side rail. Glassmorphism effect. Icons should be mystical (scrolls, quills, swords, shields)."
+    }
+  },
+  "icons": {
+    "library": "Lucide React (default) or Phosphor Icons (if available)",
+    "style": "Thin strokes, sharp edges.",
+    "mapping": {
+      "chat": "Scroll or MessageSquare",
+      "archive": "Archive or BookOpen",
+      "settings": "Cog or Hammer",
+      "user": "User or Shield",
+      "logout": "LogOut or DoorOpen"
+    }
+  },
+  "motion": {
+    "type": "Slow, heavy, deliberate.",
+    "transitions": "transition-all duration-500 ease-in-out",
+    "entrance": "Fade in with slight upward movement (y-4 to y-0).",
+    "hover": "Slow glow intensity increase."
+  },
+  "accessibility": {
+    "contrast": "Ensure text is readable against dark backgrounds. Use 'text-gray-200' or lighter.",
+    "focus": "Visible focus rings (Blood Red or Gold) for keyboard navigation.",
+    "labels": "All icons must have aria-labels."
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add the Google Fonts imports to 'index.css' immediately.",
+    "2. CONFIGURE TAILWIND: Update 'tailwind.config.js' with the provided color palette and font families.",
+    "3. GLOBAL STYLES: Apply the dark background and base font colors in 'index.css'.",
+    "4. COMPONENT OVERRIDES: When using Shadcn components, override the default 'rounded-md' with 'rounded-sm' or 'rounded-none' to fit the Gothic theme.",
+    "5. IMAGES: Use the provided texture URLs for backgrounds. Do not use placeholders.",
+    "6. ICONS: Use Lucide-react icons but style them with the 'accent' color (Gold).",
+    "7. NO LIGHT MODE: Enforce dark mode classes globally.",
+    "8. DATA-TESTID: Add 'data-testid' to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop': No generic gradients, no default shadows.",
+    "Create depth: Use z-index and layered backgrounds (texture > overlay > content).",
+    "Micro-animations: Every hover must feel responsive.",
+    "Spacing: Use p-6 or p-8 for internal card padding.",
+    "Toasts: Use 'sonner' for notifications, styled with dark backgrounds and gold borders."
+  ]
+}
