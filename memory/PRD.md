@@ -39,3 +39,20 @@ App per eventi con interfaccia chat AI che risponde a domande basate su knowledg
 1. Aggiungere primo contenuto alla knowledge base
 2. Creare account admin per lo staff
 3. Configurare limite azioni appropriato per l'evento
+
+## Aggiornamenti (Dec 2025 - v2)
+- [x] Reset azioni mensile automatico
+- [x] Pannello personalizzazione (colori, testi, logo, sfondo)
+- [x] Versione embed responsive per integrazione su siti esterni
+- [x] Tab "PERSONALIZZA" nel pannello admin
+- [x] Codice embed copiabile con anteprima
+
+## Integrazione su notturnaroma.com
+Codice da inserire nel sito HTML:
+```html
+<iframe 
+  src="https://smart-chatbot-71.preview.emergentagent.com/embed" 
+  style="width: 100%; height: 500px; border: none; border-radius: 8px;"
+  title="L'Archivio Maledetto"
+></iframe>
+```
