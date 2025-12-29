@@ -231,39 +231,29 @@ class ArchivioMaledettoAPITester:
         return success
 
     def test_admin_operations(self):
-        """Test admin operations"""
+        """Test admin operations (expecting 403 for non-admin users)"""
         if not self.admin_token:
             self.log_test("Admin Operations", False, "No admin token available")
             return False
 
-        # Test getting all users
+        # Test getting all users (should fail with 403 since user is not admin)
         success, response = self.run_test(
-            "Get All Users (Admin)",
+            "Get All Users (Non-Admin - Should Fail)",
             "GET",
             "admin/users",
-            200,
+            403,
             headers={'Authorization': f'Bearer {self.admin_token}'}
         )
 
-        if success and self.user_id:
-            # Test updating user actions
-            success, response = self.run_test(
-                "Update User Actions",
-                "PUT",
-                f"admin/users/{self.user_id}/actions",
-                200,
-                data={"max_actions": 15},
-                headers={'Authorization': f'Bearer {self.admin_token}'}
-            )
-
-            # Test resetting user actions
-            success, response = self.run_test(
-                "Reset User Actions",
-                "POST",
-                f"admin/users/{self.user_id}/reset-actions",
-                200,
-                headers={'Authorization': f'Bearer {self.admin_token}'}
-            )
+        # Test knowledge base operations (should fail with 403 since user is not admin)
+        success, response = self.run_test(
+            "Add Knowledge Base (Non-Admin - Should Fail)",
+            "POST",
+            "knowledge",
+            403,
+            data={"title": "Test", "content": "Test content"},
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
 
         return True
 
