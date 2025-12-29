@@ -121,6 +121,36 @@ class AppSettingsResponse(BaseModel):
     oracle_name: str
     background_image_url: Optional[str]
 
+# ==================== PROVE LARP MODELS ====================
+
+class ChallengeCreate(BaseModel):
+    name: str  # es. "Arma da fuoco antica"
+    description: str  # Descrizione visibile al giocatore
+    attribute: str  # es. "Intelligenza + Armi da Fuoco"
+    difficulty: int  # es. 8
+    success_text: str
+    tie_text: str
+    failure_text: str
+    keywords: List[str] = []  # parole chiave per attivare la prova
+
+class ChallengeResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: str
+    attribute: str
+    difficulty: int
+    success_text: str
+    tie_text: str
+    failure_text: str
+    keywords: List[str]
+    created_at: str
+    created_by: str
+
+class ChallengeAttempt(BaseModel):
+    challenge_id: str
+    player_value: int  # valore attributo del giocatore
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
