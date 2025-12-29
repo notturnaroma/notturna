@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
+import { SettingsProvider } from "@/context/SettingsContext";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Archive from "@/pages/Archive";
 import AdminPanel from "@/pages/AdminPanel";
+import EmbedChat from "@/pages/EmbedChat";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -79,19 +81,22 @@ function App() {
   }
 
   return (
-    <div className="App min-h-screen bg-void">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={!token ? <Landing /> : <Navigate to="/dashboard" />} />
-          <Route path="/login" element={!token ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
-          <Route path="/register" element={!token ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
-          <Route path="/dashboard" element={token ? <Dashboard user={user} token={token} onLogout={handleLogout} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
-          <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-          <Route path="/admin" element={token && user?.role === "admin" ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
-        </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" richColors />
-    </div>
+    <SettingsProvider>
+      <div className="App min-h-screen bg-void">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={!token ? <Landing /> : <Navigate to="/dashboard" />} />
+            <Route path="/login" element={!token ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+            <Route path="/register" element={!token ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+            <Route path="/dashboard" element={token ? <Dashboard user={user} token={token} onLogout={handleLogout} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
+            <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+            <Route path="/admin" element={token && user?.role === "admin" ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
+            <Route path="/embed" element={<EmbedChat />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-right" richColors />
+      </div>
+    </SettingsProvider>
   );
 }
 

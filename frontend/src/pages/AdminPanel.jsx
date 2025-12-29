@@ -25,8 +25,10 @@ import {
   RefreshCw,
   Loader2,
   Shield,
-  Crown
+  Crown,
+  Palette
 } from "lucide-react";
+import CustomizePanel from "@/components/CustomizePanel";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -239,6 +241,14 @@ export default function AdminPanel({ user, token, onLogout }) {
             >
               <Users className="w-4 h-4 mr-2" />
               UTENTI
+            </TabsTrigger>
+            <TabsTrigger 
+              value="customize" 
+              className="font-cinzel data-[state=active]:bg-gold/20 data-[state=active]:text-gold rounded-sm"
+              data-testid="customize-tab"
+            >
+              <Palette className="w-4 h-4 mr-2" />
+              PERSONALIZZA
             </TabsTrigger>
           </TabsList>
 
@@ -472,6 +482,11 @@ export default function AdminPanel({ user, token, onLogout }) {
                 )}
               </ScrollArea>
             </div>
+          </TabsContent>
+
+          {/* Customize Tab */}
+          <TabsContent value="customize">
+            <CustomizePanel token={token} />
           </TabsContent>
         </Tabs>
       </main>
