@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Scroll, Archive, Shield, Sparkles } from "lucide-react";
+import { useSettings } from "@/context/SettingsContext";
+
 
 export default function Landing() {
   return (
