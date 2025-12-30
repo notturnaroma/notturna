@@ -161,54 +161,34 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
               </p>
             </div>
           ) : step === "input" ? (
-            // Step 1: Inserisci valore attributo
+            // Step 1: Inserisci i valori dei tuoi attributi
             <div className="p-6 space-y-6">
               <p className="font-body text-muted-foreground text-center">
-                {settings.aids_subtitle || "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"}
+                {settings.aids_subtitle || "Inserisci i valori dei tuoi attributi per vedere le focalizzazioni disponibili"}
               </p>
 
-              {/* Selezione attributo se ce ne sono più di uno */}
-              {uniqueAttributes.length > 1 && (
-                <div className="space-y-2">
-                  <Label className="font-cinzel text-gold text-sm">Seleziona Attributo</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {uniqueAttributes.map(attr => (
-                      <button
-                        key={attr}
-                        onClick={() => setSelectedAttribute(attr)}
-                        className={`p-3 rounded-sm border text-sm font-cinzel transition-all ${
-                          selectedAttribute === attr
-                            ? "border-gold bg-gold/20 text-gold"
-                            : "border-border/50 bg-black/30 text-parchment hover:border-gold/50"
-                        }`}
-                      >
-                        {attr}
-                      </button>
-                    ))}
+              <div className="grid grid-cols-1 gap-4">
+                {ATTRIBUTE_OPTIONS.map(attr => (
+                  <div key={attr} className="space-y-2">
+                    <Label className="font-cinzel text-gold text-sm block text-center">
+                      {settings.aids_input_label || "Inserisci il tuo valore di"} {attr}
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={playerValues[attr]}
+                      onChange={(e) => setPlayerValues(prev => ({ ...prev, [attr]: e.target.value }))}
+                      placeholder="es. 5"
+                      className="input-gothic rounded-sm text-center text-2xl h-14"
+                      data-testid={`aid-player-value-${attr}`}
+                    />
                   </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Label className="font-cinzel text-gold text-sm text-center block">
-                  {settings.aids_input_label || "Inserisci il tuo valore di"} {selectedAttribute || "attributo"}
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={playerValue}
-                  onChange={(e) => setPlayerValue(e.target.value)}
-                  placeholder="es. 5"
-                  className="input-gothic rounded-sm text-center text-2xl h-16"
-                  autoFocus
-                  data-testid="aid-player-value"
-                />
+                ))}
               </div>
 
               <Button
                 onClick={handleValueSubmit}
-                disabled={!playerValue || (uniqueAttributes.length > 1 && !selectedAttribute)}
                 className="w-full bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm btn-gothic font-cinzel h-12"
                 data-testid="aid-submit-value"
               >
