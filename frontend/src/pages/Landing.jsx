@@ -106,8 +106,7 @@ export default function Landing() {
                   {settings.landing_feature3_title}
                 </h4>
                 <p className="font-body text-muted-foreground leading-relaxed">
-                  Ogni giocatore ha un numero limitato di azioni. 
-                  Usa saggiamente il tuo potere di interrogazione.
+                  {settings.landing_feature3_desc}
                 </p>
               </div>
             </div>
