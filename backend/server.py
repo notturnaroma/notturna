@@ -456,6 +456,150 @@ async def update_settings(data: AppSettings, user: dict = Depends(get_admin_user
     )
     return {"message": "Impostazioni aggiornate"}
 
+# ==================== CHALLENGES (PROVE LARP) ROUTES ====================
+
+@api_router.post("/challenges", response_model=ChallengeResponse)
+async def create_challenge(data: ChallengeCreate, user: dict = Depends(get_admin_user)):
+    """Crea una nuova prova LARP"""
+    challenge_id = str(uuid.uuid4())
+    challenge_doc = {
+        "id": challenge_id,
+        "name": data.name,
+        "description": data.description,
+        "tests": [t.model_dump() for t in data.tests],
+        "keywords": [k.lower() for k in data.keywords],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": user["username"]
+    }
+    await db.challenges.insert_one(challenge_doc)
+    return ChallengeResponse(**challenge_doc)
+
+@api_router.get("/challenges", response_model=List[ChallengeResponse])
+async def get_challenges(user: dict = Depends(get_current_user)):
+    """Lista tutte le prove"""
+    challenges = await db.challenges.find({}, {"_id": 0}).to_list(1000)
+    return [ChallengeResponse(**c) for c in challenges]
+
+@api_router.delete("/challenges/{challenge_id}")
+async def delete_challenge(challenge_id: str, user: dict = Depends(get_admin_user)):
+    """Elimina una prova"""
+    result = await db.challenges.delete_one({"id": challenge_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Prova non trovata")
+    return {"message": "Prova eliminata"}
+
+@api_router.put("/challenges/{challenge_id}")
+async def update_challenge(challenge_id: str, data: ChallengeCreate, user: dict = Depends(get_admin_user)):
+    """Aggiorna una prova"""
+    update_doc = {
+        "name": data.name,
+        "description": data.description,
+        "tests": [t.model_dump() for t in data.tests],
+        "keywords": [k.lower() for k in data.keywords],
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": user["username"]
+    }
+    result = await db.challenges.update_one({"id": challenge_id}, {"$set": update_doc})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Prova non trovata")
+    return {"message": "Prova aggiornata"}
+
+import random
+
+@api_router.post("/challenges/attempt")
+async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_current_user)):
+    """Tenta una prova - calcola il risultato"""
+    # Check action limit
+    if user["used_actions"] >= user["max_actions"]:
+        raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
+    
+    challenge = await db.challenges.find_one({"id": data.challenge_id}, {"_id": 0})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Prova non trovata")
+    
+    if data.test_index < 0 or data.test_index >= len(challenge["tests"]):
+        raise HTTPException(status_code=400, detail="Indice prova non valido")
+    
+    test = challenge["tests"][data.test_index]
+    
+    # Calcolo con fattori random
+    player_roll = random.randint(1, 5)
+    difficulty_roll = random.randint(1, 5)
+    
+    player_result = data.player_value * player_roll
+    difficulty_result = test["difficulty"] * difficulty_roll
+    
+    # Determina esito
+    if player_result > difficulty_result:
+        outcome = "success"
+        outcome_text = test["success_text"]
+    elif player_result == difficulty_result:
+        outcome = "tie"
+        outcome_text = test["tie_text"]
+    else:
+        outcome = "failure"
+        outcome_text = test["failure_text"]
+    
+    # Formato output richiesto
+    result_message = f"Con il risultato di ({data.player_value}×{player_roll}) {player_result} contro ({test['difficulty']}×{difficulty_roll}) {difficulty_result}: {outcome_text}"
+    
+    # Salva nel log
+    attempt_log = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "challenge_id": data.challenge_id,
+        "challenge_name": challenge["name"],
+        "test_attribute": test["attribute"],
+        "player_value": data.player_value,
+        "player_roll": player_roll,
+        "player_result": player_result,
+        "difficulty": test["difficulty"],
+        "difficulty_roll": difficulty_roll,
+        "difficulty_result": difficulty_result,
+        "outcome": outcome,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.challenge_attempts.insert_one(attempt_log)
+    
+    # Update used actions
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$inc": {"used_actions": 1}}
+    )
+    
+    return {
+        "challenge_name": challenge["name"],
+        "attribute": test["attribute"],
+        "player_value": data.player_value,
+        "player_roll": player_roll,
+        "player_result": player_result,
+        "difficulty": test["difficulty"],
+        "difficulty_roll": difficulty_roll,
+        "difficulty_result": difficulty_result,
+        "outcome": outcome,
+        "message": result_message
+    }
+
+@api_router.get("/challenges/search")
+async def search_challenges(q: str, user: dict = Depends(get_current_user)):
+    """Cerca prove per parole chiave"""
+    q_lower = q.lower()
+    challenges = await db.challenges.find({}, {"_id": 0}).to_list(1000)
+    
+    matches = []
+    for c in challenges:
+        # Cerca nelle keywords
+        for kw in c.get("keywords", []):
+            if kw in q_lower or q_lower in kw:
+                matches.append(c)
+                break
+        else:
+            # Cerca nel nome e descrizione
+            if q_lower in c["name"].lower() or q_lower in c["description"].lower():
+                matches.append(c)
+    
+    return matches
+
 app.include_router(api_router)
 
 app.add_middleware(
