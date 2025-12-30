@@ -10,7 +10,8 @@ import {
   MessageSquare,
   Loader2,
   BookOpen,
-  Swords
+  Swords,
+  Sparkles
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
