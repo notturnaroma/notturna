@@ -146,5 +146,7 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Per favore testa la creazione/modifica di Focalizzazioni con data inizio/fine e il flusso giocatore: inserimento valori Saggezza/Percezione/Intelligenza, scelta Focalizzazione disponibile e registrazione in archivio."
+  - agent: "testing"
+    message: "✅ BACKEND TESTING COMPLETATO - Sistema Focalizzazioni (AIDS) completamente funzionante. Tutti i 4 punti della review request superati: creazione con end_date, GET con campi temporali, filtro active con finestre temporali diverse (incluso attraversamento mezzanotte), uso con validazione finestra temporale e attributi. Testato con credenziali admin/giocatore reali. Sistema pronto per produzione."
 
 #====================================================================================================
