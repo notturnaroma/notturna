@@ -61,7 +61,7 @@ export default function Login({ onLogin }) {
         {/* Form Card */}
         <div className="form-gothic rounded-sm p-8 fade-in" data-testid="login-form">
           <h2 className="font-cinzel text-2xl text-parchment text-center mb-8 uppercase tracking-widest">
-            Accedi
+            {settings.auth_login_title || "Accedi"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
