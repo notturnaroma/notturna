@@ -66,9 +66,9 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
 
   const getOutcomeLabel = (outcome) => {
     switch (outcome) {
-      case "success": return "SUCCESSO!";
-      case "tie": return "PARITÀ";
-      case "failure": return "FALLIMENTO";
+      case "success": return "Successo!";
+      case "tie": return "Parità";
+      case "failure": return "Fallimento";
       default: return "";
     }
   };
