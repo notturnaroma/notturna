@@ -180,6 +180,34 @@ class ChallengeAttempt(BaseModel):
     test_index: int  # quale prova ha scelto (0, 1, 2...)
     player_value: int  # valore attributo del giocatore
 
+# ==================== AIUTI ATTRIBUTO MODELS ====================
+
+class AidLevel(BaseModel):
+    level: int  # 2, 4, o 5
+    level_name: str  # "minore", "medio", "maggiore"
+    text: str  # testo dell'aiuto
+
+class AidCreate(BaseModel):
+    name: str  # es. "Collegamento Intelligenza"
+    attribute: str  # es. "Intelligenza"
+    levels: List[AidLevel]  # array di livelli con testi
+    event_date: str  # data evento (YYYY-MM-DD)
+
+class AidResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    attribute: str
+    levels: List[dict]
+    event_date: str
+    created_at: str
+    created_by: str
+
+class UseAid(BaseModel):
+    aid_id: str
+    level: int  # quale livello sta usando (2, 4 o 5)
+    player_attribute_value: int  # valore attributo del giocatore
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
