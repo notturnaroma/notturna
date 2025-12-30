@@ -122,13 +122,16 @@ frontend:
     implemented: true
     working: false
     file: "frontend/src/components/AidsModal.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Aggiornato AidsModal per opzione B (inserimento valori per tutti e 3 gli attributi), AidsPanel per select attributo fisso + end_date e macrofinestra evento nel CustomizePanel. Da verificare e2e."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUES FOUND: 1) Frontend login flow non funziona - rimane sulla pagina login invece di reindirizzare al dashboard 2) Persistenza valori attributi non funziona - alla seconda apertura del modale richiede nuovamente i valori invece di saltare al passo di selezione 3) Archivio non testato per problemi di overlay modal. ✅ FUNZIONALITÀ CORE TESTATE: Prima apertura modale con inserimento valori (Saggezza=5, Percezione=3, Intelligenza=4) ✓, visualizzazione 7 Focalizzazioni disponibili ✓, uso Focalizzazione con successo ✓, notifica 'Focalizzazione ottenuta' ✓. Backend API completamente funzionante."
 metadata:
   created_by: "main_agent"
   version: "1.0"
