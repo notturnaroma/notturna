@@ -13,7 +13,8 @@ import {
   Loader2,
   Shield,
   MessageSquare,
-  Swords
+  Swords,
+  Sparkles
 } from "lucide-react";
 import ChallengeModal from "@/components/ChallengeModal";
 import AidsModal from "@/components/AidsModal";
