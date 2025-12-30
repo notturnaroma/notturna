@@ -14,7 +14,9 @@ const defaultSettings = {
   hero_description: "Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande e ricevere risposte dai custodi del sapere arcano.",
   chat_placeholder: "Poni la tua domanda all'Oracolo...",
   oracle_name: "L'Oracolo",
-  background_image_url: null
+  background_image_url: null,
+  event_window_start: null,
+  event_window_end: null
 };
 
 const SettingsContext = createContext(defaultSettings);
