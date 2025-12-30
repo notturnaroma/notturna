@@ -189,6 +189,38 @@ class AppSettingsResponse(BaseModel):
     hero_description: str
     chat_placeholder: str
     oracle_name: str
+    chat_waiting_message: Optional[str] = "è in attesa"
+    chat_loading_message: Optional[str] = "Consulto gli antichi tomi..."
+    nav_archive: Optional[str] = "ARCHIVIO"
+    nav_admin: Optional[str] = "ADMIN"
+    nav_logout: Optional[str] = "ESCI"
+    nav_aids: Optional[str] = "FOCALIZZAZIONI"
+    aids_title: Optional[str] = "Focalizzazioni degli Attributi"
+    aids_subtitle: Optional[str] = "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"
+    aids_no_active: Optional[str] = "Nessuna focalizzazione attiva in questo momento"
+    aids_no_active_desc: Optional[str] = "Le focalizzazioni sono disponibili solo durante gli eventi dal vivo"
+    aids_obtained: Optional[str] = "Focalizzazione Ottenuta"
+    aids_input_label: Optional[str] = "Inserisci il tuo valore di"
+    challenge_title: Optional[str] = "Prova Richiesta"
+    challenge_success: Optional[str] = "Successo!"
+    challenge_tie: Optional[str] = "Parità"
+    challenge_failure: Optional[str] = "Fallimento"
+    challenge_roll_btn: Optional[str] = "LANCIA I DADI"
+    archive_title: Optional[str] = "Le Tue Consultazioni"
+    archive_select: Optional[str] = "Seleziona una consultazione"
+    archive_select_desc: Optional[str] = "Clicca su una delle tue domande passate per visualizzare i dettagli della consultazione."
+    actions_exhausted: Optional[str] = "Hai esaurito le tue azioni disponibili"
+    auth_login_title: Optional[str] = "Accedi"
+    auth_register_title: Optional[str] = "Registrati"
+    auth_login_btn: Optional[str] = "ENTRA NELL'ARCHIVIO"
+    auth_register_btn: Optional[str] = "UNISCITI ALL'ARCHIVIO"
+    landing_cta: Optional[str] = "INIZIA IL TUO VIAGGIO"
+    landing_feature1_title: Optional[str] = "Interroga l'Oracolo"
+    landing_feature1_desc: Optional[str] = "Poni le tue domande all'intelligenza arcana che custodisce le conoscenze dell'evento."
+    landing_feature2_title: Optional[str] = "Archivio Personale"
+    landing_feature2_desc: Optional[str] = "Ogni tua domanda e risposta viene conservata nel tuo archivio personale per futura consultazione."
+    landing_feature3_title: Optional[str] = "Azioni Limitate"
+    landing_feature3_desc: Optional[str] = "Ogni giocatore ha un numero limitato di azioni. Usa saggiamente il tuo potere di interrogazione."
     background_image_url: Optional[str]
 
 # ==================== PROVE LARP MODELS ====================
