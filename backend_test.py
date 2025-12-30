@@ -179,6 +179,374 @@ class ArchivioMaledettoAPITester:
         # and assume the admin endpoints will work
         return True
 
+    def make_user_admin_via_script(self):
+        """Make the admin user actually an admin using the make_admin.py script"""
+        if not self.admin_id:
+            return False
+        
+        try:
+            import subprocess
+            import os
+            
+            # Change to backend directory and run make_admin.py
+            backend_dir = "/app/backend"
+            result = subprocess.run(
+                ["python", "make_admin.py", self.admin_id],
+                cwd=backend_dir,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode == 0:
+                print(f"✅ Successfully made user {self.admin_id} an admin")
+                return True
+            else:
+                print(f"❌ Failed to make user admin: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception making user admin: {str(e)}")
+            return False
+
+    def test_aids_creation(self):
+        """Test creating Focalizzazioni with end_date and time window"""
+        if not self.admin_token:
+            self.log_test("AIDS Creation", False, "No admin token available")
+            return False
+
+        # Test 1: Create aid with end_date
+        today = datetime.now()
+        tomorrow = today + timedelta(days=1)
+        
+        aid_data = {
+            "name": "Focalizzazione Intelligenza Test",
+            "attribute": "Intelligenza",
+            "levels": [
+                {"level": 2, "level_name": "minore", "text": "Bonus minore di Intelligenza"},
+                {"level": 4, "level_name": "medio", "text": "Bonus medio di Intelligenza"},
+                {"level": 5, "level_name": "maggiore", "text": "Bonus maggiore di Intelligenza"}
+            ],
+            "event_date": today.strftime("%Y-%m-%d"),
+            "end_date": tomorrow.strftime("%Y-%m-%d"),
+            "start_time": "10:00",
+            "end_time": "18:00"
+        }
+        
+        success, response = self.run_test(
+            "Create Aid with end_date",
+            "POST",
+            "aids",
+            200,
+            data=aid_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and 'id' in response:
+            self.created_aids.append(response['id'])
+            # Verify response contains end_date and no _id
+            if 'end_date' not in response:
+                self.log_test("Aid Response Validation", False, "Response missing end_date field")
+                return False
+            if '_id' in response:
+                self.log_test("Aid Response Validation", False, "Response contains _id field")
+                return False
+            self.log_test("Aid Response Validation", True, "Response format correct")
+        
+        # Test 2: Create aid without end_date (should work)
+        aid_data_no_end = {
+            "name": "Focalizzazione Saggezza Test",
+            "attribute": "Saggezza",
+            "levels": [
+                {"level": 2, "level_name": "minore", "text": "Bonus minore di Saggezza"}
+            ],
+            "event_date": today.strftime("%Y-%m-%d"),
+            "start_time": "09:00",
+            "end_time": "17:00"
+        }
+        
+        success, response = self.run_test(
+            "Create Aid without end_date",
+            "POST",
+            "aids",
+            200,
+            data=aid_data_no_end,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and 'id' in response:
+            self.created_aids.append(response['id'])
+        
+        return success
+
+    def test_aids_get_all(self):
+        """Test GET /api/aids - should return all aids with time fields"""
+        success, response = self.run_test(
+            "Get All AIDS",
+            "GET",
+            "aids",
+            200,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        if success and isinstance(response, list):
+            # Verify each aid has required fields
+            for aid in response:
+                required_fields = ['event_date', 'start_time', 'end_time']
+                for field in required_fields:
+                    if field not in aid:
+                        self.log_test("AIDS Fields Validation", False, f"Missing field: {field}")
+                        return False
+                # end_date can be null or string
+                if 'end_date' not in aid:
+                    self.log_test("AIDS Fields Validation", False, "Missing end_date field")
+                    return False
+            
+            self.log_test("AIDS Fields Validation", True, "All required fields present")
+        
+        return success
+
+    def test_aids_active_filtering(self):
+        """Test GET /api/aids/active - should filter by time window"""
+        if not self.admin_token:
+            self.log_test("AIDS Active Filtering", False, "No admin token available")
+            return False
+
+        # Create aids with different time windows
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
+        tomorrow = now + timedelta(days=1)
+        
+        # Aid 1: Active now (today 00:00 to 23:59)
+        active_aid = {
+            "name": "Focalizzazione Attiva",
+            "attribute": "Percezione",
+            "levels": [{"level": 2, "level_name": "minore", "text": "Test attivo"}],
+            "event_date": now.strftime("%Y-%m-%d"),
+            "start_time": "00:00",
+            "end_time": "23:59"
+        }
+        
+        success, response = self.run_test(
+            "Create Active Aid",
+            "POST",
+            "aids",
+            200,
+            data=active_aid,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and 'id' in response:
+            self.created_aids.append(response['id'])
+        
+        # Aid 2: Not active (yesterday)
+        inactive_aid = {
+            "name": "Focalizzazione Inattiva",
+            "attribute": "Intelligenza",
+            "levels": [{"level": 2, "level_name": "minore", "text": "Test inattivo"}],
+            "event_date": yesterday.strftime("%Y-%m-%d"),
+            "end_date": yesterday.strftime("%Y-%m-%d"),
+            "start_time": "10:00",
+            "end_time": "18:00"
+        }
+        
+        success, response = self.run_test(
+            "Create Inactive Aid",
+            "POST",
+            "aids",
+            200,
+            data=inactive_aid,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and 'id' in response:
+            self.created_aids.append(response['id'])
+        
+        # Aid 3: Test midnight crossing (today 22:00 to tomorrow 02:00)
+        midnight_aid = {
+            "name": "Focalizzazione Mezzanotte",
+            "attribute": "Saggezza",
+            "levels": [{"level": 2, "level_name": "minore", "text": "Test mezzanotte"}],
+            "event_date": now.strftime("%Y-%m-%d"),
+            "end_date": tomorrow.strftime("%Y-%m-%d"),
+            "start_time": "22:00",
+            "end_time": "02:00"
+        }
+        
+        success, response = self.run_test(
+            "Create Midnight Crossing Aid",
+            "POST",
+            "aids",
+            200,
+            data=midnight_aid,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and 'id' in response:
+            self.created_aids.append(response['id'])
+        
+        # Now test the active filtering
+        success, response = self.run_test(
+            "Get Active AIDS",
+            "GET",
+            "aids/active",
+            200,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        if success and isinstance(response, list):
+            # Should contain at least the active aid
+            active_names = [aid['name'] for aid in response]
+            if "Focalizzazione Attiva" not in active_names:
+                self.log_test("Active AIDS Filtering", False, "Active aid not found in results")
+                return False
+            
+            # Should not contain the inactive aid
+            if "Focalizzazione Inattiva" in active_names:
+                self.log_test("Active AIDS Filtering", False, "Inactive aid found in results")
+                return False
+            
+            self.log_test("Active AIDS Filtering", True, "Filtering working correctly")
+        
+        return success
+
+    def test_aids_use_functionality(self):
+        """Test POST /api/aids/use with time window validation"""
+        if not self.token:
+            self.log_test("AIDS Use Functionality", False, "No user token available")
+            return False
+
+        # First, create an active aid for testing
+        now = datetime.now()
+        active_aid = {
+            "name": "Focalizzazione Test Use",
+            "attribute": "Intelligenza",
+            "levels": [
+                {"level": 2, "level_name": "minore", "text": "Bonus test minore"},
+                {"level": 4, "level_name": "medio", "text": "Bonus test medio"}
+            ],
+            "event_date": now.strftime("%Y-%m-%d"),
+            "start_time": "00:00",
+            "end_time": "23:59"
+        }
+        
+        success, response = self.run_test(
+            "Create Aid for Use Test",
+            "POST",
+            "aids",
+            200,
+            data=active_aid,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success or 'id' not in response:
+            self.log_test("AIDS Use Functionality", False, "Failed to create test aid")
+            return False
+        
+        aid_id = response['id']
+        self.created_aids.append(aid_id)
+        
+        # Test 1: Use aid with sufficient attribute value
+        use_data = {
+            "aid_id": aid_id,
+            "level": 2,
+            "player_attribute_value": 3
+        }
+        
+        success, response = self.run_test(
+            "Use Aid with Sufficient Attribute",
+            "POST",
+            "aids/use",
+            200,
+            data=use_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        # Test 2: Try to use same aid/level again (should fail)
+        success, response = self.run_test(
+            "Use Same Aid/Level Again (Should Fail)",
+            "POST",
+            "aids/use",
+            403,
+            data=use_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        # Test 3: Use aid with insufficient attribute value
+        insufficient_data = {
+            "aid_id": aid_id,
+            "level": 4,
+            "player_attribute_value": 2  # Less than required level 4
+        }
+        
+        success, response = self.run_test(
+            "Use Aid with Insufficient Attribute (Should Fail)",
+            "POST",
+            "aids/use",
+            403,
+            data=insufficient_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        # Test 4: Create inactive aid and try to use it
+        yesterday = now - timedelta(days=1)
+        inactive_aid = {
+            "name": "Focalizzazione Inattiva Test",
+            "attribute": "Saggezza",
+            "levels": [{"level": 2, "level_name": "minore", "text": "Test inattivo"}],
+            "event_date": yesterday.strftime("%Y-%m-%d"),
+            "end_date": yesterday.strftime("%Y-%m-%d"),
+            "start_time": "10:00",
+            "end_time": "18:00"
+        }
+        
+        success, response = self.run_test(
+            "Create Inactive Aid for Use Test",
+            "POST",
+            "aids",
+            200,
+            data=inactive_aid,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and 'id' in response:
+            inactive_aid_id = response['id']
+            self.created_aids.append(inactive_aid_id)
+            
+            # Try to use inactive aid (should fail with 403)
+            inactive_use_data = {
+                "aid_id": inactive_aid_id,
+                "level": 2,
+                "player_attribute_value": 3
+            }
+            
+            success, response = self.run_test(
+                "Use Inactive Aid (Should Fail)",
+                "POST",
+                "aids/use",
+                403,
+                data=inactive_use_data,
+                headers={'Authorization': f'Bearer {self.token}'}
+            )
+        
+        return True
+
+    def cleanup_created_aids(self):
+        """Clean up aids created during testing"""
+        if not self.admin_token or not self.created_aids:
+            return
+        
+        for aid_id in self.created_aids:
+            try:
+                success, response = self.run_test(
+                    f"Cleanup Aid {aid_id}",
+                    "DELETE",
+                    f"aids/{aid_id}",
+                    200,
+                    headers={'Authorization': f'Bearer {self.admin_token}'}
+                )
+            except:
+                pass  # Ignore cleanup errors
+
     def test_chat_functionality(self):
         """Test chat with AI"""
         if not self.token:
