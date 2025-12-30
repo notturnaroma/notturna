@@ -11,6 +11,7 @@ import { useSettings } from "@/context/SettingsContext";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Login({ onLogin }) {
+  const { settings } = useSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
