@@ -212,6 +212,18 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               </span>
             </div>
 
+            {/* Aiuti Button */}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowAidsModal(true)}
+              className="text-gold hover:bg-gold/10 font-cinzel"
+              data-testid="aids-nav-btn"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">AIUTI</span>
+            </Button>
+
             <Link to="/archive">
               <Button 
                 variant="ghost" 
