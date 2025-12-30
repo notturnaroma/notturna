@@ -24,6 +24,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [challenges, setChallenges] = useState([]);
+  const [attemptedChallenges, setAttemptedChallenges] = useState([]);
   const [activeChallenge, setActiveChallenge] = useState(null);
   const scrollRef = useRef(null);
 
@@ -31,6 +32,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
 
   useEffect(() => {
     fetchChallenges();
+    fetchAttemptedChallenges();
   }, []);
 
   useEffect(() => {
@@ -52,10 +54,27 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     }
   };
 
-  // Cerca prove che corrispondono alla domanda
+  const fetchAttemptedChallenges = async () => {
+    try {
+      const response = await fetch(`${API}/challenges/my-attempts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setAttemptedChallenges(await response.json());
+      }
+    } catch (error) {
+      console.error("Error fetching attempted challenges:", error);
+    }
+  };
+
+  // Cerca prove che corrispondono alla domanda (escluse quelle già tentate)
   const findMatchingChallenge = (text) => {
     const textLower = text.toLowerCase();
     for (const challenge of challenges) {
+      // Salta se già tentata
+      if (attemptedChallenges.includes(challenge.id)) {
+        continue;
+      }
       // Cerca nelle keywords
       for (const kw of challenge.keywords || []) {
         if (textLower.includes(kw.toLowerCase())) {
