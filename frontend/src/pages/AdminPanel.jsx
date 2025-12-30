@@ -333,7 +333,7 @@ export default function AdminPanel({ user, token, onLogout }) {
                   />
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
                   <Button
                     type="submit"
                     disabled={submitting}
@@ -341,13 +341,13 @@ export default function AdminPanel({ user, token, onLogout }) {
                     data-testid="kb-submit-btn"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                    AGGIUNGI
+                    AGGIUNGI TESTO
                   </Button>
 
                   <div className="relative">
                     <input
                       type="file"
-                      accept=".txt,.md"
+                      accept=".txt,.md,.pdf,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.avi"
                       onChange={handleUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                       data-testid="kb-file-input"
@@ -362,6 +362,10 @@ export default function AdminPanel({ user, token, onLogout }) {
                     </Button>
                   </div>
                 </div>
+
+                <p className="text-xs text-muted-foreground mt-2">
+                  Formati supportati: TXT, MD, PDF, JPG, PNG, GIF, WEBP, MP4, WEBM, MOV (max 50MB)
+                </p>
               </form>
             </div>
 
