@@ -27,7 +27,12 @@ import {
   Shield,
   Crown,
   Palette,
-  Swords
+  Swords,
+  FileText,
+  FileImage,
+  FileVideo,
+  File,
+  ExternalLink
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
