@@ -112,7 +112,7 @@ export default function Login({ onLogin }) {
               className="w-full font-cinzel text-lg h-12 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm btn-gothic"
               data-testid="login-submit-btn"
             >
-              {loading ? "ACCESSO IN CORSO..." : "ENTRA NELL'ARCHIVIO"}
+              {loading ? "ACCESSO IN CORSO..." : (settings.auth_login_btn || "ENTRA NELL'ARCHIVIO")}
             </Button>
           </form>
 
