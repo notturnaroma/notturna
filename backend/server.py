@@ -948,9 +948,9 @@ async def use_aid(data: UseAid, user: dict = Depends(get_current_user)):
     if not aid:
         raise HTTPException(status_code=404, detail="Aiuto non trovato")
     
-    # Verifica data attiva
-    if not is_aid_active(aid["event_date"]):
-        raise HTTPException(status_code=403, detail="Questo aiuto non è attivo oggi. Controlla la data dell'evento.")
+    # Verifica data e orario attivi
+    if not is_aid_active(aid["event_date"], aid.get("start_time", "00:00"), aid.get("end_time", "23:59")):
+        raise HTTPException(status_code=403, detail="Questo aiuto non è attivo in questo momento. Controlla data e orario dell'evento.")
     
     # Verifica se già usato questo livello
     existing = await db.aid_uses.find_one({
