@@ -53,32 +53,40 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
     return usedAids.some(u => u.aid_id === aidId && u.level === level);
   };
 
-  // Quando l'utente inserisce il valore, filtra gli aiuti disponibili
+  // Quando il giocatore inserisce tutti i valori, calcola le focalizzazioni disponibili
   const handleValueSubmit = () => {
-    if (!playerValue || parseInt(playerValue) < 0) {
-      toast.error("Inserisci un valore valido");
+    // Almeno un attributo deve avere un valore valido
+    const entries = Object.entries(playerValues)
+      .map(([attr, val]) => [attr, parseInt(val, 10)])
+      .filter(([, val]) => !isNaN(val) && val >= 0);
+
+    if (entries.length === 0) {
+      toast.error("Inserisci almeno un valore valido per i tuoi attributi");
       return;
     }
-    
-    const val = parseInt(playerValue);
-    
-    // Filtra aiuti per attributo selezionato e trova livelli disponibili
+
+    const valuesMap = Object.fromEntries(entries);
+
+    // Filtra aiuti su tutti gli attributi contemporaneamente
     const filtered = aids
-      .filter(a => !selectedAttribute || a.attribute === selectedAttribute)
       .map(aid => {
-        // Trova livelli che il giocatore può usare (valore >= livello richiesto) e non già usati
-        const availableLevels = aid.levels.filter(l => 
-          val >= l.level && !isLevelUsed(aid.id, l.level)
+        const attr = aid.attribute;
+        const playerVal = valuesMap[attr];
+        if (playerVal == null) return { ...aid, availableLevels: [] };
+
+        const availableLevels = aid.levels.filter(l =>
+          playerVal >= l.level && !isLevelUsed(aid.id, l.level)
         );
         return { ...aid, availableLevels };
       })
       .filter(a => a.availableLevels.length > 0);
-    
+
     if (filtered.length === 0) {
-      toast.error("Nessuna focalizzazione disponibile per il tuo valore");
+      toast.error("Nessuna focalizzazione disponibile per i tuoi valori");
       return;
     }
-    
+
+    setSubmittedValues(valuesMap);
     setAvailableAids(filtered);
     setStep("select");
   };
