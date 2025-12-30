@@ -162,6 +162,10 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       timestamp: new Date().toISOString()
     };
     setMessages(prev => [...prev, resultMessage]);
+    // Aggiorna la lista delle prove tentate
+    if (activeChallenge) {
+      setAttemptedChallenges(prev => [...prev, activeChallenge.id]);
+    }
     refreshUser();
   };
 
