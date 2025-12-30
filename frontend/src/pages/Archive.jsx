@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import { 
   ArrowLeft, 
   Scroll, 
-import { useSettings } from "@/context/SettingsContext";
-
   Calendar,
   MessageSquare,
   Loader2,
@@ -15,6 +13,7 @@ import { useSettings } from "@/context/SettingsContext";
   Swords,
   Sparkles
 } from "lucide-react";
+import { useSettings } from "@/context/SettingsContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
