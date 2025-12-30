@@ -235,6 +235,46 @@ export default function Archive({ user, token, onLogout }) {
                           </div>
                         </div>
                       </>
+                    ) : selectedChat.type === "aid" && selectedChat.aid_data ? (
+                      <>
+                        {/* Per gli aiuti */}
+                        <div className="fade-in">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Sparkles className="w-4 h-4 text-gold" />
+                            <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                              Aiuto Attributo
+                            </span>
+                          </div>
+                          <div className="bg-gold/10 border border-gold/30 p-4 rounded-sm">
+                            <h3 className="font-gothic text-xl text-gold mb-2">
+                              {selectedChat.aid_data.aid_name}
+                            </h3>
+                            <p className="font-cinzel text-sm text-parchment mb-1">
+                              Attributo: {selectedChat.aid_data.attribute}
+                            </p>
+                            <p className="font-body text-muted-foreground text-sm">
+                              Livello: {selectedChat.aid_data.level_name} (richiesto ≥ {selectedChat.aid_data.level})
+                            </p>
+                            <p className="font-body text-muted-foreground text-sm">
+                              Il tuo valore: {selectedChat.aid_data.player_value}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Testo Aiuto */}
+                        <div className="fade-in">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                              Testo dell'Aiuto
+                            </span>
+                          </div>
+                          <div className="bg-secondary/30 border border-gold/30 p-4 rounded-sm">
+                            <p className="font-body text-parchment leading-relaxed">
+                              {selectedChat.aid_data.text}
+                            </p>
+                          </div>
+                        </div>
+                      </>
                     ) : (
                       <>
                         {/* Per le domande normali */}
