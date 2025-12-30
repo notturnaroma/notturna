@@ -183,29 +183,24 @@ class ArchivioMaledettoAPITester:
 
     def make_user_admin_via_script(self):
         """Make the admin user actually an admin using the make_admin.py script"""
-        if not self.admin_id:
+        if not self.admin_email:
             return False
         
         try:
             import subprocess
             import os
             
-            # We need to get the admin user's email first
-            # Since we registered the admin user, we can construct the email
-            timestamp = datetime.now().strftime('%H%M%S')
-            admin_email = f"admin_{timestamp}@example.com"
-            
             # Change to backend directory and run make_admin.py
             backend_dir = "/app/backend"
             result = subprocess.run(
-                ["python", "make_admin.py", admin_email],
+                ["python", "make_admin.py", self.admin_email],
                 cwd=backend_dir,
                 capture_output=True,
                 text=True
             )
             
             if result.returncode == 0:
-                print(f"✅ Successfully made user {admin_email} an admin")
+                print(f"✅ Successfully made user {self.admin_email} an admin")
                 return True
             else:
                 print(f"❌ Failed to make user admin: {result.stderr}")
