@@ -120,6 +120,7 @@ class ArchivioMaledettoAPITester:
         if success and 'access_token' in response:
             self.admin_token = response['access_token']
             self.admin_id = response['user']['id']
+            self.admin_email = admin_user['email']  # Store email for make_admin script
             return True
         return False
 
