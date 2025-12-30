@@ -583,6 +583,11 @@ export default function AdminPanel({ user, token, onLogout }) {
           <TabsContent value="challenges">
             <ChallengesPanel token={token} />
           </TabsContent>
+
+          {/* Aids Tab */}
+          <TabsContent value="aids">
+            <AidsPanel token={token} />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
