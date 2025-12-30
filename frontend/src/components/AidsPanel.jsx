@@ -68,6 +68,8 @@ export default function AidsPanel({ token }) {
       name: "",
       attribute: "",
       event_date: "",
+      start_time: "21:00",
+      end_time: "03:00",
       levels: [...defaultLevels.map(l => ({ ...l }))]
     });
     setEditingId(null);
@@ -79,6 +81,8 @@ export default function AidsPanel({ token }) {
       name: aid.name,
       attribute: aid.attribute,
       event_date: aid.event_date,
+      start_time: aid.start_time || "21:00",
+      end_time: aid.end_time || "03:00",
       levels: aid.levels.map(l => ({ ...l }))
     });
     setEditingId(aid.id);
