@@ -225,6 +225,8 @@ class AppSettingsResponse(BaseModel):
     landing_feature3_title: Optional[str] = "Azioni Limitate"
     landing_feature3_desc: Optional[str] = "Ogni giocatore ha un numero limitato di azioni. Usa saggiamente il tuo potere di interrogazione."
     background_image_url: Optional[str]
+    event_window_start: Optional[str] = None
+    event_window_end: Optional[str] = None
 
 # ==================== PROVE LARP MODELS ====================
 
