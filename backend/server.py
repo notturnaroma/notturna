@@ -175,6 +175,9 @@ class AppSettings(BaseModel):
     landing_feature3_title: str = "Azioni Limitate"
     landing_feature3_desc: str = "Ogni giocatore ha un numero limitato di azioni. Usa saggiamente il tuo potere di interrogazione."
     background_image_url: Optional[str] = None
+    # Finestra temporale macro evento live (opzionale)
+    event_window_start: Optional[str] = None
+    event_window_end: Optional[str] = None
 
 class AppSettingsResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
