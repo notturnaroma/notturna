@@ -588,7 +588,15 @@ import random
 
 @api_router.post("/challenges/attempt")
 async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_current_user)):
-    """Tenta una prova - calcola il risultato"""
+    """Tenta una prova - calcola il risultato (una sola volta per utente)"""
+    # Check if user already attempted this challenge
+    existing_attempt = await db.challenge_attempts.find_one({
+        "user_id": user["id"],
+        "challenge_id": data.challenge_id
+    })
+    if existing_attempt:
+        raise HTTPException(status_code=403, detail="Hai già tentato questa prova. Non puoi ripeterla.")
+    
     # Check action limit
     if user["used_actions"] >= user["max_actions"]:
         raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
@@ -623,12 +631,13 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     # Formato output richiesto
     result_message = f"Con il risultato di ({data.player_value}×{player_roll}) {player_result} contro ({test['difficulty']}×{difficulty_roll}) {difficulty_result}: {outcome_text}"
     
-    # Salva nel log
+    # Salva nel log (questo blocca tentativi futuri)
     attempt_log = {
         "id": str(uuid.uuid4()),
         "user_id": user["id"],
         "challenge_id": data.challenge_id,
         "challenge_name": challenge["name"],
+        "test_index": data.test_index,
         "test_attribute": test["attribute"],
         "player_value": data.player_value,
         "player_roll": player_roll,
@@ -659,6 +668,15 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
         "outcome": outcome,
         "message": result_message
     }
+
+@api_router.get("/challenges/my-attempts")
+async def get_my_attempts(user: dict = Depends(get_current_user)):
+    """Ottieni lista delle prove già tentate dall'utente"""
+    attempts = await db.challenge_attempts.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "challenge_id": 1}
+    ).to_list(1000)
+    return [a["challenge_id"] for a in attempts]
 
 @api_router.get("/challenges/search")
 async def search_challenges(q: str, user: dict = Depends(get_current_user)):
