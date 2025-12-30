@@ -12,8 +12,10 @@ import {
   Scroll,
   Loader2,
   Shield,
-  MessageSquare
+  MessageSquare,
+  Swords
 } from "lucide-react";
+import ChallengeModal from "@/components/ChallengeModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -21,15 +23,52 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [challenges, setChallenges] = useState([]);
+  const [activeChallenge, setActiveChallenge] = useState(null);
   const scrollRef = useRef(null);
 
   const remainingActions = user ? user.max_actions - user.used_actions : 0;
+
+  useEffect(() => {
+    fetchChallenges();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const fetchChallenges = async () => {
+    try {
+      const response = await fetch(`${API}/challenges`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setChallenges(await response.json());
+      }
+    } catch (error) {
+      console.error("Error fetching challenges:", error);
+    }
+  };
+
+  // Cerca prove che corrispondono alla domanda
+  const findMatchingChallenge = (text) => {
+    const textLower = text.toLowerCase();
+    for (const challenge of challenges) {
+      // Cerca nelle keywords
+      for (const kw of challenge.keywords || []) {
+        if (textLower.includes(kw.toLowerCase())) {
+          return challenge;
+        }
+      }
+      // Cerca nel nome
+      if (textLower.includes(challenge.name.toLowerCase())) {
+        return challenge;
+      }
+    }
+    return null;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +78,23 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       toast.error("Azioni esaurite", { 
         description: "Hai esaurito tutte le tue azioni disponibili" 
       });
+      return;
+    }
+
+    // Controlla se la domanda corrisponde a una prova
+    const matchedChallenge = findMatchingChallenge(question);
+    if (matchedChallenge) {
+      const userMessage = { type: "user", text: question, timestamp: new Date().toISOString() };
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Mostra la prova trovata
+      const challengeMessage = { 
+        type: "challenge", 
+        challenge: matchedChallenge,
+        timestamp: new Date().toISOString() 
+      };
+      setMessages(prev => [...prev, challengeMessage]);
+      setQuestion("");
       return;
     }
 
@@ -65,7 +121,6 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
         refreshUser();
       } else {
         toast.error("Errore", { description: data.detail || "Errore nella richiesta" });
-        // Remove the user message if request failed
         setMessages(prev => prev.slice(0, -1));
       }
     } catch (error) {
@@ -74,6 +129,25 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStartChallenge = (challenge) => {
+    setActiveChallenge(challenge);
+  };
+
+  const handleChallengeResult = (result) => {
+    // Aggiungi il risultato alla chat
+    const resultMessage = {
+      type: "challenge-result",
+      result: result,
+      timestamp: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, resultMessage]);
+    refreshUser();
+  };
+
+  const handleCloseChallenge = () => {
+    setActiveChallenge(null);
   };
 
   return (
@@ -167,25 +241,99 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
             ) : (
               <div className="space-y-4">
                 {messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`fade-in ${msg.type === "user" ? "flex justify-end" : "flex justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[85%] md:max-w-[75%] p-4 rounded-sm ${
-                        msg.type === "user"
-                          ? "chat-message-user text-gold"
-                          : "chat-message-ai text-parchment"
-                      }`}
-                      data-testid={msg.type === "user" ? "user-message" : "ai-message"}
-                    >
-                      <p className="font-cinzel text-xs mb-2 opacity-70 uppercase tracking-wide">
-                        {msg.type === "user" ? user?.username : "L'Oracolo"}
-                      </p>
-                      <p className="font-body whitespace-pre-wrap leading-relaxed">
-                        {msg.text}
-                      </p>
-                    </div>
+                  <div key={idx} className="fade-in">
+                    {/* Messaggio utente */}
+                    {msg.type === "user" && (
+                      <div className="flex justify-end">
+                        <div className="max-w-[85%] md:max-w-[75%] p-4 rounded-sm chat-message-user text-gold">
+                          <p className="font-cinzel text-xs mb-2 opacity-70 uppercase tracking-wide">
+                            {user?.username}
+                          </p>
+                          <p className="font-body whitespace-pre-wrap leading-relaxed">
+                            {msg.text}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Messaggio AI */}
+                    {msg.type === "ai" && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[85%] md:max-w-[75%] p-4 rounded-sm chat-message-ai text-parchment">
+                          <p className="font-cinzel text-xs mb-2 opacity-70 uppercase tracking-wide">
+                            L'Oracolo
+                          </p>
+                          <p className="font-body whitespace-pre-wrap leading-relaxed">
+                            {msg.text}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prova trovata */}
+                    {msg.type === "challenge" && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[90%] p-4 rounded-sm bg-secondary/30 border border-gold/30">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Swords className="w-5 h-5 text-gold" />
+                            <p className="font-cinzel text-gold uppercase tracking-wide text-sm">
+                              Prova Richiesta
+                            </p>
+                          </div>
+                          <p className="font-gothic text-xl text-parchment mb-2">
+                            {msg.challenge.name}
+                          </p>
+                          <p className="font-body text-muted-foreground mb-4">
+                            {msg.challenge.description}
+                          </p>
+                          <div className="space-y-2 mb-4">
+                            {msg.challenge.tests.map((test, i) => (
+                              <div key={i} className="text-sm p-2 bg-black/30 rounded">
+                                <span className="text-gold font-cinzel">PROVA {i + 1}:</span>{" "}
+                                <span className="text-parchment">{test.attribute}</span>{" "}
+                                <span className="text-muted-foreground">(difficoltà {test.difficulty})</span>
+                              </div>
+                            ))}
+                          </div>
+                          <Button
+                            onClick={() => handleStartChallenge(msg.challenge)}
+                            className="bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm btn-gothic font-cinzel"
+                            data-testid="start-challenge-btn"
+                          >
+                            <Swords className="w-4 h-4 mr-2" />
+                            AFFRONTA LA PROVA
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Risultato prova */}
+                    {msg.type === "challenge-result" && (
+                      <div className="flex justify-start">
+                        <div className={`max-w-[90%] p-4 rounded-sm border-2 ${
+                          msg.result.outcome === "success" ? "border-green-500/50 bg-green-500/10" :
+                          msg.result.outcome === "tie" ? "border-yellow-500/50 bg-yellow-500/10" :
+                          "border-red-500/50 bg-red-500/10"
+                        }`}>
+                          <p className={`font-gothic text-xl mb-2 ${
+                            msg.result.outcome === "success" ? "text-green-400" :
+                            msg.result.outcome === "tie" ? "text-yellow-400" : "text-red-400"
+                          }`}>
+                            {msg.result.outcome === "success" ? "SUCCESSO!" :
+                             msg.result.outcome === "tie" ? "PARITÀ" : "FALLIMENTO"}
+                          </p>
+                          <p className="font-body text-parchment text-sm mb-2">
+                            {msg.result.attribute}
+                          </p>
+                          <p className="font-body text-muted-foreground text-sm mb-3">
+                            ({msg.result.player_value}×{msg.result.player_roll}) {msg.result.player_result} vs ({msg.result.difficulty}×{msg.result.difficulty_roll}) {msg.result.difficulty_result}
+                          </p>
+                          <p className="font-body text-parchment leading-relaxed">
+                            {msg.result.message.split(": ").slice(1).join(": ")}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {loading && (
@@ -245,6 +393,16 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           </div>
         </div>
       </main>
+
+      {/* Challenge Modal */}
+      {activeChallenge && (
+        <ChallengeModal
+          challenge={activeChallenge}
+          token={token}
+          onClose={handleCloseChallenge}
+          onResult={handleChallengeResult}
+        />
+      )}
     </div>
   );
 }
