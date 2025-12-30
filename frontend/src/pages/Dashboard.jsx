@@ -16,10 +16,12 @@ import {
   Swords
 } from "lucide-react";
 import ChallengeModal from "@/components/ChallengeModal";
+import { useSettings } from "@/context/SettingsContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Dashboard({ user, token, onLogout, refreshUser }) {
+  const { settings } = useSettings();
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
