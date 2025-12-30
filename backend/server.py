@@ -128,11 +128,52 @@ class AppSettings(BaseModel):
     secondary_color: str = "#000033"
     accent_color: str = "#b8860b"
     background_color: str = "#050505"
+    # Hero texts
     hero_title: str = "Svela i Segreti"
     hero_subtitle: str = "dell'Antico Sapere"
     hero_description: str = "Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande e ricevere risposte dai custodi del sapere arcano."
+    # Chat texts
     chat_placeholder: str = "Poni la tua domanda all'Oracolo..."
     oracle_name: str = "L'Oracolo"
+    chat_waiting_message: str = "è in attesa"
+    chat_loading_message: str = "Consulto gli antichi tomi..."
+    # Navigation texts
+    nav_archive: str = "ARCHIVIO"
+    nav_admin: str = "ADMIN"
+    nav_logout: str = "ESCI"
+    nav_aids: str = "FOCALIZZAZIONI"
+    # Aids/Focalizzazioni texts
+    aids_title: str = "Focalizzazioni degli Attributi"
+    aids_subtitle: str = "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"
+    aids_no_active: str = "Nessuna focalizzazione attiva in questo momento"
+    aids_no_active_desc: str = "Le focalizzazioni sono disponibili solo durante gli eventi dal vivo"
+    aids_obtained: str = "Focalizzazione Ottenuta"
+    aids_input_label: str = "Inserisci il tuo valore di"
+    # Challenge texts
+    challenge_title: str = "Prova Richiesta"
+    challenge_success: str = "Successo!"
+    challenge_tie: str = "Parità"
+    challenge_failure: str = "Fallimento"
+    challenge_roll_btn: str = "LANCIA I DADI"
+    # Archive texts
+    archive_title: str = "Le Tue Consultazioni"
+    archive_select: str = "Seleziona una consultazione"
+    archive_select_desc: str = "Clicca su una delle tue domande passate per visualizzare i dettagli della consultazione."
+    # Actions texts
+    actions_exhausted: str = "Hai esaurito le tue azioni disponibili"
+    # Auth texts  
+    auth_login_title: str = "Accedi"
+    auth_register_title: str = "Registrati"
+    auth_login_btn: str = "ENTRA NELL'ARCHIVIO"
+    auth_register_btn: str = "UNISCITI ALL'ARCHIVIO"
+    # Landing texts
+    landing_cta: str = "INIZIA IL TUO VIAGGIO"
+    landing_feature1_title: str = "Interroga l'Oracolo"
+    landing_feature1_desc: str = "Poni le tue domande all'intelligenza arcana che custodisce le conoscenze dell'evento."
+    landing_feature2_title: str = "Archivio Personale"
+    landing_feature2_desc: str = "Ogni tua domanda e risposta viene conservata nel tuo archivio personale per futura consultazione."
+    landing_feature3_title: str = "Azioni Limitate"
+    landing_feature3_desc: str = "Ogni giocatore ha un numero limitato di azioni. Usa saggiamente il tuo potere di interrogazione."
     background_image_url: Optional[str] = None
 
 class AppSettingsResponse(BaseModel):
