@@ -119,12 +119,29 @@ export default function Archive({ user, token, onLogout }) {
                         }`}
                         data-testid={`archive-item-${item.id}`}
                       >
-                        <p className="font-body text-parchment line-clamp-2 mb-2">
-                          {item.question}
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          {item.type === "challenge" ? (
+                            <Swords className="w-4 h-4 text-gold flex-shrink-0" />
+                          ) : (
+                            <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <p className="font-body text-parchment line-clamp-2">
+                            {item.question}
+                          </p>
+                        </div>
                         <div className="flex items-center gap-2 text-muted-foreground text-xs">
                           <Calendar className="w-3 h-3" />
                           <span className="font-body">{formatDate(item.created_at)}</span>
+                          {item.type === "challenge" && item.challenge_data && (
+                            <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
+                              item.challenge_data.outcome === "success" ? "bg-green-500/20 text-green-400" :
+                              item.challenge_data.outcome === "tie" ? "bg-yellow-500/20 text-yellow-400" :
+                              "bg-red-500/20 text-red-400"
+                            }`}>
+                              {item.challenge_data.outcome === "success" ? "Successo" :
+                               item.challenge_data.outcome === "tie" ? "Parità" : "Fallimento"}
+                            </span>
+                          )}
                         </div>
                       </button>
                     ))}
