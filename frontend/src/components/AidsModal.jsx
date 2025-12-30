@@ -208,11 +208,15 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
                 ← Modifica valore
               </Button>
 
-              <div className="p-3 bg-secondary/30 rounded-sm border border-gold/30 text-center">
-                <p className="font-body text-muted-foreground text-sm">
-                  Il tuo valore di <span className="text-gold font-cinzel">{selectedAttribute || aids[0]?.attribute}</span>: 
-                  <span className="text-gold font-gothic text-xl ml-2">{playerValue}</span>
-                </p>
+              <div className="p-3 bg-secondary/30 rounded-sm border border-gold/30 text-center space-y-1">
+                {ATTRIBUTE_OPTIONS.map(attr => (
+                  submittedValues && submittedValues[attr] != null && (
+                    <p key={attr} className="font-body text-muted-foreground text-sm">
+                      Il tuo valore di <span className="text-gold font-cinzel">{attr}</span>:
+                      <span className="text-gold font-gothic text-xl ml-2">{submittedValues[attr]}</span>
+                    </p>
+                  )
+                ))}
               </div>
 
               <p className="font-cinzel text-gold text-sm text-center">
