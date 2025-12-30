@@ -30,6 +30,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [challenges, setChallenges] = useState([]);
   const [attemptedChallenges, setAttemptedChallenges] = useState([]);
   const [activeChallenge, setActiveChallenge] = useState(null);
+  const [showAidsModal, setShowAidsModal] = useState(false);
   const scrollRef = useRef(null);
 
   const remainingActions = user ? user.max_actions - user.used_actions : 0;
