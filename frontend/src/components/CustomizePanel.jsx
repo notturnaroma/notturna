@@ -23,6 +23,23 @@ import {
 } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
+const DEFAULT_SETTINGS = {
+  event_name: "L'Archivio Maledetto",
+  event_logo_url: null,
+  primary_color: "#8a0000",
+  secondary_color: "#000033",
+  accent_color: "#b8860b",
+  background_color: "#050505",
+  hero_title: "Svela i Segreti",
+  hero_subtitle: "dell'Antico Sapere",
+  hero_description: "Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande e ricevere risposte dai custodi del sapere arcano.",
+  chat_placeholder: "Poni la tua domanda all'Oracolo...",
+  oracle_name: "L'Oracolo",
+  background_image_url: null,
+  event_window_start: null,
+  event_window_end: null
+};
+
 export default function CustomizePanel({ token }) {
   const { settings, updateSettings } = useSettings();
   const [formData, setFormData] = useState(settings);
