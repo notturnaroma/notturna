@@ -120,6 +120,8 @@ export default function AidsPanel({ token }) {
       name: formData.name,
       attribute: formData.attribute,
       event_date: formData.event_date,
+      start_time: formData.start_time,
+      end_time: formData.end_time,
       levels: formData.levels
     };
 
