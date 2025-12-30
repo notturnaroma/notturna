@@ -951,7 +951,7 @@ async def use_aid(data: UseAid, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Aiuto non trovato")
     
     # Verifica data e orario attivi
-    if not is_aid_active(aid["event_date"], aid.get("start_time", "00:00"), aid.get("end_time", "23:59")):
+    if not is_aid_active(aid["event_date"], aid.get("start_time", "00:00"), aid.get("end_time", "23:59"), aid.get("end_date")):
         raise HTTPException(status_code=403, detail="Questo aiuto non è attivo in questo momento. Controlla data e orario dell'evento.")
     
     # Verifica se già usato questo livello
