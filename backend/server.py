@@ -650,6 +650,31 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     }
     await db.challenge_attempts.insert_one(attempt_log)
     
+    # Salva anche nell'archivio chat_history per lo storico
+    chat_id = str(uuid.uuid4())
+    chat_doc = {
+        "id": chat_id,
+        "user_id": user["id"],
+        "type": "challenge",
+        "question": f"Prova: {challenge['name']} - {test['attribute']}",
+        "answer": result_message,
+        "challenge_data": {
+            "challenge_name": challenge["name"],
+            "description": challenge["description"],
+            "attribute": test["attribute"],
+            "player_value": data.player_value,
+            "player_roll": player_roll,
+            "player_result": player_result,
+            "difficulty": test["difficulty"],
+            "difficulty_roll": difficulty_roll,
+            "difficulty_result": difficulty_result,
+            "outcome": outcome,
+            "outcome_text": outcome_text
+        },
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.chat_history.insert_one(chat_doc)
+    
     # Update used actions
     await db.users.update_one(
         {"id": user["id"]},
