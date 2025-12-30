@@ -181,9 +181,13 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       <nav className="nav-gothic sticky top-0 z-50 px-4 md:px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3">
-            <Scroll className="w-8 h-8 text-gold" />
+            {settings.event_logo_url ? (
+              <img src={settings.event_logo_url} alt="" className="h-8" />
+            ) : (
+              <Scroll className="w-8 h-8 text-gold" />
+            )}
             <h1 className="font-gothic text-xl md:text-2xl text-gold hidden sm:block">
-              L'Archivio
+              {settings.event_name}
             </h1>
           </Link>
 
