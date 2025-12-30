@@ -327,7 +327,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                           <div className="flex items-center gap-2 mb-3">
                             <Swords className="w-5 h-5 text-gold" />
                             <p className="font-cinzel text-gold uppercase tracking-wide text-sm">
-                              Prova Richiesta
+                              {settings.challenge_title || "Prova Richiesta"}
                             </p>
                           </div>
                           <p className="font-gothic text-xl text-parchment mb-2">
