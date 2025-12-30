@@ -322,23 +322,74 @@ async def delete_knowledge(kb_id: str, user: dict = Depends(get_admin_user)):
 
 @api_router.post("/knowledge/upload")
 async def upload_document(file: UploadFile = File(...), user: dict = Depends(get_admin_user)):
-    if not file.filename.endswith(('.txt', '.md')):
-        raise HTTPException(status_code=400, detail="Solo file .txt o .md supportati")
+    """Upload file: testo, PDF, immagini o video"""
+    filename = file.filename or "file"
+    file_type = get_file_type(filename)
     
+    if file_type == "unknown":
+        raise HTTPException(
+            status_code=400, 
+            detail="Tipo file non supportato. Usa: .txt, .md, .pdf, .jpg, .png, .gif, .webp, .mp4, .webm, .mov"
+        )
+    
+    # Generate unique filename
+    file_id = str(uuid.uuid4())
+    ext = Path(filename).suffix.lower()
+    saved_filename = f"{file_id}{ext}"
+    file_path = UPLOAD_DIR / saved_filename
+    
+    # Read file content
     content = await file.read()
-    text_content = content.decode('utf-8')
     
+    # Extract text content based on file type
+    text_content = ""
+    
+    if file_type == "text":
+        text_content = content.decode('utf-8')
+    elif file_type == "pdf":
+        try:
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
+            text_parts = []
+            for page in pdf_reader.pages:
+                text_parts.append(page.extract_text() or "")
+            text_content = "\n".join(text_parts)
+        except Exception as e:
+            logger.error(f"PDF extraction error: {e}")
+            text_content = f"[Documento PDF: {filename}]"
+    elif file_type in ["image", "video"]:
+        text_content = f"[File {file_type}: {filename}]"
+    
+    # Save file to disk
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(content)
+    
+    # File URL
+    file_url = f"/api/uploads/{saved_filename}"
+    
+    # Save to database
     kb_id = str(uuid.uuid4())
     kb_doc = {
         "id": kb_id,
-        "title": file.filename,
+        "title": filename,
         "content": text_content,
         "category": "uploaded",
+        "file_type": file_type,
+        "file_url": file_url,
+        "file_path": str(file_path),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": user["username"]
     }
     await db.knowledge_base.insert_one(kb_doc)
-    return KnowledgeBaseResponse(**kb_doc)
+    
+    return KnowledgeBaseResponse(**{k: v for k, v in kb_doc.items() if k != "file_path"})
+
+@api_router.get("/uploads/{filename}")
+async def get_uploaded_file(filename: str):
+    """Serve uploaded files"""
+    file_path = UPLOAD_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File non trovato")
+    return FileResponse(file_path)
 
 # ==================== CHAT ROUTES ====================
 
