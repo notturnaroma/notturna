@@ -368,7 +368,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                   <div className="flex justify-start fade-in">
                     <div className="chat-message-ai text-parchment p-4 rounded-sm">
                       <p className="font-cinzel text-xs mb-2 opacity-70 uppercase tracking-wide">
-                        L'Oracolo
+                        {settings.oracle_name}
                       </p>
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-gold" />
