@@ -39,6 +39,8 @@ export default function AidsPanel({ token }) {
     name: "",
     attribute: "",
     event_date: "",
+    start_time: "21:00",
+    end_time: "03:00",
     levels: [...defaultLevels]
   });
 
