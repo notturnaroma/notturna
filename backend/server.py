@@ -890,7 +890,7 @@ async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
 async def get_aids(user: dict = Depends(get_current_user)):
     """Lista tutte le focalizzazioni"""
     aids = await db.aids.find({}, {"_id": 0}).to_list(1000)
-    return [AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59")}) for a in aids]
+    return [AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59"), "end_date": a.get("end_date")}) for a in aids]
 
 @api_router.get("/aids/active", response_model=List[AidResponse])
 async def get_active_aids(user: dict = Depends(get_current_user)):
