@@ -56,3 +56,13 @@ Codice da inserire nel sito HTML:
   title="L'Archivio Maledetto"
 ></iframe>
 ```
+
+## Aggiornamenti (Dec 2025 - v3) - Sistema Prove LARP
+- [x] Sistema Prove Contrapposte completo
+- [x] Admin: creazione prove con X test per situazione
+- [x] Ogni test ha: attributo, difficoltà, testi successo/parità/fallimento
+- [x] Giocatore: scelta prova → input valore attributo → lancio dadi
+- [x] Calcolo: (valore_pg × random 1-5) vs (difficoltà × random 1-5)
+- [x] Output formato: "Con il risultato di (5×3) 15 contro (8×2) 16: testo..."
+- [x] Log tentativi prove salvato in database
+- [x] Ricerca prove per parole chiave nella chat
