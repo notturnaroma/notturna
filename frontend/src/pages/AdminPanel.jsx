@@ -111,6 +111,14 @@ export default function AdminPanel({ user, token, onLogout }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File troppo grande", { description: "Massimo 50MB" });
+      return;
+    }
+
+    toast.info("Caricamento in corso...", { duration: 2000 });
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -124,12 +132,22 @@ export default function AdminPanel({ user, token, onLogout }) {
       if (response.ok) {
         toast.success("File caricato con successo");
         fetchData();
+        e.target.value = ""; // Reset input
       } else {
         const data = await response.json();
         toast.error("Errore", { description: data.detail });
       }
     } catch (error) {
       toast.error("Errore nel caricamento");
+    }
+  };
+
+  const getFileIcon = (fileType) => {
+    switch (fileType) {
+      case "pdf": return <FileText className="w-4 h-4 text-red-400" />;
+      case "image": return <FileImage className="w-4 h-4 text-green-400" />;
+      case "video": return <FileVideo className="w-4 h-4 text-blue-400" />;
+      default: return <File className="w-4 h-4 text-gold" />;
     }
   };
 
