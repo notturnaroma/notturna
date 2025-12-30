@@ -5,6 +5,7 @@ import { useSettings } from "@/context/SettingsContext";
 
 
 export default function Landing() {
+  const { settings } = useSettings();
   return (
     <div className="min-h-screen bg-void stone-texture">
       {/* Hero Section */}
