@@ -95,8 +95,7 @@ export default function Landing() {
                   {settings.landing_feature2_title}
                 </h4>
                 <p className="font-body text-muted-foreground leading-relaxed">
-                  Ogni tua domanda e risposta viene conservata nel tuo 
-                  archivio personale per futura consultazione.
+                  {settings.landing_feature2_desc}
                 </p>
               </div>
 
