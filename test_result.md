@@ -151,5 +151,7 @@ agent_communication:
     message: "Per favore testa la creazione/modifica di Focalizzazioni con data inizio/fine e il flusso giocatore: inserimento valori Saggezza/Percezione/Intelligenza, scelta Focalizzazione disponibile e registrazione in archivio."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETATO - Sistema Focalizzazioni (AIDS) completamente funzionante. Tutti i 4 punti della review request superati: creazione con end_date, GET con campi temporali, filtro active con finestre temporali diverse (incluso attraversamento mezzanotte), uso con validazione finestra temporale e attributi. Testato con credenziali admin/giocatore reali. Sistema pronto per produzione."
+  - agent: "testing"
+    message: "❌ FRONTEND TESTING PARZIALE - Problemi critici trovati: 1) Login flow non funziona (rimane su login page) 2) Persistenza valori attributi non funziona (seconda apertura modale richiede nuovamente valori) 3) Archivio non testabile per overlay issues. ✅ CORE FUNCTIONALITY TESTATA: Prima apertura modale ✓, inserimento valori attributi ✓, visualizzazione Focalizzazioni disponibili ✓, uso Focalizzazione ✓, notifica successo ✓. Necessario fix per localStorage persistence e login flow."
 
 #====================================================================================================
