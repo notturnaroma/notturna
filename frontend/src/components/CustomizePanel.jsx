@@ -47,7 +47,10 @@ export default function CustomizePanel({ token }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setFormData(settings);
+    setFormData({
+      ...DEFAULT_SETTINGS,
+      ...settings
+    });
   }, [settings]);
 
   const handleChange = (field, value) => {
