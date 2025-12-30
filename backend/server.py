@@ -16,6 +16,27 @@ import bcrypt
 import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import aiofiles
+import PyPDF2
+import io
+
+# Upload directory
+UPLOAD_DIR = Path(__file__).parent / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+# Allowed file types
+ALLOWED_EXTENSIONS = {
+    "text": [".txt", ".md"],
+    "pdf": [".pdf"],
+    "image": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
+    "video": [".mp4", ".webm", ".mov", ".avi"]
+}
+
+def get_file_type(filename: str) -> str:
+    ext = Path(filename).suffix.lower()
+    for file_type, extensions in ALLOWED_EXTENSIONS.items():
+        if ext in extensions:
+            return file_type
+    return "unknown"
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
