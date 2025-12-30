@@ -206,7 +206,7 @@ export default function AidsPanel({ token }) {
         <div className="flex items-center gap-3">
           <Sparkles className="w-6 h-6 text-gold" />
           <h2 className="font-cinzel text-xl text-gold uppercase tracking-widest">
-            Aiuti Attributo
+            Focalizzazioni
           </h2>
         </div>
         <Button
@@ -215,7 +215,7 @@ export default function AidsPanel({ token }) {
           data-testid="new-aid-btn"
         >
           <Plus className="w-4 h-4 mr-2" />
-          NUOVO AIUTO
+          NUOVA
         </Button>
       </div>
 
