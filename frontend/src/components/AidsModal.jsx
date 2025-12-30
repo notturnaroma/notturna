@@ -127,13 +127,6 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
   // Attributi fissi definiti dalla Narrazione
   const ATTRIBUTE_OPTIONS = ["Saggezza", "Percezione", "Intelligenza"];
 
-  // Ottieni attributi effettivamente presenti nelle focalizzazioni attive (per evidenziare solo quelli disponibili)
-  const availableAttributes = ATTRIBUTE_OPTIONS.filter(attr =>
-    aids.some(a => a.attribute === attr)
-  );
-
-  const uniqueAttributes = availableAttributes.length > 0 ? availableAttributes : ATTRIBUTE_OPTIONS;
-
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
