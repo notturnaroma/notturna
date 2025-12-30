@@ -100,4 +100,48 @@
 
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
+
+user_problem_statement: "Completare e correggere il sistema di Focalizzazioni (ex Aiuti), inclusi attributi fissi, finestra temporale data/ora e personalizzazione testi."
+backend:
+  - task: "Endpoint aids con end_date e controllo finestra temporale"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Aggiornati modelli AidCreate/AidResponse, funzione is_aid_active e rotte /aids per supportare data di fine e finestra temporale completa. Necessari test end-to-end."
+frontend:
+  - task: "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
+    implemented: true
+    working: false
+    file: "frontend/src/components/AidsModal.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Aggiornato AidsModal per opzione B (inserimento valori per tutti e 3 gli attributi) e AidsPanel per select attributo fisso + end_date. Da verificare e2e."
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Endpoint aids con end_date e controllo finestra temporale"
+    - "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Per favore testa la creazione/modifica di Focalizzazioni con data inizio/fine e il flusso giocatore: inserimento valori Saggezza/Percezione/Intelligenza, scelta Focalizzazione disponibile e registrazione in archivio."
+
 #====================================================================================================
