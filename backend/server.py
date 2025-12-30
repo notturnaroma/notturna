@@ -760,6 +760,178 @@ async def search_challenges(q: str, user: dict = Depends(get_current_user)):
     
     return matches
 
+# ==================== AIDS (AIUTI ATTRIBUTO) ROUTES ====================
+
+def is_aid_active(event_date_str: str) -> bool:
+    """Controlla se l'aiuto è attivo (giorno evento fino alle 03:00 del giorno dopo)"""
+    from datetime import timedelta
+    try:
+        event_date = datetime.strptime(event_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        
+        # Attivo dalle 00:00 del giorno evento fino alle 03:00 del giorno dopo
+        start = event_date
+        end = event_date + timedelta(days=1, hours=3)
+        
+        return start <= now <= end
+    except:
+        return False
+
+@api_router.post("/aids", response_model=AidResponse)
+async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
+    """Crea un nuovo aiuto attributo"""
+    aid_id = str(uuid.uuid4())
+    aid_doc = {
+        "id": aid_id,
+        "name": data.name,
+        "attribute": data.attribute,
+        "levels": [l.model_dump() for l in data.levels],
+        "event_date": data.event_date,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": user["username"]
+    }
+    await db.aids.insert_one(aid_doc)
+    return AidResponse(**aid_doc)
+
+@api_router.get("/aids", response_model=List[AidResponse])
+async def get_aids(user: dict = Depends(get_current_user)):
+    """Lista tutti gli aiuti"""
+    aids = await db.aids.find({}, {"_id": 0}).to_list(1000)
+    return [AidResponse(**a) for a in aids]
+
+@api_router.get("/aids/active", response_model=List[AidResponse])
+async def get_active_aids(user: dict = Depends(get_current_user)):
+    """Lista solo gli aiuti attivi (data evento valida)"""
+    aids = await db.aids.find({}, {"_id": 0}).to_list(1000)
+    active = [AidResponse(**a) for a in aids if is_aid_active(a["event_date"])]
+    return active
+
+@api_router.delete("/aids/{aid_id}")
+async def delete_aid(aid_id: str, user: dict = Depends(get_admin_user)):
+    """Elimina un aiuto"""
+    result = await db.aids.delete_one({"id": aid_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Aiuto non trovato")
+    return {"message": "Aiuto eliminato"}
+
+@api_router.put("/aids/{aid_id}")
+async def update_aid(aid_id: str, data: AidCreate, user: dict = Depends(get_admin_user)):
+    """Aggiorna un aiuto"""
+    update_doc = {
+        "name": data.name,
+        "attribute": data.attribute,
+        "levels": [l.model_dump() for l in data.levels],
+        "event_date": data.event_date,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": user["username"]
+    }
+    result = await db.aids.update_one({"id": aid_id}, {"$set": update_doc})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Aiuto non trovato")
+    return {"message": "Aiuto aggiornato"}
+
+@api_router.get("/aids/my-used")
+async def get_my_used_aids(user: dict = Depends(get_current_user)):
+    """Ottieni lista degli aiuti già usati dall'utente (aid_id + level)"""
+    used = await db.aid_uses.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "aid_id": 1, "level": 1}
+    ).to_list(1000)
+    return used
+
+@api_router.post("/aids/use")
+async def use_aid(data: UseAid, user: dict = Depends(get_current_user)):
+    """Usa un aiuto - verifica attributo e data"""
+    
+    # Check action limit
+    if user["used_actions"] >= user["max_actions"]:
+        raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
+    
+    # Trova l'aiuto
+    aid = await db.aids.find_one({"id": data.aid_id}, {"_id": 0})
+    if not aid:
+        raise HTTPException(status_code=404, detail="Aiuto non trovato")
+    
+    # Verifica data attiva
+    if not is_aid_active(aid["event_date"]):
+        raise HTTPException(status_code=403, detail="Questo aiuto non è attivo oggi. Controlla la data dell'evento.")
+    
+    # Verifica se già usato questo livello
+    existing = await db.aid_uses.find_one({
+        "user_id": user["id"],
+        "aid_id": data.aid_id,
+        "level": data.level
+    })
+    if existing:
+        raise HTTPException(status_code=403, detail="Hai già utilizzato questo aiuto a questo livello.")
+    
+    # Verifica attributo sufficiente
+    if data.player_attribute_value < data.level:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Il tuo valore di {aid['attribute']} ({data.player_attribute_value}) è insufficiente per questo livello ({data.level})."
+        )
+    
+    # Trova il livello richiesto
+    level_data = None
+    for l in aid["levels"]:
+        if l["level"] == data.level:
+            level_data = l
+            break
+    
+    if not level_data:
+        raise HTTPException(status_code=400, detail="Livello non trovato per questo aiuto")
+    
+    # Salva l'uso
+    use_log = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "aid_id": data.aid_id,
+        "aid_name": aid["name"],
+        "attribute": aid["attribute"],
+        "level": data.level,
+        "level_name": level_data["level_name"],
+        "player_value": data.player_attribute_value,
+        "text": level_data["text"],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.aid_uses.insert_one(use_log)
+    
+    # Salva nell'archivio chat_history
+    chat_id = str(uuid.uuid4())
+    chat_doc = {
+        "id": chat_id,
+        "user_id": user["id"],
+        "type": "aid",
+        "question": f"Aiuto: {aid['name']} - {aid['attribute']} (Livello {level_data['level_name']})",
+        "answer": level_data["text"],
+        "aid_data": {
+            "aid_name": aid["name"],
+            "attribute": aid["attribute"],
+            "level": data.level,
+            "level_name": level_data["level_name"],
+            "player_value": data.player_attribute_value,
+            "text": level_data["text"]
+        },
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.chat_history.insert_one(chat_doc)
+    
+    # Update used actions
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$inc": {"used_actions": 1}}
+    )
+    
+    return {
+        "aid_name": aid["name"],
+        "attribute": aid["attribute"],
+        "level": data.level,
+        "level_name": level_data["level_name"],
+        "text": level_data["text"],
+        "message": f"Hai ottenuto l'aiuto {level_data['level_name']} di {aid['attribute']}: {level_data['text']}"
+    }
+
 app.include_router(api_router)
 
 app.add_middleware(
