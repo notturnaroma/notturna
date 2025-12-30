@@ -63,7 +63,7 @@ export default function Landing() {
                 className="font-cinzel text-lg px-12 py-6 bg-primary hover:bg-primary/80 border-2 border-gold/50 rounded-sm btn-gothic glow-red"
                 data-testid="cta-btn"
               >
-                INIZIA IL TUO VIAGGIO
+                {settings.landing_cta}
               </Button>
             </Link>
           </div>
