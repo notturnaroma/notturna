@@ -221,7 +221,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               data-testid="aids-nav-btn"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">AIUTI</span>
+              <span className="hidden sm:inline">{settings.nav_aids || "FOCALIZZAZIONI"}</span>
             </Button>
 
             <Link to="/archive">
@@ -232,7 +232,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                 data-testid="archive-nav-btn"
               >
                 <Archive className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">ARCHIVIO</span>
+                <span className="hidden sm:inline">{settings.nav_archive || "ARCHIVIO"}</span>
               </Button>
             </Link>
 
@@ -245,7 +245,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                   data-testid="admin-nav-btn"
                 >
                   <Settings className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">ADMIN</span>
+                  <span className="hidden sm:inline">{settings.nav_admin || "ADMIN"}</span>
                 </Button>
               </Link>
             )}
@@ -258,7 +258,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               data-testid="logout-btn"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">ESCI</span>
+              <span className="hidden sm:inline">{settings.nav_logout || "ESCI"}</span>
             </Button>
           </div>
         </div>
