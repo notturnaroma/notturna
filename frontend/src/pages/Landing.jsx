@@ -51,7 +51,7 @@ export default function Landing() {
               {settings.hero_title}
             </h2>
             <p className="font-cinzel text-gold text-lg md:text-xl mb-4 tracking-widest uppercase">
-              dell'Antico Sapere
+              {settings.hero_subtitle}
             </p>
             <p className="font-body text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
               Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande 
