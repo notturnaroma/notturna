@@ -103,7 +103,7 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
         body: JSON.stringify({
           aid_id: aid.id,
           level: level.level,
-          player_attribute_value: parseInt(playerValue)
+          player_attribute_value: submittedValues[aid.attribute]
         })
       });
 
