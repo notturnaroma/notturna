@@ -74,7 +74,7 @@ export default function Register({ onLogin }) {
         {/* Form Card */}
         <div className="form-gothic rounded-sm p-8 fade-in" data-testid="register-form">
           <h2 className="font-cinzel text-2xl text-parchment text-center mb-8 uppercase tracking-widest">
-            Registrati
+            {settings.auth_register_title || "Registrati"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
