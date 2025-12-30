@@ -42,26 +42,20 @@ const DEFAULT_SETTINGS = {
 
 export default function CustomizePanel({ token }) {
   const { settings, updateSettings } = useSettings();
-  const [formData, setFormData] = useState(() => ({
+  
+  // Merge default settings with current settings
+  const mergedSettings = useMemo(() => ({
     ...DEFAULT_SETTINGS,
     ...settings
-  }));
+  }), [settings]);
+  
+  const [formData, setFormData] = useState(mergedSettings);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setFormData(prevFormData => {
-      const newFormData = {
-        ...DEFAULT_SETTINGS,
-        ...settings
-      };
-      // Only update if the data has actually changed
-      if (JSON.stringify(prevFormData) !== JSON.stringify(newFormData)) {
-        return newFormData;
-      }
-      return prevFormData;
-    });
-  }, [settings]);
+    setFormData(mergedSettings);
+  }, [mergedSettings]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
