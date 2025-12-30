@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { 
   ArrowLeft, 
   Scroll, 
+import { useSettings } from "@/context/SettingsContext";
+
   Calendar,
   MessageSquare,
   Loader2,
