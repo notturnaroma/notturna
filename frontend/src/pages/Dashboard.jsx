@@ -369,8 +369,11 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                             msg.result.outcome === "success" ? "text-green-400" :
                             msg.result.outcome === "tie" ? "text-yellow-400" : "text-red-400"
                           }`}>
-                            {msg.result.outcome === "success" ? "Successo!" :
-                             msg.result.outcome === "tie" ? "Parità" : "Fallimento"}
+                            {msg.result.outcome === "success"
+                              ? (settings.challenge_success || "Successo!")
+                              : msg.result.outcome === "tie"
+                                ? (settings.challenge_tie || "Parità")
+                                : (settings.challenge_failure || "Fallimento")}
                           </p>
                           <p className="font-body text-parchment text-sm mb-2">
                             {msg.result.attribute}
