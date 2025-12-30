@@ -90,7 +90,7 @@ export default function Archive({ user, token, onLogout }) {
             <div className="card-gothic rounded-sm overflow-hidden h-full" data-testid="archive-list">
               <div className="p-4 border-b border-border/50">
                 <h2 className="font-cinzel text-gold uppercase tracking-widest text-sm">
-                  Le Tue Consultazioni
+                  {settings.archive_title || "Le Tue Consultazioni"}
                 </h2>
               </div>
               
