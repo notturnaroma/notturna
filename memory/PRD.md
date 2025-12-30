@@ -51,7 +51,7 @@ App per eventi con interfaccia chat AI che risponde a domande basate su knowledg
 Codice da inserire nel sito HTML:
 ```html
 <iframe 
-  src="https://smart-chatbot-71.preview.emergentagent.com/embed" 
+  src="https://cursed-lore.preview.emergentagent.com/embed" 
   style="width: 100%; height: 500px; border: none; border-radius: 8px;"
   title="L'Archivio Maledetto"
 ></iframe>
