@@ -898,7 +898,7 @@ async def get_active_aids(user: dict = Depends(get_current_user)):
     active = [
         AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59")}) 
         for a in aids 
-        if is_aid_active(a["event_date"], a.get("start_time", "00:00"), a.get("end_time", "23:59"))
+        if is_aid_active(a["event_date"], a.get("start_time", "00:00"), a.get("end_time", "23:59"), a.get("end_date"))
     ]
     return active
 
