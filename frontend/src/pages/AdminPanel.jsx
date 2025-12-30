@@ -401,15 +401,58 @@ export default function AdminPanel({ user, token, onLogout }) {
                       <div key={doc.id} className="p-4 hover:bg-gold/5 transition-colors">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-cinzel text-parchment mb-1">{doc.title}</h3>
-                            <p className="font-body text-muted-foreground text-sm line-clamp-2 mb-2">
-                              {doc.content}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                              {getFileIcon(doc.file_type)}
+                              <h3 className="font-cinzel text-parchment">{doc.title}</h3>
+                            </div>
+                            
+                            {/* Preview per immagini */}
+                            {doc.file_type === "image" && doc.file_url && (
+                              <div className="my-2">
+                                <img 
+                                  src={`${process.env.REACT_APP_BACKEND_URL}${doc.file_url}`}
+                                  alt={doc.title}
+                                  className="max-h-32 rounded border border-border/50"
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Preview per video */}
+                            {doc.file_type === "video" && doc.file_url && (
+                              <div className="my-2">
+                                <video 
+                                  src={`${process.env.REACT_APP_BACKEND_URL}${doc.file_url}`}
+                                  controls
+                                  className="max-h-32 rounded border border-border/50"
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Contenuto testo */}
+                            {(doc.file_type === "text" || doc.file_type === "pdf") && (
+                              <p className="font-body text-muted-foreground text-sm line-clamp-2 mb-2">
+                                {doc.content}
+                              </p>
+                            )}
+                            
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                               <span className="font-cinzel uppercase bg-secondary/50 px-2 py-1 rounded">
                                 {doc.category}
                               </span>
+                              <span className="bg-black/30 px-2 py-1 rounded">
+                                {doc.file_type || "text"}
+                              </span>
                               <span>di {doc.created_by}</span>
+                              {doc.file_url && (
+                                <a 
+                                  href={`${process.env.REACT_APP_BACKEND_URL}${doc.file_url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gold hover:text-gold/80 flex items-center gap-1"
+                                >
+                                  <ExternalLink className="w-3 h-3" /> Apri
+                                </a>
+                              )}
                             </div>
                           </div>
                           <Button
