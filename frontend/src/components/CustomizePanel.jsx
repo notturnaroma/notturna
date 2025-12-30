@@ -294,6 +294,27 @@ export default function CustomizePanel({ token }) {
                 <Input value={formData.aids_obtained || ""} onChange={(e) => handleChange("aids_obtained", e.target.value)} className="input-gothic rounded-sm" />
               </div>
             </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Inizio Evento Live (data/ora)</Label>
+                <Input
+                  type="datetime-local"
+                  value={formData.event_window_start || ""}
+                  onChange={(e) => handleChange("event_window_start", e.target.value)}
+                  className="input-gothic rounded-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Fine Evento Live (data/ora)</Label>
+                <Input
+                  type="datetime-local"
+                  value={formData.event_window_end || ""}
+                  onChange={(e) => handleChange("event_window_end", e.target.value)}
+                  className="input-gothic rounded-sm"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="font-cinzel text-gold text-xs uppercase">Sottotitolo</Label>
               <Textarea value={formData.aids_subtitle || ""} onChange={(e) => handleChange("aids_subtitle", e.target.value)} className="input-gothic rounded-sm" />
