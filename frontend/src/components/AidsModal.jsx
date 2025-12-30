@@ -16,10 +16,14 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
-  // Step 1: input valore, Step 2: selezione
+  // Step 1: inserisci tutti i valori attributo, Step 2: selezione livello
   const [step, setStep] = useState("input");
-  const [selectedAttribute, setSelectedAttribute] = useState(null);
-  const [playerValue, setPlayerValue] = useState("");
+  const [playerValues, setPlayerValues] = useState({
+    Saggezza: "",
+    Percezione: "",
+    Intelligenza: ""
+  });
+  const [submittedValues, setSubmittedValues] = useState(null);
   const [availableAids, setAvailableAids] = useState([]);
 
   useEffect(() => {
@@ -36,11 +40,6 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
       if (aidsRes.ok) {
         const aidsData = await aidsRes.json();
         setAids(aidsData);
-        // Estrai attributi unici
-        const attrs = [...new Set(aidsData.map(a => a.attribute))];
-        if (attrs.length === 1) {
-          setSelectedAttribute(attrs[0]);
-        }
       }
       if (usedRes.ok) setUsedAids(await usedRes.json());
     } catch (error) {
