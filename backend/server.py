@@ -841,26 +841,26 @@ async def search_challenges(q: str, user: dict = Depends(get_current_user)):
 
 # ==================== AIDS (AIUTI ATTRIBUTO) ROUTES ====================
 
-def is_aid_active(event_date_str: str, start_time_str: str = "00:00", end_time_str: str = "23:59") -> bool:
-    """Controlla se l'aiuto è attivo (data e orario)"""
+def is_aid_active(event_date_str: str, start_time_str: str = "00:00", end_time_str: str = "23:59", end_date_str: Optional[str] = None) -> bool:
+    """Controlla se l'aiuto è attivo (data/e e orario), supportando un intervallo data inizio/fine"""
     from datetime import timedelta
     try:
-        event_date = datetime.strptime(event_date_str, "%Y-%m-%d")
+        event_start_date = datetime.strptime(event_date_str, "%Y-%m-%d")
+        # Se non viene fornita end_date, usiamo la stessa data di inizio
+        event_end_date = datetime.strptime(end_date_str, "%Y-%m-%d") if end_date_str else event_start_date
         now = datetime.now()
         
         # Parse orari
         start_h, start_m = map(int, start_time_str.split(":"))
         end_h, end_m = map(int, end_time_str.split(":"))
         
-        # Se end_time è dopo mezzanotte (es. 03:00), consideriamo il giorno dopo
+        # Costruisci finestre start/end sul primo e sull'ultimo giorno
+        start_dt = event_start_date.replace(hour=start_h, minute=start_m)
+        # Se l'orario di fine attraversa la mezzanotte, estendiamo di un giorno rispetto a event_end_date
         if end_h < start_h:
-            # Caso: 21:00 - 03:00 (attraversa mezzanotte)
-            start_dt = event_date.replace(hour=start_h, minute=start_m)
-            end_dt = (event_date + timedelta(days=1)).replace(hour=end_h, minute=end_m)
+            end_dt = (event_end_date + timedelta(days=1)).replace(hour=end_h, minute=end_m)
         else:
-            # Caso normale: 14:00 - 18:00
-            start_dt = event_date.replace(hour=start_h, minute=start_m)
-            end_dt = event_date.replace(hour=end_h, minute=end_m)
+            end_dt = event_end_date.replace(hour=end_h, minute=end_m)
         
         return start_dt <= now <= end_dt
     except Exception as e:
