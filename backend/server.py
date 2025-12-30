@@ -897,7 +897,7 @@ async def get_active_aids(user: dict = Depends(get_current_user)):
     """Lista solo le focalizzazioni attive (data e orario validi)"""
     aids = await db.aids.find({}, {"_id": 0}).to_list(1000)
     active = [
-        AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59")}) 
+        AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59"), "end_date": a.get("end_date")}) 
         for a in aids 
         if is_aid_active(a["event_date"], a.get("start_time", "00:00"), a.get("end_time", "23:59"), a.get("end_date"))
     ]
