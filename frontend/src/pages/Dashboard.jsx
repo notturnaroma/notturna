@@ -394,7 +394,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                           <div className="flex items-center gap-2 mb-2">
                             <Sparkles className="w-5 h-5 text-gold" />
                             <p className="font-gothic text-xl text-gold">
-                              Aiuto Ottenuto
+                              {settings.aids_obtained || "Focalizzazione Ottenuta"}
                             </p>
                           </div>
                           <p className="font-body text-parchment text-sm mb-2">
