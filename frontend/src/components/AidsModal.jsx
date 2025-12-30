@@ -117,8 +117,15 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
     }
   };
 
-  // Ottieni lista attributi unici
-  const uniqueAttributes = [...new Set(aids.map(a => a.attribute))];
+  // Attributi fissi definiti dalla Narrazione
+  const ATTRIBUTE_OPTIONS = ["Saggezza", "Percezione", "Intelligenza"];
+
+  // Ottieni attributi effettivamente presenti nelle focalizzazioni attive (per evidenziare solo quelli disponibili)
+  const availableAttributes = ATTRIBUTE_OPTIONS.filter(attr =>
+    aids.some(a => a.attribute === attr)
+  );
+
+  const uniqueAttributes = availableAttributes.length > 0 ? availableAttributes : ATTRIBUTE_OPTIONS;
 
   if (loading) {
     return (
