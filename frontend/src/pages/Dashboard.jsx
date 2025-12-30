@@ -248,7 +248,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
             Benvenuto, {user?.username}
           </h2>
           <p className="font-body text-muted-foreground">
-            Poni le tue domande all'Oracolo dell'Archivio
+            Poni le tue domande a {settings.oracle_name}
           </p>
         </div>
 
@@ -260,11 +260,10 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               <div className="h-full flex flex-col items-center justify-center text-center py-12">
                 <MessageSquare className="w-16 h-16 text-muted-foreground/30 mb-4" />
                 <p className="font-cinzel text-muted-foreground text-lg mb-2">
-                  L'Oracolo è in attesa
+                  {settings.oracle_name} è in attesa
                 </p>
                 <p className="font-body text-muted-foreground/70 text-sm max-w-md">
-                  Poni la tua domanda e l'Oracolo consulterà gli antichi tomi 
-                  per fornirti una risposta.
+                  {settings.chat_placeholder}
                 </p>
               </div>
             ) : (
@@ -290,7 +289,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                       <div className="flex justify-start">
                         <div className="max-w-[85%] md:max-w-[75%] p-4 rounded-sm chat-message-ai text-parchment">
                           <p className="font-cinzel text-xs mb-2 opacity-70 uppercase tracking-wide">
-                            L'Oracolo
+                            {settings.oracle_name}
                           </p>
                           <p className="font-body whitespace-pre-wrap leading-relaxed">
                             {msg.text}
