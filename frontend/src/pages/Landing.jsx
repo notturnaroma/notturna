@@ -54,9 +54,7 @@ export default function Landing() {
               {settings.hero_subtitle}
             </p>
             <p className="font-body text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-              Benvenuto nell'Archivio Maledetto. Qui potrai porre le tue domande 
-              e ricevere risposte dai custodi del sapere arcano. Ma attenzione: 
-              ogni domanda consuma una delle tue preziose azioni.
+              {settings.hero_description}
             </p>
             
             <Link to="/register">
