@@ -103,7 +103,7 @@ export default function Landing() {
               <div className="card-gothic p-8 text-center fade-in glow-gold" data-testid="feature-actions">
                 <Shield className="w-12 h-12 text-gold mx-auto mb-6" />
                 <h4 className="font-cinzel text-xl text-parchment mb-4 uppercase tracking-wide">
-                  Azioni Limitate
+                  {settings.landing_feature3_title}
                 </h4>
                 <p className="font-body text-muted-foreground leading-relaxed">
                   Ogni giocatore ha un numero limitato di azioni. 
