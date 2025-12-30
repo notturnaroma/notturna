@@ -261,15 +261,25 @@ export default function AidsPanel({ token }) {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label className="font-cinzel text-gold text-xs uppercase">Data Evento *</Label>
+                <Label className="font-cinzel text-gold text-xs uppercase">Data Inizio *</Label>
                 <Input
                   type="date"
                   value={formData.event_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, event_date: e.target.value }))}
                   className="input-gothic rounded-sm"
-                  data-testid="aid-date"
+                  data-testid="aid-date-start"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Data Fine</Label>
+                <Input
+                  type="date"
+                  value={formData.end_date || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+                  className="input-gothic rounded-sm"
+                  data-testid="aid-date-end"
                 />
               </div>
               <div className="space-y-2">
