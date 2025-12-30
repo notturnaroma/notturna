@@ -48,7 +48,7 @@ export default function Landing() {
               <Sparkles className="w-16 h-16 text-gold mx-auto mb-6 opacity-80" />
             </div>
             <h2 className="font-gothic text-5xl md:text-7xl lg:text-8xl text-parchment mb-6 leading-tight">
-              Svela i Segreti
+              {settings.hero_title}
             </h2>
             <p className="font-cinzel text-gold text-lg md:text-xl mb-4 tracking-widest uppercase">
               dell'Antico Sapere
