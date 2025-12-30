@@ -19,6 +19,7 @@ import { useSettings } from "@/context/SettingsContext";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Archive({ user, token, onLogout }) {
+  const { settings } = useSettings();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
