@@ -105,15 +105,18 @@ user_problem_statement: "Completare e correggere il sistema di Focalizzazioni (e
 backend:
   - task: "Endpoint aids con end_date e controllo finestra temporale"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Aggiornati modelli AidCreate/AidResponse, funzione is_aid_active e rotte /aids per supportare data di fine e finestra temporale completa. Necessari test end-to-end."
+      - working: true
+        agent: "testing"
+        comment: "✅ TUTTI I TEST SUPERATI - Sistema Focalizzazioni completamente funzionante: 1) POST /api/aids crea correttamente con end_date, response senza _id ✓ 2) GET /api/aids restituisce tutti i campi temporali ✓ 3) GET /api/aids/active filtra correttamente per finestra temporale incluso attraversamento mezzanotte ✓ 4) POST /api/aids/use valida finestra temporale (403 se fuori orario), attributo sufficiente, salva in aid_uses e chat_history, incrementa used_actions ✓. Testato con utenti admin/player reali."
 frontend:
   - task: "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
     implemented: true
