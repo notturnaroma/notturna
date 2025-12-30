@@ -115,8 +115,6 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aids, usedAids]);
 
-  };
-
   // Quando il giocatore inserisce tutti i valori, calcola le focalizzazioni disponibili
   const handleValueSubmit = () => {
     // Almeno un attributo deve avere un valore valido
