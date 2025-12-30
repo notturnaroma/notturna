@@ -389,7 +389,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               <Textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Poni la tua domanda all'Oracolo..."
+                placeholder={settings.chat_placeholder}
                 className="input-gothic rounded-sm resize-none min-h-[50px] max-h-[120px]"
                 disabled={loading || remainingActions <= 0}
                 onKeyDown={(e) => {
