@@ -89,6 +89,8 @@ class KnowledgeBaseCreate(BaseModel):
     title: str
     content: str
     category: Optional[str] = "general"
+    file_type: Optional[str] = "text"
+    file_url: Optional[str] = None
 
 class KnowledgeBaseResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -96,6 +98,8 @@ class KnowledgeBaseResponse(BaseModel):
     title: str
     content: str
     category: str
+    file_type: str
+    file_url: Optional[str]
     created_at: str
     created_by: str
 
