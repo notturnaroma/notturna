@@ -123,6 +123,8 @@ export default function Archive({ user, token, onLogout }) {
                         <div className="flex items-center gap-2 mb-2">
                           {item.type === "challenge" ? (
                             <Swords className="w-4 h-4 text-gold flex-shrink-0" />
+                          ) : item.type === "aid" ? (
+                            <Sparkles className="w-4 h-4 text-gold flex-shrink-0" />
                           ) : (
                             <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           )}
@@ -141,6 +143,11 @@ export default function Archive({ user, token, onLogout }) {
                             }`}>
                               {item.challenge_data.outcome === "success" ? "Successo" :
                                item.challenge_data.outcome === "tie" ? "Parità" : "Fallimento"}
+                            </span>
+                          )}
+                          {item.type === "aid" && item.aid_data && (
+                            <span className="ml-2 px-2 py-0.5 rounded text-xs bg-gold/20 text-gold">
+                              {item.aid_data.level_name}
                             </span>
                           )}
                         </div>
