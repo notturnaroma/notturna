@@ -264,7 +264,8 @@ class AidCreate(BaseModel):
     name: str  # es. "Collegamento Intelligenza"
     attribute: str  # es. "Intelligenza"
     levels: List[AidLevel]  # array di livelli con testi
-    event_date: str  # data evento (YYYY-MM-DD)
+    event_date: str  # data inizio (YYYY-MM-DD)
+    end_date: Optional[str] = None  # data fine (YYYY-MM-DD), opzionale
     start_time: str  # ora inizio (HH:MM)
     end_time: str  # ora fine (HH:MM)
 
@@ -275,6 +276,7 @@ class AidResponse(BaseModel):
     attribute: str
     levels: List[dict]
     event_date: str
+    end_date: Optional[str] = None
     start_time: str
     end_time: str
     created_at: str
