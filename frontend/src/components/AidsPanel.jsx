@@ -68,6 +68,7 @@ export default function AidsPanel({ token }) {
       name: "",
       attribute: "",
       event_date: "",
+      end_date: "",
       start_time: "21:00",
       end_time: "03:00",
       levels: [...defaultLevels.map(l => ({ ...l }))]
@@ -246,13 +247,17 @@ export default function AidsPanel({ token }) {
               </div>
               <div className="space-y-2">
                 <Label className="font-cinzel text-gold text-xs uppercase">Attributo *</Label>
-                <Input
+                <select
                   value={formData.attribute}
                   onChange={(e) => setFormData(prev => ({ ...prev, attribute: e.target.value }))}
-                  placeholder="es. Intelligenza"
-                  className="input-gothic rounded-sm"
+                  className="input-gothic rounded-sm bg-background text-foreground"
                   data-testid="aid-attribute"
-                />
+                >
+                  <option value="">Seleziona attributo</option>
+                  <option value="Saggezza">Saggezza</option>
+                  <option value="Percezione">Percezione</option>
+                  <option value="Intelligenza">Intelligenza</option>
+                </select>
               </div>
             </div>
 
