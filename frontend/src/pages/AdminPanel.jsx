@@ -283,7 +283,15 @@ export default function AdminPanel({ user, token, onLogout }) {
               data-testid="challenges-tab"
             >
               <Swords className="w-4 h-4 mr-2" />
-              PROVE LARP
+              PROVE
+            </TabsTrigger>
+            <TabsTrigger 
+              value="aids" 
+              className="font-cinzel data-[state=active]:bg-gold/20 data-[state=active]:text-gold rounded-sm"
+              data-testid="aids-tab"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              AIUTI
             </TabsTrigger>
           </TabsList>
 
