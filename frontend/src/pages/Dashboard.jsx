@@ -99,9 +99,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     if (!question.trim() || loading) return;
 
     if (remainingActions <= 0) {
-      toast.error("Azioni esaurite", { 
-        description: "Hai esaurito tutte le tue azioni disponibili" 
-      });
+      toast.error(settings.actions_exhausted || "Hai esaurito le tue azioni disponibili");
       return;
     }
 
