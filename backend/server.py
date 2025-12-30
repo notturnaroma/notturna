@@ -123,32 +123,32 @@ class AppSettingsResponse(BaseModel):
 
 # ==================== PROVE LARP MODELS ====================
 
-class ChallengeCreate(BaseModel):
-    name: str  # es. "Arma da fuoco antica"
-    description: str  # Descrizione visibile al giocatore
-    attribute: str  # es. "Intelligenza + Armi da Fuoco"
-    difficulty: int  # es. 8
+class ContrastingTest(BaseModel):
+    attribute: str  # es. "Intelligenza + Occulto"
+    difficulty: int  # es. 7
     success_text: str
     tie_text: str
     failure_text: str
-    keywords: List[str] = []  # parole chiave per attivare la prova
+
+class ChallengeCreate(BaseModel):
+    name: str  # es. "Antico tomo sulla scrivania"
+    description: str  # Descrizione situazione
+    tests: List[ContrastingTest]  # Array di prove contrapposte
+    keywords: List[str] = []  # parole chiave per attivare
 
 class ChallengeResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     name: str
     description: str
-    attribute: str
-    difficulty: int
-    success_text: str
-    tie_text: str
-    failure_text: str
+    tests: List[dict]
     keywords: List[str]
     created_at: str
     created_by: str
 
 class ChallengeAttempt(BaseModel):
     challenge_id: str
+    test_index: int  # quale prova ha scelto (0, 1, 2...)
     player_value: int  # valore attributo del giocatore
 
 # ==================== AUTH HELPERS ====================
