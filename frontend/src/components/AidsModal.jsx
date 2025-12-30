@@ -84,6 +84,8 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
 
   const isLevelUsed = (aidId, level) => {
     return usedAids.some(u => u.aid_id === aidId && u.level === level);
+  };
+
   const recomputeAvailableAids = (valuesMap) => {
     const filtered = aids
       .map(aid => {
