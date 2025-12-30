@@ -417,7 +417,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-gold" />
                         <span className="font-body text-muted-foreground">
-                          Consulto gli antichi tomi...
+                          {settings.chat_loading_message || "Consulto gli antichi tomi..."}
                         </span>
                       </div>
                     </div>
