@@ -178,6 +178,15 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     setActiveChallenge(null);
   };
 
+  const handleAidResult = (result) => {
+    const aidMessage = {
+      type: "aid-result",
+      result: result,
+      timestamp: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, aidMessage]);
+  };
+
   return (
     <div className="min-h-screen bg-void stone-texture flex flex-col">
       {/* Navigation */}
