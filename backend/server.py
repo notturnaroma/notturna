@@ -452,7 +452,14 @@ async def get_chat_history(user: dict = Depends(get_current_user)):
         {"user_id": user["id"]},
         {"_id": 0}
     ).sort("created_at", -1).to_list(100)
-    return [ChatResponse(**h) for h in history]
+    return [ChatResponse(
+        id=h["id"],
+        question=h["question"],
+        answer=h["answer"],
+        created_at=h["created_at"],
+        type=h.get("type", "chat"),
+        challenge_data=h.get("challenge_data")
+    ) for h in history]
 
 # ==================== ADMIN ROUTES ====================
 
