@@ -16,6 +16,7 @@ import {
   Swords
 } from "lucide-react";
 import ChallengeModal from "@/components/ChallengeModal";
+import AidsModal from "@/components/AidsModal";
 import { useSettings } from "@/context/SettingsContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
