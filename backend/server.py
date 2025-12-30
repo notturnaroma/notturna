@@ -837,19 +837,21 @@ async def delete_aid(aid_id: str, user: dict = Depends(get_admin_user)):
 
 @api_router.put("/aids/{aid_id}")
 async def update_aid(aid_id: str, data: AidCreate, user: dict = Depends(get_admin_user)):
-    """Aggiorna un aiuto"""
+    """Aggiorna una focalizzazione"""
     update_doc = {
         "name": data.name,
         "attribute": data.attribute,
         "levels": [l.model_dump() for l in data.levels],
         "event_date": data.event_date,
+        "start_time": data.start_time,
+        "end_time": data.end_time,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "updated_by": user["username"]
     }
     result = await db.aids.update_one({"id": aid_id}, {"$set": update_doc})
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Aiuto non trovato")
-    return {"message": "Aiuto aggiornato"}
+        raise HTTPException(status_code=404, detail="Focalizzazione non trovata")
+    return {"message": "Focalizzazione aggiornata"}
 
 @api_router.get("/aids/my-used")
 async def get_my_used_aids(user: dict = Depends(get_current_user)):
