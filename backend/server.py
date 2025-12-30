@@ -794,7 +794,7 @@ def is_aid_active(event_date_str: str, start_time_str: str = "00:00", end_time_s
 
 @api_router.post("/aids", response_model=AidResponse)
 async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
-    """Crea un nuovo aiuto attributo"""
+    """Crea una nuova focalizzazione attributo"""
     aid_id = str(uuid.uuid4())
     aid_doc = {
         "id": aid_id,
@@ -802,6 +802,8 @@ async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
         "attribute": data.attribute,
         "levels": [l.model_dump() for l in data.levels],
         "event_date": data.event_date,
+        "start_time": data.start_time,
+        "end_time": data.end_time,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": user["username"]
     }
@@ -810,15 +812,19 @@ async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
 
 @api_router.get("/aids", response_model=List[AidResponse])
 async def get_aids(user: dict = Depends(get_current_user)):
-    """Lista tutti gli aiuti"""
+    """Lista tutte le focalizzazioni"""
     aids = await db.aids.find({}, {"_id": 0}).to_list(1000)
-    return [AidResponse(**a) for a in aids]
+    return [AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59")}) for a in aids]
 
 @api_router.get("/aids/active", response_model=List[AidResponse])
 async def get_active_aids(user: dict = Depends(get_current_user)):
-    """Lista solo gli aiuti attivi (data evento valida)"""
+    """Lista solo le focalizzazioni attive (data e orario validi)"""
     aids = await db.aids.find({}, {"_id": 0}).to_list(1000)
-    active = [AidResponse(**a) for a in aids if is_aid_active(a["event_date"])]
+    active = [
+        AidResponse(**{**a, "start_time": a.get("start_time", "00:00"), "end_time": a.get("end_time", "23:59")}) 
+        for a in aids 
+        if is_aid_active(a["event_date"], a.get("start_time", "00:00"), a.get("end_time", "23:59"))
+    ]
     return active
 
 @api_router.delete("/aids/{aid_id}")
