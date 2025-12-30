@@ -410,6 +410,8 @@ export default function AidsPanel({ token }) {
                         <Calendar className="w-3 h-3" />
                         <span>{formatDate(aid.event_date)}</span>
                         <span className="text-gold">•</span>
+                        <span>{aid.start_time || "00:00"} - {aid.end_time || "23:59"}</span>
+                        <span className="text-gold">•</span>
                         <span>{aid.levels.length} livelli</span>
                       </div>
                     </div>
