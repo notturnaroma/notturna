@@ -17,7 +17,7 @@ export default function Landing() {
         <nav className="nav-gothic sticky top-0 z-50 px-6 py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <h1 className="font-gothic text-2xl md:text-3xl text-gold">
-              L'Archivio Maledetto
+              {settings.event_name}
             </h1>
             <div className="flex gap-4">
               <Link to="/login">
