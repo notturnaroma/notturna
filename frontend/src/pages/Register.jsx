@@ -157,7 +157,7 @@ export default function Register({ onLogin }) {
               className="w-full font-cinzel text-lg h-12 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm btn-gothic mt-6"
               data-testid="register-submit-btn"
             >
-              {loading ? "REGISTRAZIONE..." : "UNISCITI ALL'ARCHIVIO"}
+              {loading ? "REGISTRAZIONE..." : (settings.auth_register_btn || "UNISCITI ALL'ARCHIVIO")}
             </Button>
           </form>
 
