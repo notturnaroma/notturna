@@ -157,35 +157,110 @@ export default function Archive({ user, token, onLogout }) {
               {selectedChat ? (
                 <ScrollArea className="h-[calc(100vh-220px)]">
                   <div className="p-6 space-y-6">
-                    {/* Question */}
-                    <div className="fade-in">
-                      <div className="flex items-center gap-2 mb-3">
-                        <MessageSquare className="w-4 h-4 text-gold" />
-                        <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
-                          La Tua Domanda
-                        </span>
-                      </div>
-                      <div className="chat-message-user p-4 rounded-sm">
-                        <p className="font-body text-gold leading-relaxed">
-                          {selectedChat.question}
-                        </p>
-                      </div>
-                    </div>
+                    {/* Per le prove contrapposte */}
+                    {selectedChat.type === "challenge" && selectedChat.challenge_data ? (
+                      <>
+                        {/* Header Prova */}
+                        <div className="fade-in">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Swords className="w-4 h-4 text-gold" />
+                            <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                              Prova Contrapposta
+                            </span>
+                          </div>
+                          <div className="bg-secondary/30 border border-gold/30 p-4 rounded-sm">
+                            <h3 className="font-gothic text-xl text-gold mb-2">
+                              {selectedChat.challenge_data.challenge_name}
+                            </h3>
+                            <p className="font-body text-muted-foreground mb-3">
+                              {selectedChat.challenge_data.description}
+                            </p>
+                            <p className="font-cinzel text-sm text-parchment">
+                              Attributo: {selectedChat.challenge_data.attribute}
+                            </p>
+                          </div>
+                        </div>
 
-                    {/* Answer */}
-                    <div className="fade-in">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Scroll className="w-4 h-4 text-gold" />
-                        <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
-                          Risposta dell'Oracolo
-                        </span>
-                      </div>
-                      <div className="chat-message-ai p-4 rounded-sm">
-                        <p className="font-body text-parchment leading-relaxed whitespace-pre-wrap">
-                          {selectedChat.answer}
-                        </p>
-                      </div>
-                    </div>
+                        {/* Risultato Tiro */}
+                        <div className="fade-in">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                              Risultato del Tiro
+                            </span>
+                          </div>
+                          <div className="bg-black/30 p-4 rounded-sm text-center">
+                            <div className="flex items-center justify-center gap-4 text-lg mb-4">
+                              <div className="text-center">
+                                <p className="font-gothic text-2xl text-gold">
+                                  ({selectedChat.challenge_data.player_value}×{selectedChat.challenge_data.player_roll}) = {selectedChat.challenge_data.player_result}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">Il tuo tiro</p>
+                              </div>
+                              <span className="font-gothic text-xl text-parchment">vs</span>
+                              <div className="text-center">
+                                <p className="font-gothic text-2xl text-primary">
+                                  ({selectedChat.challenge_data.difficulty}×{selectedChat.challenge_data.difficulty_roll}) = {selectedChat.challenge_data.difficulty_result}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">Difficoltà</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Esito */}
+                        <div className="fade-in">
+                          <div className={`p-4 rounded-sm border-2 ${
+                            selectedChat.challenge_data.outcome === "success" ? "border-green-500/50 bg-green-500/10" :
+                            selectedChat.challenge_data.outcome === "tie" ? "border-yellow-500/50 bg-yellow-500/10" :
+                            "border-red-500/50 bg-red-500/10"
+                          }`}>
+                            <p className={`font-gothic text-2xl text-center mb-3 ${
+                              selectedChat.challenge_data.outcome === "success" ? "text-green-400" :
+                              selectedChat.challenge_data.outcome === "tie" ? "text-yellow-400" : "text-red-400"
+                            }`}>
+                              {selectedChat.challenge_data.outcome === "success" ? "Successo!" :
+                               selectedChat.challenge_data.outcome === "tie" ? "Parità" : "Fallimento"}
+                            </p>
+                            <p className="font-body text-parchment leading-relaxed text-center">
+                              {selectedChat.challenge_data.outcome_text}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Per le domande normali */}
+                        {/* Question */}
+                        <div className="fade-in">
+                          <div className="flex items-center gap-2 mb-3">
+                            <MessageSquare className="w-4 h-4 text-gold" />
+                            <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                              La Tua Domanda
+                            </span>
+                          </div>
+                          <div className="chat-message-user p-4 rounded-sm">
+                            <p className="font-body text-gold leading-relaxed">
+                              {selectedChat.question}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Answer */}
+                        <div className="fade-in">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Scroll className="w-4 h-4 text-gold" />
+                            <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
+                              Risposta dell'Oracolo
+                            </span>
+                          </div>
+                          <div className="chat-message-ai p-4 rounded-sm">
+                            <p className="font-body text-parchment leading-relaxed whitespace-pre-wrap">
+                              {selectedChat.answer}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Timestamp */}
                     <div className="text-center pt-4 border-t border-border/30">
