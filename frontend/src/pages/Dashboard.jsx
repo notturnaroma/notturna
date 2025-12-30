@@ -386,6 +386,26 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                         </div>
                       </div>
                     )}
+
+                    {/* Risultato aiuto */}
+                    {msg.type === "aid-result" && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[90%] p-4 rounded-sm border-2 border-gold/50 bg-gold/10">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="w-5 h-5 text-gold" />
+                            <p className="font-gothic text-xl text-gold">
+                              Aiuto Ottenuto
+                            </p>
+                          </div>
+                          <p className="font-body text-parchment text-sm mb-2">
+                            {msg.result.attribute} - {msg.result.level_name}
+                          </p>
+                          <p className="font-body text-parchment leading-relaxed">
+                            {msg.result.text}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {loading && (
