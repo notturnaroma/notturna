@@ -84,8 +84,7 @@ export default function Landing() {
                   {settings.landing_feature1_title}
                 </h4>
                 <p className="font-body text-muted-foreground leading-relaxed">
-                  Poni le tue domande all'intelligenza arcana che custodisce 
-                  le conoscenze dell'evento.
+                  {settings.landing_feature1_desc}
                 </p>
               </div>
 
