@@ -475,6 +475,16 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           onResult={handleChallengeResult}
         />
       )}
+
+      {/* Aids Modal */}
+      {showAidsModal && (
+        <AidsModal
+          token={token}
+          onClose={() => setShowAidsModal(false)}
+          onResult={handleAidResult}
+          refreshUser={refreshUser}
+        />
+      )}
     </div>
   );
 }
