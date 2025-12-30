@@ -766,19 +766,30 @@ async def search_challenges(q: str, user: dict = Depends(get_current_user)):
 
 # ==================== AIDS (AIUTI ATTRIBUTO) ROUTES ====================
 
-def is_aid_active(event_date_str: str) -> bool:
-    """Controlla se l'aiuto è attivo (giorno evento fino alle 03:00 del giorno dopo)"""
+def is_aid_active(event_date_str: str, start_time_str: str = "00:00", end_time_str: str = "23:59") -> bool:
+    """Controlla se l'aiuto è attivo (data e orario)"""
     from datetime import timedelta
     try:
-        event_date = datetime.strptime(event_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        now = datetime.now(timezone.utc)
+        event_date = datetime.strptime(event_date_str, "%Y-%m-%d")
+        now = datetime.now()
         
-        # Attivo dalle 00:00 del giorno evento fino alle 03:00 del giorno dopo
-        start = event_date
-        end = event_date + timedelta(days=1, hours=3)
+        # Parse orari
+        start_h, start_m = map(int, start_time_str.split(":"))
+        end_h, end_m = map(int, end_time_str.split(":"))
         
-        return start <= now <= end
-    except:
+        # Se end_time è dopo mezzanotte (es. 03:00), consideriamo il giorno dopo
+        if end_h < start_h:
+            # Caso: 21:00 - 03:00 (attraversa mezzanotte)
+            start_dt = event_date.replace(hour=start_h, minute=start_m)
+            end_dt = (event_date + timedelta(days=1)).replace(hour=end_h, minute=end_m)
+        else:
+            # Caso normale: 14:00 - 18:00
+            start_dt = event_date.replace(hour=start_h, minute=start_m)
+            end_dt = event_date.replace(hour=end_h, minute=end_m)
+        
+        return start_dt <= now <= end_dt
+    except Exception as e:
+        logger.error(f"Error checking aid active: {e}")
         return False
 
 @api_router.post("/aids", response_model=AidResponse)
