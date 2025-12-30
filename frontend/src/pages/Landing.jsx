@@ -81,7 +81,7 @@ export default function Landing() {
               <div className="card-gothic p-8 text-center fade-in glow-gold" data-testid="feature-chat">
                 <Scroll className="w-12 h-12 text-gold mx-auto mb-6" />
                 <h4 className="font-cinzel text-xl text-parchment mb-4 uppercase tracking-wide">
-                  Interroga l'Oracolo
+                  {settings.landing_feature1_title}
                 </h4>
                 <p className="font-body text-muted-foreground leading-relaxed">
                   Poni le tue domande all'intelligenza arcana che custodisce 
