@@ -192,6 +192,8 @@ class AidCreate(BaseModel):
     attribute: str  # es. "Intelligenza"
     levels: List[AidLevel]  # array di livelli con testi
     event_date: str  # data evento (YYYY-MM-DD)
+    start_time: str  # ora inizio (HH:MM)
+    end_time: str  # ora fine (HH:MM)
 
 class AidResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -200,6 +202,8 @@ class AidResponse(BaseModel):
     attribute: str
     levels: List[dict]
     event_date: str
+    start_time: str
+    end_time: str
     created_at: str
     created_by: str
 
