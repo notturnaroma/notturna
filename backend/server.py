@@ -877,6 +877,7 @@ async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
         "attribute": data.attribute,
         "levels": [l.model_dump() for l in data.levels],
         "event_date": data.event_date,
+        "end_date": data.end_date,
         "start_time": data.start_time,
         "end_time": data.end_time,
         "created_at": datetime.now(timezone.utc).isoformat(),
