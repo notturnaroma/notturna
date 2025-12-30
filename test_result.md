@@ -128,7 +128,7 @@ frontend:
     status_history:
       - working: false
         agent: "main"
-        comment: "Aggiornato AidsModal per opzione B (inserimento valori per tutti e 3 gli attributi) e AidsPanel per select attributo fisso + end_date. Da verificare e2e."
+        comment: "Aggiornato AidsModal per opzione B (inserimento valori per tutti e 3 gli attributi), AidsPanel per select attributo fisso + end_date e macrofinestra evento nel CustomizePanel. Da verificare e2e."
 metadata:
   created_by: "main_agent"
   version: "1.0"
