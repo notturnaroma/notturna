@@ -50,9 +50,16 @@ export default function CustomizePanel({ token }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setFormData({
-      ...DEFAULT_SETTINGS,
-      ...settings
+    setFormData(prevFormData => {
+      const newFormData = {
+        ...DEFAULT_SETTINGS,
+        ...settings
+      };
+      // Only update if the data has actually changed
+      if (JSON.stringify(prevFormData) !== JSON.stringify(newFormData)) {
+        return newFormData;
+      }
+      return prevFormData;
     });
   }, [settings]);
 
