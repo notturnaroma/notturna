@@ -112,6 +112,8 @@ class ChatResponse(BaseModel):
     question: str
     answer: str
     created_at: str
+    type: Optional[str] = "chat"
+    challenge_data: Optional[dict] = None
 
 class UpdateUserActions(BaseModel):
     max_actions: int
