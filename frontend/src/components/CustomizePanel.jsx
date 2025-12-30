@@ -42,7 +42,10 @@ const DEFAULT_SETTINGS = {
 
 export default function CustomizePanel({ token }) {
   const { settings, updateSettings } = useSettings();
-  const [formData, setFormData] = useState(settings);
+  const [formData, setFormData] = useState({
+    ...DEFAULT_SETTINGS,
+    ...settings
+  });
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
