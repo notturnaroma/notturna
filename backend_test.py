@@ -640,15 +640,28 @@ class ArchivioMaledettoAPITester:
         self.test_admin_registration()
         self.test_user_login()
 
+        # Try to make admin user actually admin
+        self.make_user_admin_via_script()
+
         # Test core functionality
         self.test_chat_functionality()
         self.test_knowledge_base_operations()
+        
+        # Test AIDS (Focalizzazioni) functionality
+        print("\n🎯 Testing AIDS (Focalizzazioni) System...")
+        self.test_aids_creation()
+        self.test_aids_get_all()
+        self.test_aids_active_filtering()
+        self.test_aids_use_functionality()
         
         # Test admin functionality
         self.test_admin_operations()
 
         # Test error handling
         self.test_authentication_errors()
+
+        # Cleanup
+        self.cleanup_created_aids()
 
         # Print summary
         print("=" * 60)
