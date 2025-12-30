@@ -233,7 +233,7 @@ export default function AidsPanel({ token }) {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Info base */}
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-cinzel text-gold text-xs uppercase">Nome *</Label>
                 <Input
@@ -254,6 +254,9 @@ export default function AidsPanel({ token }) {
                   data-testid="aid-attribute"
                 />
               </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="font-cinzel text-gold text-xs uppercase">Data Evento *</Label>
                 <Input
@@ -262,6 +265,26 @@ export default function AidsPanel({ token }) {
                   onChange={(e) => setFormData(prev => ({ ...prev, event_date: e.target.value }))}
                   className="input-gothic rounded-sm"
                   data-testid="aid-date"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Ora Inizio *</Label>
+                <Input
+                  type="time"
+                  value={formData.start_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                  className="input-gothic rounded-sm"
+                  data-testid="aid-start-time"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Ora Fine *</Label>
+                <Input
+                  type="time"
+                  value={formData.end_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                  className="input-gothic rounded-sm"
+                  data-testid="aid-end-time"
                 />
               </div>
             </div>
