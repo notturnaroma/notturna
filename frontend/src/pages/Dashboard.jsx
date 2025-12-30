@@ -459,7 +459,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
             </form>
             {remainingActions <= 0 && (
               <p className="text-primary font-cinzel text-sm mt-2 text-center">
-                Hai esaurito le tue azioni disponibili
+                {settings.actions_exhausted || "Hai esaurito le tue azioni disponibili"}
               </p>
             )}
           </div>
