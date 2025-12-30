@@ -26,8 +26,43 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
   const [submittedValues, setSubmittedValues] = useState(null);
   const [availableAids, setAvailableAids] = useState([]);
 
+  const getEventWindowKey = () => {
+    const { event_window_start, event_window_end } = settings;
+    if (!event_window_start || !event_window_end) return null;
+    return `${event_window_start}|${event_window_end}`;
+  };
+
+  const isWithinEventWindow = () => {
+    const { event_window_start, event_window_end } = settings;
+    if (!event_window_start || !event_window_end) return false;
+    const now = new Date();
+    const start = new Date(event_window_start);
+    const end = new Date(event_window_end);
+    return now >= start && now <= end;
+  };
+
   useEffect(() => {
     fetchData();
+
+    // Se siamo dentro la macrofinestra evento, prova a recuperare valori salvati
+    if (isWithinEventWindow()) {
+      const key = getEventWindowKey();
+      if (key) {
+        try {
+          const stored = localStorage.getItem(`focus_attr_values::${key}`);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === "object") {
+              setSubmittedValues(parsed);
+              // Non mostriamo il form, andiamo direttamente alla selezione
+              setStep("select");
+            }
+          }
+        } catch (e) {
+          console.error("Errore nel recupero dei valori attributo salvati", e);
+        }
+      }
+    }
   }, []);
 
   const fetchData = async () => {
