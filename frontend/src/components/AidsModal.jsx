@@ -102,6 +102,18 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
 
     const valuesMap = Object.fromEntries(entries);
 
+    // Salva i valori per la macrofinestra evento live, se definita
+    if (isWithinEventWindow()) {
+      const key = getEventWindowKey();
+      if (key) {
+        try {
+          localStorage.setItem(`focus_attr_values::${key}`, JSON.stringify(valuesMap));
+        } catch (e) {
+          console.error("Errore nel salvataggio dei valori attributo", e);
+        }
+      }
+    }
+
     // Filtra aiuti su tutti gli attributi contemporaneamente
     const filtered = aids
       .map(aid => {
