@@ -54,8 +54,6 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
             const parsed = JSON.parse(stored);
             if (parsed && typeof parsed === "object") {
               setSubmittedValues(parsed);
-              // Non mostriamo il form, andiamo direttamente alla selezione
-              setStep("select");
             }
           }
         } catch (e) {
@@ -86,6 +84,35 @@ export default function AidsModal({ token, onClose, onResult, refreshUser }) {
 
   const isLevelUsed = (aidId, level) => {
     return usedAids.some(u => u.aid_id === aidId && u.level === level);
+  const recomputeAvailableAids = (valuesMap) => {
+    const filtered = aids
+      .map(aid => {
+        const attr = aid.attribute;
+        const playerVal = valuesMap[attr];
+        if (playerVal == null) return { ...aid, availableLevels: [] };
+
+        const availableLevels = aid.levels.filter(l =>
+          playerVal >= l.level && !isLevelUsed(aid.id, l.level)
+        );
+        return { ...aid, availableLevels };
+      })
+      .filter(a => a.availableLevels.length > 0);
+
+    setAvailableAids(filtered);
+
+    if (Object.keys(valuesMap).length > 0 && filtered.length > 0) {
+      setStep("select");
+    }
+  };
+
+  useEffect(() => {
+    // Se abbiamo valori salvati e gli aiuti sono stati caricati, ricalcola le focalizzazioni disponibili
+    if (submittedValues && aids.length > 0) {
+      recomputeAvailableAids(submittedValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aids, usedAids]);
+
   };
 
   // Quando il giocatore inserisce tutti i valori, calcola le focalizzazioni disponibili
