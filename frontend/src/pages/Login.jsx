@@ -54,7 +54,7 @@ export default function Login({ onLogin }) {
         <div className="text-center mb-8 fade-in">
           <Link to="/">
             <Scroll className="w-16 h-16 text-gold mx-auto mb-4" />
-            <h1 className="font-gothic text-3xl text-gold">L'Archivio Maledetto</h1>
+            <h1 className="font-gothic text-3xl text-gold">{settings.event_name}</h1>
           </Link>
         </div>
 
