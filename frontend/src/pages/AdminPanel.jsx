@@ -26,9 +26,11 @@ import {
   Loader2,
   Shield,
   Crown,
-  Palette
+  Palette,
+  Swords
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
+import ChallengesPanel from "@/components/ChallengesPanel";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -249,6 +251,14 @@ export default function AdminPanel({ user, token, onLogout }) {
             >
               <Palette className="w-4 h-4 mr-2" />
               PERSONALIZZA
+            </TabsTrigger>
+            <TabsTrigger 
+              value="challenges" 
+              className="font-cinzel data-[state=active]:bg-gold/20 data-[state=active]:text-gold rounded-sm"
+              data-testid="challenges-tab"
+            >
+              <Swords className="w-4 h-4 mr-2" />
+              PROVE LARP
             </TabsTrigger>
           </TabsList>
 
@@ -487,6 +497,11 @@ export default function AdminPanel({ user, token, onLogout }) {
           {/* Customize Tab */}
           <TabsContent value="customize">
             <CustomizePanel token={token} />
+          </TabsContent>
+
+          {/* Challenges Tab */}
+          <TabsContent value="challenges">
+            <ChallengesPanel token={token} />
           </TabsContent>
         </Tabs>
       </main>
