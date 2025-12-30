@@ -14,6 +14,7 @@ class ArchivioMaledettoAPITester:
         self.tests_passed = 0
         self.test_results = []
         self.created_aids = []  # Track created aids for cleanup
+        self.admin_email = None  # Store admin email for make_admin script
 
     def log_test(self, name, success, details=""):
         """Log test result"""
