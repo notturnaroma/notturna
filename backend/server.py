@@ -590,8 +590,39 @@ async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
     # Recupera background del PG per filtrare in base ai requisiti
     bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0}) or {}
 
+    def has_required_contacts(doc, background):
+        required = doc.get("required_contacts") or []
+        if not required:
+            return True
+        contacts_map = {c["name"].lower(): c["value"] for c in (background.get("contacts") or [])}
+        for req in required:
+            name = str(req.get("name", "")).lower()
+            min_val = int(req.get("value", 0))
+            if not name:
+                continue
+            if contacts_map.get(name, 0) < min_val:
+                return False
+        return True
+
+    def has_required_background(doc, background):
+        # Mentor
+        req_mentor = doc.get("required_mentor")
+        if req_mentor is not None and (background.get("mentor", 0) < req_mentor):
+            return False
+        # Notoriety
+        req_notoriety = doc.get("required_notoriety")
+        if req_notoriety is not None and (background.get("notoriety", 0) < req_notoriety):
+            return False
+        # Contacts
+        if not has_required_contacts(doc, background):
+            return False
+        return True
+
     # Get knowledge base context
     kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
+    
+    # Filtra i documenti KB in base al background del PG
+    kb_docs = [doc for doc in kb_docs if has_required_background(doc, bg)]
     context = "\n\n".join([f"### {doc['title']}\n{doc['content']}" for doc in kb_docs])
     
     system_message = f"""Sei un assistente dell'evento. Rispondi alle domande basandoti SOLO sulle informazioni fornite nel contesto seguente. 
