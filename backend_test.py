@@ -908,12 +908,19 @@ class ArchivioMaledettoAPITester:
         self.test_chat_functionality()
         self.test_knowledge_base_operations()
         
-        # Test AIDS (Focalizzazioni) functionality
+        # Test AIDS (Focalizzazioni) functionality - keeping for regression
         print("\n🎯 Testing AIDS (Focalizzazioni) System...")
         self.test_aids_creation()
         self.test_aids_get_all()
         self.test_aids_active_filtering()
         self.test_aids_use_functionality()
+        
+        # NEW TESTS: Background and Rifugio System
+        print("\n🏰 Testing Background and Rifugio System...")
+        self.test_background_system()
+        self.test_refuge_defense_system()
+        self.test_admin_user_deletion()
+        self.test_reset_max_actions()
         
         # Test admin functionality
         self.test_admin_operations()
