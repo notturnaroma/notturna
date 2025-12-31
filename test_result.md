@@ -101,14 +101,14 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 
-user_problem_statement: "Completare e correggere il sistema di Focalizzazioni (ex Aiuti), inclusi attributi fissi, finestra temporale data/ora e personalizzazione testi."
+user_problem_statement: "Verificare il nuovo sistema Background e Rifugio: creazione background con lock, uso rifugio nelle prove LARP, eliminazione utenti admin, reset max_actions."
 backend:
   - task: "Endpoint aids con end_date e controllo finestra temporale"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
-    priority: "high"
+    priority: "low"
     needs_retesting: false
     status_history:
       - working: false
@@ -117,6 +117,50 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TUTTI I TEST SUPERATI - Sistema Focalizzazioni completamente funzionante: 1) POST /api/aids crea correttamente con end_date, response senza _id ✓ 2) GET /api/aids restituisce tutti i campi temporali ✓ 3) GET /api/aids/active filtra correttamente per finestra temporale incluso attraversamento mezzanotte ✓ 4) POST /api/aids/use valida finestra temporale (403 se fuori orario), attributo sufficiente, salva in aid_uses e chat_history, incrementa used_actions ✓. Testato con utenti admin/player reali."
+  - task: "Sistema Background con validazione e lock"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Nuovo task da testare: POST /api/background/me con valori validi (risorse 10, seguaci 2, rifugio 3, mentor 1, notoriety 0, contatti vari per totale <=20). Verificare che locked_for_player diventi true."
+  - task: "Sistema Rifugio nelle prove LARP"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Nuovo task da testare: Con utente giocatore con rifugio=3 e prova LARP con allow_refuge_defense=true e difficulty=8, chiamare POST /api/challenges/attempt con use_refuge=true e player_value fissato (es. 4) più volte e verificare che la difficoltà effettiva usata nel log sia 7 (8-1) secondo la tabella di rifugio."
+  - task: "Eliminazione utenti admin"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Nuovo task da testare: Verificare che DELETE /api/admin/users/{user_id} elimini correttamente un PG (non admin) e ritorni 404 se richiamato una seconda volta."
+  - task: "Reset max_actions per tutti gli utenti"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Nuovo task da testare: Verificare che POST /api/admin/users/reset-max-actions imposti max_actions=20 per tutti gli utenti (controllare con GET /api/admin/users lato admin)."
 frontend:
   - task: "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
     implemented: true
