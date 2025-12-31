@@ -50,6 +50,9 @@ export default function AdminPanel({ user, token, onLogout }) {
   const [kbTitle, setKbTitle] = useState("");
   const [kbContent, setKbContent] = useState("");
   const [kbCategory, setKbCategory] = useState("general");
+  const [kbRequiredContacts, setKbRequiredContacts] = useState([]);
+  const [kbRequiredMentor, setKbRequiredMentor] = useState("");
+  const [kbRequiredNotoriety, setKbRequiredNotoriety] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
