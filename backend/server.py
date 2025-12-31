@@ -843,6 +843,53 @@ async def list_resource_items(admin: dict = Depends(get_admin_user)):
     docs = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
     return [ResourceItemResponse(**d) for d in docs]
 
+@api_router.put("/resources/{item_id}", response_model=ResourceItemResponse)
+async def update_resource_item(item_id: str, data: ResourceItemUpdate, admin: dict = Depends(get_admin_user)):
+    """Aggiorna un oggetto del catalogo RISORSE"""
+    existing = await db.resource_items.find_one({"id": item_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Oggetto non trovato")
+    
+    update_fields = {}
+    if data.name is not None:
+        update_fields["name"] = data.name
+    if data.description is not None:
+        update_fields["description"] = data.description
+    if data.cost_resources is not None:
+        if data.cost_resources <= 0:
+            raise HTTPException(status_code=400, detail="Il costo in RISORSE deve essere almeno 1")
+        update_fields["cost_resources"] = data.cost_resources
+    if data.block_until is not None:
+        update_fields["block_until"] = data.block_until
+    if data.total_quantity is not None:
+        update_fields["total_quantity"] = data.total_quantity
+        # Se cambia il totale, aggiusta anche il rimanente proporzionalmente
+        old_total = existing.get("total_quantity")
+        old_remaining = existing.get("remaining_quantity")
+        if old_total is not None and old_remaining is not None:
+            sold = old_total - old_remaining
+            update_fields["remaining_quantity"] = max(0, data.total_quantity - sold)
+        else:
+            update_fields["remaining_quantity"] = data.total_quantity
+    if data.max_per_player is not None:
+        update_fields["max_per_player"] = data.max_per_player
+    
+    if update_fields:
+        await db.resource_items.update_one({"id": item_id}, {"$set": update_fields})
+    
+    updated = await db.resource_items.find_one({"id": item_id}, {"_id": 0})
+    return ResourceItemResponse(**updated)
+
+@api_router.delete("/resources/{item_id}")
+async def delete_resource_item(item_id: str, admin: dict = Depends(get_admin_user)):
+    """Elimina un oggetto dal catalogo RISORSE"""
+    result = await db.resource_items.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Oggetto non trovato")
+    # Rimuovi anche i lock relativi a questo oggetto
+    await db.resource_locks.delete_many({"item_id": item_id})
+    return {"message": "Oggetto eliminato"}
+
 @api_router.get("/resources/available", response_model=ResourceAvailableResponse)
 async def get_available_resources(user: dict = Depends(get_current_user)):
     # RISORSE totali dal background
