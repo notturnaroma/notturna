@@ -148,9 +148,6 @@ export default function EmbedChat() {
     "--bg-custom": settings.background_color
   };
 
-
- 
-
   if (authLoading) {
     return (
       <div className="h-full flex items-center justify-center" style={{ backgroundColor: settings.background_color }}>
