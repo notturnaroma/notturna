@@ -202,5 +202,7 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Ho implementato: 1) Fix bug contatore azioni - ora mostra correttamente il bonus SEGUACI (es. 23/23 per utente con 3 SEGUACI). 2) Modifica/Eliminazione oggetti RISORSE nel pannello admin. 3) Gestione quantità totale e max per giocatore. Per favore testa: a) Login come giocatore con SEGUACI e verifica contatore mostra bonus. b) Login come admin, vai a RISORSE, crea oggetto con quantità, modifica, elimina. c) Come giocatore, prova ad acquistare oggetto con limite e verifica controlli."
+  - agent: "testing"
+    message: "BACKEND TESTING COMPLETATO ✅ Tutti i test prioritari sono passati: 1) GET /api/followers/status restituisce correttamente effective_max_actions=23 e remaining_actions_before=23 per utente con 3 SEGUACI. 2) CRUD RISORSE: POST crea oggetto con quantità (remaining_quantity=3, max_per_player=1), PUT modifica nome e costo, DELETE elimina con messaggio 'Oggetto eliminato' e secondo DELETE restituisce 404. 3) Controlli acquisto: primo acquisto successo, secondo acquisto fallisce con 403 'limite massimo raggiunto'. Tutti i backend endpoints funzionano correttamente secondo le specifiche."
 
 #====================================================================================================
