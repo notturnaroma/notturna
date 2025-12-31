@@ -1082,6 +1082,19 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
         remaining_before = 0
 
     # Leggi eventuali SEGUACI dal background
+    # Registra l'uso dei SEGUACI, se presente
+    if followers_used > 0:
+        now = datetime.now(timezone.utc)
+        spend_doc = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "amount": followers_used,
+            "month_key": get_month_key(now),
+            "created_at": now.isoformat()
+        }
+        await db.follower_spends.insert_one(spend_doc)
+
+
     bg_full = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "seguaci": 1}) or {}
     total_followers = int(bg_full.get("seguaci", 0))
     spent_followers = await get_follower_spent_this_month(user["id"])
