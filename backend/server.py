@@ -615,11 +615,6 @@ async def reset_all_users_max_actions(admin: dict = Depends(get_admin_user)):
     return {"message": "max_actions impostato a 20 per tutti gli utenti"}
 
 
-@api_router.delete("/admin/users/{user_id}")
-async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
-    """Elimina completamente un PG (utente)"""
-    # Non permettere di cancellare se stessi per sicurezza
-    if admin["id"] == user_id:
 @api_router.get("/background/me", response_model=Background)
 async def get_my_background(user: dict = Depends(get_current_user)):
     doc = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0})
