@@ -222,6 +222,19 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               <span className="hidden sm:inline">{settings.nav_aids || "FOCALIZZAZIONI"}</span>
             </Button>
 
+            <Link to="/background">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gold hover:bg-gold/10 font-cinzel"
+                data-testid="background-nav-btn"
+              >
+                <Scroll className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">BACKGROUND</span>
+              </Button>
+            </Link>
+
+
             <Link to="/archive">
               <Button 
                 variant="ghost" 
