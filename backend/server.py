@@ -1105,9 +1105,9 @@ async def use_aid(data: UseAid, user: dict = Depends(get_current_user)):
     
     # Trova il livello richiesto
     level_data = None
-    for l in aid["levels"]:
-        if l["level"] == data.level:
-            level_data = l
+    for level in aid["levels"]:
+        if level["level"] == data.level:
+            level_data = level
             break
     
     if not level_data:
