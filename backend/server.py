@@ -254,6 +254,22 @@ class ChallengeResponse(BaseModel):
     created_by: str
 
 class ChallengeAttempt(BaseModel):
+class BackgroundContact(BaseModel):
+    name: str
+    value: int
+
+class Background(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    risorse: int = 0
+    seguaci: int = 0
+    rifugio: int = 1
+    mentor: int = 0
+    notoriety: int = 0
+    contacts: List[BackgroundContact] = []
+    locked_for_player: bool = False
+
+
     challenge_id: str
     test_index: int  # quale prova ha scelto (0, 1, 2...)
     player_value: int  # valore attributo del giocatore
