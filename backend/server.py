@@ -611,6 +611,74 @@ async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
     """Elimina completamente un PG (utente)"""
     # Non permettere di cancellare se stessi per sicurezza
     if admin["id"] == user_id:
+@api_router.get("/background/me", response_model=Background)
+async def get_my_background(user: dict = Depends(get_current_user)):
+    doc = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0})
+    if not doc:
+        # Ritorna un background vuoto non lockato (valori di default)
+        return Background(user_id=user["id"])
+    return Background(**doc)
+
+@api_router.post("/background/me", response_model=Background)
+async def create_or_update_my_background(data: Background, user: dict = Depends(get_current_user)):
+    # Trova background esistente
+    existing = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0})
+    if existing and existing.get("locked_for_player", False):
+        raise HTTPException(status_code=403, detail="Il tuo background può essere modificato solo dalla Narrazione")
+
+    # Vincoli lato PG: valori entro range
+    if not (0 <= data.risorse <= 20):
+        raise HTTPException(status_code=400, detail="RISORSE deve essere tra 0 e 20")
+    if not (0 <= data.seguaci <= 5):
+        raise HTTPException(status_code=400, detail="SEGUACI deve essere tra 0 e 5")
+    if not (1 <= data.rifugio <= 5):
+        raise HTTPException(status_code=400, detail="RIFUGIO deve essere tra 1 e 5")
+    if not (0 <= data.mentor <= 5):
+        raise HTTPException(status_code=400, detail="MENTORE deve essere tra 0 e 5")
+    if not (0 <= data.notoriety <= 5):
+        raise HTTPException(status_code=400, detail="NOTORIETÀ deve essere tra 0 e 5")
+
+    # Contatti: ogni valore 1-5, somma <= 20
+    total_contacts = 0
+    for c in data.contacts:
+        if not (1 <= c.value <= 5):
+            raise HTTPException(status_code=400, detail="Ogni contatto deve avere un valore tra 1 e 5")
+        total_contacts += c.value
+    if total_contacts > 20:
+        raise HTTPException(status_code=400, detail="La somma dei punti contatti non può superare 20")
+
+    doc = data.model_dump()
+    doc["user_id"] = user["id"]
+    doc["locked_for_player"] = True
+
+    await db.backgrounds.update_one(
+        {"user_id": user["id"]},
+        {"$set": doc},
+        upsert=True
+    )
+    return Background(**doc)
+
+@api_router.get("/admin/background/{user_id}", response_model=Background)
+async def get_user_background(user_id: str, admin: dict = Depends(get_admin_user)):
+    doc = await db.backgrounds.find_one({"user_id": user_id}, {"_id": 0})
+    if not doc:
+        return Background(user_id=user_id)
+    return Background(**doc)
+
+@api_router.put("/admin/background/{user_id}", response_model=Background)
+async def update_user_background(user_id: str, data: Background, admin: dict = Depends(get_admin_user)):
+    # L'admin può modificare liberamente, anche oltre i limiti
+    doc = data.model_dump()
+    doc["user_id"] = user_id
+    doc["locked_for_player"] = True
+    await db.backgrounds.update_one(
+        {"user_id": user_id},
+        {"$set": doc},
+        upsert=True
+    )
+    return Background(**doc)
+
+
         raise HTTPException(status_code=400, detail="Non puoi eliminare te stesso")
 
     result = await db.users.delete_one({"id": user_id})
