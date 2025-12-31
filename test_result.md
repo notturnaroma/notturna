@@ -137,11 +137,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Creato endpoint DELETE per eliminare oggetti dal catalogo e relativi lock. Testato via curl: eliminazione funziona, secondo tentativo restituisce 404."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTATO: DELETE /api/resources/{item_id} funziona correttamente. Prima eliminazione restituisce 200 con messaggio 'Oggetto eliminato'. Seconda eliminazione dello stesso oggetto restituisce 404 come previsto. Lock relativi all'oggetto vengono rimossi."
   - task: "Gestione quantità e max_per_player negli acquisti"
     implemented: true
     working: true
