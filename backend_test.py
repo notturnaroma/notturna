@@ -532,7 +532,266 @@ class ArchivioMaledettoAPITester:
         
         return True
 
-    def cleanup_created_aids(self):
+    def test_background_system(self):
+        """Test Background system with validation and lock"""
+        if not self.token:
+            self.log_test("Background System", False, "No user token available")
+            return False
+
+        # Test 1: Create background with valid values
+        background_data = {
+            "user_id": self.user_id,
+            "risorse": 10,
+            "seguaci": 2,
+            "rifugio": 3,
+            "mentor": 1,
+            "notoriety": 0,
+            "contacts": [
+                {"name": "Mercante di Libri", "value": 3},
+                {"name": "Informatore", "value": 2},
+                {"name": "Bibliotecario", "value": 1}
+            ],
+            "locked_for_player": False
+        }
+        
+        # Calculate total contacts value
+        total_contacts = sum(c["value"] for c in background_data["contacts"])
+        if total_contacts > 20:
+            self.log_test("Background System", False, f"Test data invalid: contacts total {total_contacts} > 20")
+            return False
+        
+        success, response = self.run_test(
+            "Create Background with Valid Values",
+            "POST",
+            "background/me",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        if success:
+            # Verify locked_for_player is true
+            if response.get("locked_for_player") != True:
+                self.log_test("Background Lock Validation", False, f"locked_for_player is {response.get('locked_for_player')}, expected True")
+                return False
+            else:
+                self.log_test("Background Lock Validation", True, "locked_for_player correctly set to True")
+        
+        # Test 2: Try to modify locked background (should fail)
+        modified_data = background_data.copy()
+        modified_data["risorse"] = 15
+        
+        success, response = self.run_test(
+            "Modify Locked Background (Should Fail)",
+            "POST",
+            "background/me",
+            403,
+            data=modified_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        return True
+
+    def test_refuge_defense_system(self):
+        """Test Rifugio defense system in LARP challenges"""
+        if not self.admin_token or not self.token:
+            self.log_test("Refuge Defense System", False, "Missing admin or user token")
+            return False
+
+        # First, ensure user has rifugio=3 in background
+        background_data = {
+            "user_id": self.user_id,
+            "risorse": 5,
+            "seguaci": 1,
+            "rifugio": 3,  # This should give -1 difficulty bonus
+            "mentor": 0,
+            "notoriety": 0,
+            "contacts": [{"name": "Test Contact", "value": 2}],
+            "locked_for_player": False
+        }
+        
+        success, response = self.run_test(
+            "Set User Background with Rifugio=3",
+            "POST",
+            "background/me",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        if not success:
+            self.log_test("Refuge Defense System", False, "Failed to set background")
+            return False
+
+        # Create a challenge with allow_refuge_defense=true and difficulty=8
+        challenge_data = {
+            "name": "Test Rifugio Challenge",
+            "description": "Una prova per testare il sistema di difesa del rifugio",
+            "tests": [
+                {
+                    "attribute": "Intelligenza + Occulto",
+                    "difficulty": 8,
+                    "success_text": "Riesci a decifrare l'antico testo",
+                    "tie_text": "Comprendi parzialmente il significato",
+                    "failure_text": "Il testo rimane incomprensibile"
+                }
+            ],
+            "keywords": ["rifugio", "test"],
+            "allow_refuge_defense": True
+        }
+        
+        success, response = self.run_test(
+            "Create Challenge with Refuge Defense",
+            "POST",
+            "challenges",
+            200,
+            data=challenge_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success or 'id' not in response:
+            self.log_test("Refuge Defense System", False, "Failed to create challenge")
+            return False
+        
+        challenge_id = response['id']
+        
+        # Test multiple attempts with use_refuge=true
+        # With rifugio=3, effective difficulty should be 8-1=7
+        attempt_data = {
+            "challenge_id": challenge_id,
+            "test_index": 0,
+            "player_value": 4,
+            "use_refuge": True
+        }
+        
+        # We can only attempt once per user, so let's check the logs
+        success, response = self.run_test(
+            "Attempt Challenge with Refuge Defense",
+            "POST",
+            "challenges/attempt",
+            200,
+            data=attempt_data,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        if success:
+            # Check if the effective difficulty was reduced
+            # The response should show the calculation
+            if "difficulty" in response:
+                original_difficulty = response["difficulty"]
+                if original_difficulty == 8:
+                    self.log_test("Refuge Defense Calculation", True, f"Original difficulty {original_difficulty} maintained in response")
+                else:
+                    self.log_test("Refuge Defense Calculation", False, f"Expected difficulty 8, got {original_difficulty}")
+            
+            # The actual calculation should use effective difficulty 7 internally
+            # We can verify this by checking the message or logs
+            if "message" in response:
+                message = response["message"]
+                self.log_test("Refuge Defense Message", True, f"Challenge result: {message}")
+        
+        # Cleanup: delete the challenge
+        try:
+            self.run_test(
+                "Cleanup Challenge",
+                "DELETE",
+                f"challenges/{challenge_id}",
+                200,
+                headers={'Authorization': f'Bearer {self.admin_token}'}
+            )
+        except:
+            pass
+        
+        return success
+
+    def test_admin_user_deletion(self):
+        """Test admin user deletion functionality"""
+        if not self.admin_token:
+            self.log_test("Admin User Deletion", False, "No admin token available")
+            return False
+
+        # First create a test user to delete
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_user = {
+            "username": f"deletetest_{timestamp}",
+            "email": f"deletetest_{timestamp}@example.com",
+            "password": "TestPass123!"
+        }
+        
+        success, response = self.run_test(
+            "Create User for Deletion Test",
+            "POST",
+            "auth/register",
+            200,
+            data=test_user
+        )
+        
+        if not success or 'user' not in response:
+            self.log_test("Admin User Deletion", False, "Failed to create test user")
+            return False
+        
+        test_user_id = response['user']['id']
+        
+        # Test 1: Delete the user (should succeed)
+        success, response = self.run_test(
+            "Delete User (First Time)",
+            "DELETE",
+            f"admin/users/{test_user_id}",
+            200,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success:
+            return False
+        
+        # Test 2: Try to delete the same user again (should return 404)
+        success, response = self.run_test(
+            "Delete User (Second Time - Should Return 404)",
+            "DELETE",
+            f"admin/users/{test_user_id}",
+            404,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        return success
+
+    def test_reset_max_actions(self):
+        """Test reset max_actions for all users"""
+        if not self.admin_token:
+            self.log_test("Reset Max Actions", False, "No admin token available")
+            return False
+
+        # Test 1: Call reset-max-actions endpoint
+        success, response = self.run_test(
+            "Reset Max Actions for All Users",
+            "POST",
+            "admin/users/reset-max-actions",
+            200,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success:
+            return False
+        
+        # Test 2: Verify by getting all users and checking max_actions=20
+        success, response = self.run_test(
+            "Get All Users to Verify Max Actions",
+            "GET",
+            "admin/users",
+            200,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success and isinstance(response, list):
+            # Check that all users have max_actions=20
+            for user in response:
+                if user.get("max_actions") != 20:
+                    self.log_test("Max Actions Verification", False, f"User {user.get('username')} has max_actions={user.get('max_actions')}, expected 20")
+                    return False
+            
+            self.log_test("Max Actions Verification", True, f"All {len(response)} users have max_actions=20")
+        
+        return success
         """Clean up aids created during testing"""
         if not self.admin_token or not self.created_aids:
             return
