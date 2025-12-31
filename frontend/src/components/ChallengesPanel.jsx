@@ -242,6 +242,23 @@ export default function ChallengesPanel({ token }) {
                   placeholder="es. tomo, libro, scrivania"
                   className="input-gothic rounded-sm"
                   data-testid="challenge-keywords"
+            <div className="space-y-2">
+              <Label className="font-cinzel text-gold text-xs uppercase">Questa prova può nuocere al PG (usa RIFUGIO come difesa)</Label>
+              <div className="flex items-center gap-2 text-sm text-parchment">
+                <input
+                  id="allow_refuge_defense"
+                  type="checkbox"
+                  checked={formData.allow_refuge_defense}
+                  onChange={(e) => setFormData(prev => ({ ...prev, allow_refuge_defense: e.target.checked }))}
+                  className="w-4 h-4 border border-gold/50 bg-black/50 rounded-sm"
+                />
+                <span className="font-body text-muted-foreground">
+                  Se attivo, il valore di RIFUGIO del PG potrà ridurre la difficoltà della prova.
+                </span>
+              </div>
+            </div>
+
+
                 />
               </div>
             </div>
