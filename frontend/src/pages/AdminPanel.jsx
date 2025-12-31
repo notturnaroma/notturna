@@ -459,6 +459,7 @@ export default function AdminPanel({ user, token, onLogout }) {
                     </div>
                   </div>
                 </div>
+              </div>
 
                 <div className="flex flex-wrap gap-4">
                   <Button
