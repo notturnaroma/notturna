@@ -460,10 +460,6 @@ export default function AdminPanel({ user, token, onLogout }) {
                   </div>
                 </div>
 
-                    data-testid="kb-content-input"
-                  />
-                </div>
-
                 <div className="flex flex-wrap gap-4">
                   <Button
                     type="submit"
