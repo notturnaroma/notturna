@@ -140,6 +140,15 @@ export default function EmbedChat() {
   const [remainingActions, setRemainingActions] = useState(user ? user.max_actions - user.used_actions : 0);
   const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
 
+  // Custom styles based on settings
+  const customStyles = {
+    "--primary-custom": settings.primary_color,
+    "--secondary-custom": settings.secondary_color,
+    "--accent-custom": settings.accent_color,
+    "--bg-custom": settings.background_color
+  };
+
+
   useEffect(() => {
     if (!user) return;
     const fetchFollowerStatus = async () => {
