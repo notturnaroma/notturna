@@ -138,10 +138,10 @@ export default function EmbedChat() {
   };
 
   const [remainingActions, setRemainingActions] = useState(user ? user.max_actions - user.used_actions : 0);
+  const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
 
   // Custom styles based on settings
   const customStyles = {
-  const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
 
   useEffect(() => {
     if (!user) return;
