@@ -722,6 +722,22 @@ async def root():
 
 @api_router.get("/settings", response_model=AppSettingsResponse)
 async def get_settings():
+    # Eventuale uso del rifugio per ridurre la difficoltà
+    refuge_bonus = 0
+    if challenge.get("allow_refuge_defense") and data.use_refuge:
+        # Recupera background del PG
+        bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "rifugio": 1})
+        rifugio = (bg or {}).get("rifugio", 1)
+        if rifugio <= 1:
+            refuge_bonus = 0
+        elif rifugio in [2, 3]:
+            refuge_bonus = 1
+        elif rifugio == 4:
+            refuge_bonus = 2
+        else:  # 5 o più
+            refuge_bonus = 3
+
+
     """Get app settings (public endpoint for embed)"""
     settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
     if not settings:
