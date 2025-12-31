@@ -534,6 +534,41 @@ async def upload_document(file: UploadFile = File(...), user: dict = Depends(get
 
 @api_router.get("/uploads/{filename}")
 async def get_uploaded_file(filename: str):
+    # Recupera background del PG per filtrare in base ai requisiti
+    bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0}) or {}
+
+    def has_required_contacts(doc, background):
+        required = doc.get("required_contacts") or []
+        if not required:
+            return True
+        contacts_map = {c["name"].lower(): c["value"] for c in (background.get("contacts") or [])}
+        for req in required:
+            name = str(req.get("name", "")).lower()
+            min_val = int(req.get("value", 0))
+            if not name:
+                continue
+            if contacts_map.get(name, 0) < min_val:
+                return False
+        return True
+
+    def has_required_background(doc, background):
+        # Mentor
+        req_mentor = doc.get("required_mentor")
+        if req_mentor is not None and (background.get("mentor", 0) < req_mentor):
+            return False
+        # Notoriety
+        req_notoriety = doc.get("required_notoriety")
+        if req_notoriety is not None and (background.get("notoriety", 0) < req_notoriety):
+            return False
+        # Contacts
+        if not has_required_contacts(doc, background):
+            return False
+        return True
+
+    # Filtra i documenti KB in base al background del PG
+    kb_docs = [doc for doc in kb_docs if has_required_background(doc, bg)]
+
+
     """Serve uploaded files"""
     file_path = UPLOAD_DIR / filename
     if not file_path.exists():
