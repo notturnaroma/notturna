@@ -296,6 +296,16 @@ class ResourceItemCreate(BaseModel):
     description: Optional[str] = None
     cost_resources: int = 1
     block_until: Optional[str] = None  # ISO datetime (opzionale)
+    total_quantity: Optional[int] = None  # Null = illimitato
+    max_per_player: Optional[int] = None  # Null = illimitato
+
+class ResourceItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    cost_resources: Optional[int] = None
+    block_until: Optional[str] = None
+    total_quantity: Optional[int] = None
+    max_per_player: Optional[int] = None
 
 class ResourceItemResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -304,6 +314,9 @@ class ResourceItemResponse(BaseModel):
     description: Optional[str] = None
     cost_resources: int
     block_until: Optional[str] = None
+    total_quantity: Optional[int] = None
+    remaining_quantity: Optional[int] = None
+    max_per_player: Optional[int] = None
 
 class ResourceAvailableResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
