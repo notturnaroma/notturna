@@ -12,6 +12,8 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
   const [playerValue, setPlayerValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [useRefuge, setUseRefuge] = useState(false);
+
 
   const handleSelectTest = (index) => {
     setSelectedTest(index);
