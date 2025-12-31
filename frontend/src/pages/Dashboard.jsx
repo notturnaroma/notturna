@@ -69,8 +69,6 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     fetchFollowerStatus();
   }, [user, token]);
 
-  }, []);
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
