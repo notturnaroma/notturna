@@ -840,6 +840,21 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     
     test = challenge["tests"][data.test_index]
     
+    # Eventuale uso del rifugio per ridurre la difficoltà
+    refuge_bonus = 0
+    if challenge.get("allow_refuge_defense") and data.use_refuge:
+        # Recupera background del PG
+        bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "rifugio": 1})
+        rifugio = (bg or {}).get("rifugio", 1)
+        if rifugio <= 1:
+            refuge_bonus = 0
+        elif rifugio in [2, 3]:
+            refuge_bonus = 1
+        elif rifugio == 4:
+            refuge_bonus = 2
+        else:  # 5 o più
+            refuge_bonus = 3
+    
     # Calcolo con fattori random
     player_roll = random.randint(1, 5)
     difficulty_roll = random.randint(1, 5)
