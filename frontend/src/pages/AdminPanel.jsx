@@ -327,6 +327,14 @@ export default function AdminPanel({ user, token, onLogout }) {
               <Sparkles className="w-4 h-4 mr-2" />
               AIUTI
             </TabsTrigger>
+            <TabsTrigger 
+              value="resources" 
+              className="font-cinzel data-[state=active]:bg-gold/20 data-[state=active]:text-gold rounded-sm"
+              data-testid="resources-tab"
+            >
+              <Coins className="w-4 h-4 mr-2" />
+              RISORSE
+            </TabsTrigger>
           </TabsList>
 
           {/* Knowledge Base Tab */}
