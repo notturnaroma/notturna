@@ -191,6 +191,10 @@ export default function CustomizePanel({ token }) {
                 <Label className="font-cinzel text-gold text-xs uppercase">Nav: Focalizzazioni</Label>
                 <Input value={formData.nav_aids || ""} onChange={(e) => handleChange("nav_aids", e.target.value)} className="input-gothic rounded-sm" />
               </div>
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Nav: Background</Label>
+                <Input value={formData.nav_background || ""} onChange={(e) => handleChange("nav_background", e.target.value)} className="input-gothic rounded-sm" />
+              </div>
             </div>
           </div>
         </TabsContent>
