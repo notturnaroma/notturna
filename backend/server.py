@@ -1102,8 +1102,8 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     difficulty_roll = random.randint(1, 5)
     
     player_result = data.player_value * player_roll
-    # Applica bonus difensivo del rifugio riducendo la difficoltà effettiva
-    effective_difficulty = max(0, test["difficulty"] - refuge_bonus)
+    # Applica bonus difensivo del rifugio e contributo dei SEGUACI riducendo la difficoltà effettiva
+    effective_difficulty = max(0, test["difficulty"] - refuge_bonus - followers_used)
     difficulty_result = effective_difficulty * difficulty_roll
     
     # Determina esito
