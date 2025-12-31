@@ -109,11 +109,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Aggiunto campo effective_max_actions al modello FollowerStatus e all'endpoint. Corretto bug di tipizzazione (dict vs Pydantic model). Testato via curl: utente con 3 SEGUACI riceve correttamente effective_max_actions=23 e remaining_actions_before=23."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTATO: GET /api/followers/status funziona correttamente. Utente con 3 SEGUACI nel background riceve effective_max_actions=23 (20 base + 3 SEGUACI) e remaining_actions_before=23. Tutti i campi richiesti presenti nella risposta (total_followers=3, spent_followers=0, available_followers=3)."
   - task: "PUT /api/resources/{item_id} per modifica oggetti"
     implemented: true
     working: true
