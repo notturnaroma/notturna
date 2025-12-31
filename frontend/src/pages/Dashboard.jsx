@@ -35,6 +35,22 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
   const scrollRef = useRef(null);
 
+  // Funzione per aggiornare il conteggio azioni
+  const refreshActionsCount = async () => {
+    try {
+      const response = await fetch(`${API}/followers/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRemainingActions(data.remaining_actions_before);
+        setEffectiveMaxActions(data.effective_max_actions);
+      }
+    } catch (error) {
+      console.error("Error fetching actions count:", error);
+    }
+  };
+
   useEffect(() => {
     fetchChallenges();
     fetchAttemptedChallenges();
