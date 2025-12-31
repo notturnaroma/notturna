@@ -419,9 +419,9 @@ async def check_monthly_reset(user: dict) -> dict:
         )
         user["last_action_reset"] = now.isoformat()
 @api_router.get("/followers/status", response_model=FollowerStatus)
-async def get_follower_status(user: dict = Depends(get_current_user)):
+async def get_follower_status(current_user: User = Depends(get_current_user)):
     """Ritorna la situazione dei SEGUACI per il mese corrente"""
-    now = datetime.now(timezone.utc)
+    user = current_user.model_dump()
     effective_max = await get_effective_max_actions(user)
     remaining_before = max(0, effective_max - user["used_actions"])
 
