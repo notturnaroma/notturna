@@ -437,10 +437,6 @@ async def get_follower_status(current_user: UserResponse = Depends(get_current_u
         remaining_actions_before=remaining_before
     )
 
-
-    
-    return user
-
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
