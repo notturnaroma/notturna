@@ -158,21 +158,20 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                 autoFocus
                 data-testid="player-value-input"
               />
-            {challenge.allow_refuge_defense && (
-              <div className="flex items-center gap-2 mb-4">
-                <input
-                  id="use_refuge"
-                  type="checkbox"
-                  checked={useRefuge}
-                  onChange={(e) => setUseRefuge(e.target.checked)}
-                  className="w-4 h-4 border border-gold/50 bg-black/50 rounded-sm"
-                />
-                <label htmlFor="use_refuge" className="font-body text-xs text-muted-foreground">
-                  Usa il tuo RIFUGIO per ridurre la difficoltà secondo la tabella (1→0, 2-3→-1, 4→-2, 5→-3)
-                </label>
-              </div>
-            )}
-
+              {challenge.allow_refuge_defense && (
+                <div className="flex items-center gap-2 mb-4 mt-2">
+                  <input
+                    id="use_refuge"
+                    type="checkbox"
+                    checked={useRefuge}
+                    onChange={(e) => setUseRefuge(e.target.checked)}
+                    className="w-4 h-4 border border-gold/50 bg-black/50 rounded-sm"
+                  />
+                  <label htmlFor="use_refuge" className="font-body text-xs text-muted-foreground">
+                    Usa il tuo RIFUGIO per ridurre la difficoltà secondo la tabella (1→0, 2-3→-1, 4→-2, 5→-3)
+                  </label>
+                </div>
+              )}
 
               <p className="text-xs text-muted-foreground text-center">
                 Somma dei tuoi due attributi
