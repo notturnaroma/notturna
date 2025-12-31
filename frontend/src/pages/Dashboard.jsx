@@ -163,6 +163,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
         const aiMessage = { type: "ai", text: data.answer, timestamp: data.created_at };
         setMessages(prev => [...prev, aiMessage]);
         refreshUser();
+        refreshActionsCount();
       } else {
         toast.error("Errore", { description: data.detail || "Errore nella richiesta" });
         setMessages(prev => prev.slice(0, -1));
