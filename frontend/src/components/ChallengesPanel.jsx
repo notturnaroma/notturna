@@ -243,6 +243,10 @@ export default function ChallengesPanel({ token }) {
                   placeholder="es. tomo, libro, scrivania"
                   className="input-gothic rounded-sm"
                   data-testid="challenge-keywords"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="font-cinzel text-gold text-xs uppercase">Questa prova può nuocere al PG (usa RIFUGIO come difesa)</Label>
               <div className="flex items-center gap-2 text-sm text-parchment">
@@ -256,11 +260,6 @@ export default function ChallengesPanel({ token }) {
                 <span className="font-body text-muted-foreground">
                   Se attivo, il valore di RIFUGIO del PG potrà ridurre la difficoltà della prova.
                 </span>
-              </div>
-            </div>
-
-
-                />
               </div>
             </div>
 
