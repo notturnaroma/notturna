@@ -106,7 +106,7 @@ class KnowledgeBaseResponse(BaseModel):
     file_url: Optional[str]
     created_at: str
     created_by: str
-    required_contacts: Optional[List[BackgroundContact]] = None
+    required_contacts: Optional[List[dict]] = None
     required_mentor: Optional[int] = None
     required_notoriety: Optional[int] = None
 
