@@ -37,7 +37,8 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
         body: JSON.stringify({
           challenge_id: challenge.id,
           test_index: selectedTest,
-          player_value: parseInt(playerValue)
+          player_value: parseInt(playerValue),
+          use_refuge: useRefuge
         })
       });
 
