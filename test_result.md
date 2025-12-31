@@ -198,11 +198,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Sistema Background con validazione e lock"
-    - "Sistema Rifugio nelle prove LARP"
-    - "Eliminazione utenti admin"
-    - "Reset max_actions per tutti gli utenti"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
