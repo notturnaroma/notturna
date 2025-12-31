@@ -151,11 +151,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Aggiornato endpoint /resources/purchase per controllare remaining_quantity e max_per_player. Decrementa remaining_quantity dopo ogni acquisto. Restituisce errore 403 se esaurito o raggiunto limite."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTATO: Controlli acquisto funzionano correttamente. Creato oggetto con max_per_player=1, primo acquisto successo (200), secondo acquisto fallisce con 403 e messaggio di errore contenente 'limite massimo'. Giocatore con 5 RISORSE può acquistare oggetto da 2 RISORSE. Validazione quantità e limiti per giocatore implementata correttamente."
 frontend:
   - task: "Contatore azioni dinamico nella Dashboard"
     implemented: true
