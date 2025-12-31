@@ -150,6 +150,7 @@ class AppSettings(BaseModel):
     nav_logout: str = "ESCI"
     nav_aids: str = "FOCALIZZAZIONI"
     nav_background: str = "BACKGROUND"
+    nav_background: str = "BACKGROUND"
     # Aids/Focalizzazioni texts
     aids_title: str = "Focalizzazioni degli Attributi"
     aids_subtitle: str = "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"
