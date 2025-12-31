@@ -251,6 +251,7 @@ class ChallengeResponse(BaseModel):
     description: str
     tests: List[dict]
     keywords: List[str]
+    allow_refuge_defense: bool = False
     created_at: str
     created_by: str
 
