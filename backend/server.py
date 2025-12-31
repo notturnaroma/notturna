@@ -683,6 +683,11 @@ async def update_user_background(user_id: str, data: Background, admin: dict = D
     return Background(**doc)
 
 
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Elimina completamente un PG (utente)"""
+    # Non permettere di cancellare se stessi per sicurezza
+    if admin["id"] == user_id:
         raise HTTPException(status_code=400, detail="Non puoi eliminare te stesso")
 
     result = await db.users.delete_one({"id": user_id})
