@@ -43,7 +43,8 @@ body {
 }
 
 .font-gothic {
-    font-family: 'UnifrakturMaguntia', cursive;
+    /* Usare lo stesso font dei pulsanti (Cinzel) al posto del gotico decorativo */
+    font-family: 'Cinzel', serif;
 }
 
 .font-cinzel {
