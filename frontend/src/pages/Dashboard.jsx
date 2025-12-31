@@ -235,7 +235,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
             <div className="stat-card px-3 py-2 rounded-sm flex items-center gap-2" data-testid="actions-counter">
               <Shield className="w-4 h-4 text-gold" />
               <span className="font-cinzel text-sm text-parchment">
-                <span className="text-gold">{remainingActions}</span>/{user?.max_actions}
+                <span className="text-gold">{remainingActions}</span>/{effectiveMaxActions}
               </span>
             </div>
 
