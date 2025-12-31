@@ -207,6 +207,7 @@ class AppSettingsResponse(BaseModel):
     nav_logout: Optional[str] = "ESCI"
     nav_aids: Optional[str] = "FOCALIZZAZIONI"
     nav_background: Optional[str] = "BACKGROUND"
+    nav_background: Optional[str] = "BACKGROUND"
     aids_title: Optional[str] = "Focalizzazioni degli Attributi"
     aids_subtitle: Optional[str] = "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"
     aids_no_active: Optional[str] = "Nessuna focalizzazione attiva in questo momento"
