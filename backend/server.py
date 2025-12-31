@@ -453,7 +453,14 @@ async def create_knowledge(data: KnowledgeBaseCreate, user: dict = Depends(get_a
 @api_router.get("/knowledge", response_model=List[KnowledgeBaseResponse])
 async def get_knowledge(user: dict = Depends(get_current_user)):
     docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(1000)
-    return [KnowledgeBaseResponse(**{**doc, "file_type": doc.get("file_type", "text"), "file_url": doc.get("file_url")}) for doc in docs]
+    return [KnowledgeBaseResponse(**{
+        **doc,
+        "file_type": doc.get("file_type", "text"),
+        "file_url": doc.get("file_url"),
+        "required_contacts": doc.get("required_contacts"),
+        "required_mentor": doc.get("required_mentor"),
+        "required_notoriety": doc.get("required_notoriety"),
+    }) for doc in docs]
 
 @api_router.delete("/knowledge/{kb_id}")
 async def delete_knowledge(kb_id: str, user: dict = Depends(get_admin_user)):
