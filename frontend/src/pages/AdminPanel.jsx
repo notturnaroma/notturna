@@ -91,7 +91,14 @@ export default function AdminPanel({ user, token, onLogout }) {
         body: JSON.stringify({
           title: kbTitle,
           content: kbContent,
-          category: kbCategory
+          category: kbCategory,
+          file_type: "text",
+          file_url: null,
+          required_contacts: kbRequiredContacts
+            .filter(c => c.name.trim())
+            .map(c => ({ name: c.name.trim(), value: parseInt(c.value) || 1 })),
+          required_mentor: kbRequiredMentor === "" ? null : parseInt(kbRequiredMentor),
+          required_notoriety: kbRequiredNotoriety === "" ? null : parseInt(kbRequiredNotoriety)
         })
       });
 
