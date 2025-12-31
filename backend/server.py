@@ -769,6 +769,7 @@ async def create_challenge(data: ChallengeCreate, user: dict = Depends(get_admin
         "description": data.description,
         "tests": [t.model_dump() for t in data.tests],
         "keywords": [k.lower() for k in data.keywords],
+        "allow_refuge_defense": data.allow_refuge_defense,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": user["username"]
     }
