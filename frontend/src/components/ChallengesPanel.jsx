@@ -25,9 +25,9 @@ const emptyTest = {
   success_text: "",
   tie_text: "",
   failure_text: ""
-const defaultAllowRefuge = false;
-
 };
+
+const defaultAllowRefuge = false;
 
 export default function ChallengesPanel({ token }) {
   const [challenges, setChallenges] = useState([]);
