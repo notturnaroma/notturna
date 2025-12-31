@@ -549,7 +549,7 @@ async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
     
     # Get knowledge base context
-    kb_docs = await db.knowledge_base.find({}, {"_id": 0, "content": 1, "title": 1}).to_list(100)
+    kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
     context = "\n\n".join([f"### {doc['title']}\n{doc['content']}" for doc in kb_docs])
     
     system_message = f"""Sei un assistente dell'evento. Rispondi alle domande basandoti SOLO sulle informazioni fornite nel contesto seguente. 
