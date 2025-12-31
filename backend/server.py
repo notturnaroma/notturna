@@ -242,6 +242,7 @@ class ChallengeCreate(BaseModel):
     description: str  # Descrizione situazione
     tests: List[ContrastingTest]  # Array di prove contrapposte
     keywords: List[str] = []  # parole chiave per attivare
+    allow_refuge_defense: bool = False  # se true, il rifugio può ridurre la difficoltà
 
 class ChallengeResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
