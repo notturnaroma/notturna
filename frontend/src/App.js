@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Archive from "@/pages/Archive";
 import AdminPanel from "@/pages/AdminPanel";
 import EmbedChat from "@/pages/EmbedChat";
+import Background from "@/pages/Background";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -90,6 +91,7 @@ function App() {
             <Route path="/register" element={!token ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
             <Route path="/dashboard" element={token ? <Dashboard user={user} token={token} onLogout={handleLogout} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
             <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+            <Route path="/background" element={token ? <Background user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/admin" element={token && user?.role === "admin" ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
             <Route path="/embed" element={<EmbedChat />} />
           </Routes>
