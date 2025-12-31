@@ -608,6 +608,13 @@ async def update_user_actions(user_id: str, data: UpdateUserActions, admin: dict
         raise HTTPException(status_code=404, detail="Utente non trovato")
     return {"message": "Azioni aggiornate"}
 
+@api_router.post("/admin/users/reset-max-actions")
+async def reset_all_users_max_actions(admin: dict = Depends(get_admin_user)):
+    """Imposta max_actions=20 per tutti i PG esistenti"""
+    await db.users.update_many({}, {"$set": {"max_actions": 20}})
+    return {"message": "max_actions impostato a 20 per tutti gli utenti"}
+
+
 @api_router.delete("/admin/users/{user_id}")
 async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
     """Elimina completamente un PG (utente)"""
