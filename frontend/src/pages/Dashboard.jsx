@@ -51,9 +51,9 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
         });
         if (response.ok) {
           const data = await response.json();
-          const effMax = data.remaining_actions_before + user.used_actions;
+          // Usiamo direttamente i valori calcolati dal backend
           setRemainingActions(data.remaining_actions_before);
-          setEffectiveMaxActions(effMax);
+          setEffectiveMaxActions(data.effective_max_actions);
         } else {
           const baseRemaining = user.max_actions - user.used_actions;
           setRemainingActions(baseRemaining);
