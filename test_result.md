@@ -191,21 +191,16 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Contatore azioni dinamico nella Dashboard"
+    - "UI modifica/eliminazione oggetti RISORSE"
+    - "Gestione quantità e max_per_player negli acquisti"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Per favore testa la creazione/modifica di Focalizzazioni con data inizio/fine e il flusso giocatore: inserimento valori Saggezza/Percezione/Intelligenza, scelta Focalizzazione disponibile e registrazione in archivio."
-  - agent: "testing"
-    message: "✅ BACKEND TESTING COMPLETATO - Sistema Focalizzazioni (AIDS) completamente funzionante. Tutti i 4 punti della review request superati: creazione con end_date, GET con campi temporali, filtro active con finestre temporali diverse (incluso attraversamento mezzanotte), uso con validazione finestra temporale e attributi. Testato con credenziali admin/giocatore reali. Sistema pronto per produzione."
-  - agent: "testing"
-    message: "❌ FRONTEND TESTING PARZIALE - Problemi critici trovati: 1) Login flow non funziona (rimane su login page) 2) Persistenza valori attributi non funziona (seconda apertura modale richiede nuovamente valori) 3) Archivio non testabile per overlay issues. ✅ CORE FUNCTIONALITY TESTATA: Prima apertura modale ✓, inserimento valori attributi ✓, visualizzazione Focalizzazioni disponibili ✓, uso Focalizzazione ✓, notifica successo ✓. Necessario fix per localStorage persistence e login flow."
-  - agent: "testing"
-    message: "✅ FRONTEND TESTING COMPLETATO - Sistema Focalizzazioni con persistenza localStorage completamente funzionante. Tutti i passi della review request superati: 1) Macrofinestra evento live configurata ✓ 2) Login giocatore e apertura modale Focalizzazioni ✓ 3) Visualizzazione 3 campi Saggezza/Percezione/Intelligenza ✓ 4) Inserimento valori (5/3/4) e ricerca Focalizzazioni ✓ 5) Uso Focalizzazione con successo ✓ 6) PERSISTENZA: seconda apertura salta input step e va direttamente a selezione ✓ 7) Riepilogo valori salvati mostrato correttamente ✓ 8) Lista Focalizzazioni ricalcolata ✓. Sistema pronto per produzione."
-  - agent: "testing"
-    message: "✅ BACKEND TESTING COMPLETATO - Sistema Background e Rifugio completamente funzionante. Tutti i 4 punti della review request superati: 1) POST /api/background/me con valori validi crea background e imposta locked_for_player=true ✓ 2) Sistema rifugio nelle prove LARP con rifugio=3 riduce difficoltà da 8 a 7 correttamente ✓ 3) DELETE /api/admin/users/{user_id} elimina utente e ritorna 404 al secondo tentativo ✓ 4) POST /api/admin/users/reset-max-actions imposta max_actions=20 per tutti gli utenti ✓. Sistema pronto per produzione."
+    message: "Ho implementato: 1) Fix bug contatore azioni - ora mostra correttamente il bonus SEGUACI (es. 23/23 per utente con 3 SEGUACI). 2) Modifica/Eliminazione oggetti RISORSE nel pannello admin. 3) Gestione quantità totale e max per giocatore. Per favore testa: a) Login come giocatore con SEGUACI e verifica contatore mostra bonus. b) Login come admin, vai a RISORSE, crea oggetto con quantità, modifica, elimina. c) Come giocatore, prova ad acquistare oggetto con limite e verifica controlli."
 
 #====================================================================================================
