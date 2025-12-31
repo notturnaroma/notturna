@@ -1066,6 +1066,36 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
             refuge_bonus = 2
         else:  # 5 o più
             refuge_bonus = 3
+    # Eventuale uso dei SEGUACI per ridurre ulteriormente la difficoltà
+    followers_used = 0
+    # Calcola quante consultazioni rimangono (prima del tentativo corrente)
+    remaining_before = effective_max - user["used_actions"]
+    if remaining_before < 0:
+        remaining_before = 0
+
+    # Leggi eventuali SEGUACI dal background
+    bg_full = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "seguaci": 1}) or {}
+    total_followers = int(bg_full.get("seguaci", 0))
+    spent_followers = await get_follower_spent_this_month(user["id"])
+    followers_available = max(0, total_followers - spent_followers)
+
+    # followers_to_use arriverà dal frontend (per ora impostiamo 0 finché non integriamo la UI)
+    followers_to_use = 0
+    if followers_to_use < 0:
+        followers_to_use = 0
+
+    # Non si possono usare più SEGUACI di quelli disponibili
+    followers_to_use = min(followers_to_use, followers_available)
+
+    # Non si possono usare SEGUACI che porterebbero le consultazioni sotto 0
+    if followers_to_use > remaining_before:
+        followers_to_use = remaining_before
+
+    # Applica il contributo dei SEGUACI alla difficoltà (ogni punto = -1 difficoltà)
+    if followers_to_use > 0:
+        followers_used = followers_to_use
+
+
     
     # Calcolo con fattori random
     player_roll = random.randint(1, 5)
