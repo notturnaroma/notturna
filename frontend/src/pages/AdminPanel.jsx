@@ -206,6 +206,28 @@ export default function AdminPanel({ user, token, onLogout }) {
       toast.error("Errore nel reset");
     }
   };
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Sei sicuro di voler eliminare questo PG?")) return;
+
+    try {
+      const response = await fetch(`${API}/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        toast.success("Utente eliminato");
+        fetchData();
+      } else {
+        const data = await response.json();
+        toast.error(data.detail || "Errore nell'eliminazione utente");
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    }
+  };
+
+
 
   const handleUpdateRole = async (userId, role) => {
     try {
