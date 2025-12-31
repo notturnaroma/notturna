@@ -590,6 +590,20 @@ async def update_user_actions(user_id: str, data: UpdateUserActions, admin: dict
         raise HTTPException(status_code=404, detail="Utente non trovato")
     return {"message": "Azioni aggiornate"}
 
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Elimina completamente un PG (utente)"""
+    # Non permettere di cancellare se stessi per sicurezza
+    if admin["id"] == user_id:
+        raise HTTPException(status_code=400, detail="Non puoi eliminare te stesso")
+
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    # TODO: opzionale - pulire dati correlati (chat_history, background, ecc.)
+    return {"message": "Utente eliminato"}
+
+
 @api_router.put("/admin/users/{user_id}/role")
 async def update_user_role(user_id: str, data: UpdateUserRole, admin: dict = Depends(get_admin_user)):
     if data.role not in ["player", "admin"]:
