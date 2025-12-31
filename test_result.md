@@ -123,11 +123,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Creato endpoint PUT per modificare oggetti del catalogo RISORSE. Supporta modifica parziale di tutti i campi inclusi total_quantity e max_per_player. Testato via curl con successo."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTATO: PUT /api/resources/{item_id} funziona correttamente. Modifica parziale testata con successo: nome cambiato da 'Test Qty' a 'Test Qty Modificato' e cost_resources da 2 a 3. Endpoint risponde con 200 e dati aggiornati."
   - task: "DELETE /api/resources/{item_id} per eliminazione oggetti"
     implemented: true
     working: true
