@@ -161,7 +161,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                 data-testid="player-value-input"
               />
               {challenge.allow_refuge_defense && (
-                <div className="flex items-center gap-2 mb-4 mt-2">
+                <div className="flex items-center gap-2 mb-2 mt-2">
                   <input
                     id="use_refuge"
                     type="checkbox"
@@ -171,6 +171,10 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                   />
                   <label htmlFor="use_refuge" className="font-body text-xs text-muted-foreground">
                     Usa il tuo RIFUGIO per ridurre la difficoltà secondo la tabella (1→0, 2-3→-1, 4→-2, 5→-3)
+                  </label>
+                </div>
+              )}
+
               {/* SEGUACI: input opzionale numerico per ridurre la difficoltà e consumare consultazioni */}
               <div className="space-y-1">
                 <label className="font-cinzel text-gold text-xs uppercase tracking-widest block">
@@ -189,10 +193,6 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                   Ogni punto SEGUACI abbassa la difficoltà di 1 e consuma una consultazione mensile.
                 </p>
               </div>
-
-                  </label>
-                </div>
-              )}
 
               <p className="text-xs text-muted-foreground text-center">
                 Somma dei tuoi due attributi
