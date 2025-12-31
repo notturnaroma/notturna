@@ -31,13 +31,42 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [attemptedChallenges, setAttemptedChallenges] = useState([]);
   const [activeChallenge, setActiveChallenge] = useState(null);
   const [showAidsModal, setShowAidsModal] = useState(false);
+  const [remainingActions, setRemainingActions] = useState(user ? user.max_actions - user.used_actions : 0);
+  const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
   const scrollRef = useRef(null);
-
-  const remainingActions = user ? user.max_actions - user.used_actions : 0;
 
   useEffect(() => {
     fetchChallenges();
     fetchAttemptedChallenges();
+  // Aggiorna il conteggio azioni tenendo conto dei SEGUACI
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchFollowerStatus = async () => {
+      try {
+        const response = await fetch(`${API}/followers/status`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const effMax = data.remaining_actions_before + user.used_actions;
+          setRemainingActions(data.remaining_actions_before);
+          setEffectiveMaxActions(effMax);
+        } else {
+          const baseRemaining = user.max_actions - user.used_actions;
+          setRemainingActions(baseRemaining);
+          setEffectiveMaxActions(user.max_actions);
+        }
+      } catch (error) {
+        const baseRemaining = user.max_actions - user.used_actions;
+        setRemainingActions(baseRemaining);
+        setEffectiveMaxActions(user.max_actions);
+      }
+    };
+
+    fetchFollowerStatus();
+  }, [user, token]);
+
   }, []);
 
   useEffect(() => {
