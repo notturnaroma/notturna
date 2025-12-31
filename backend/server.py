@@ -370,7 +370,7 @@ async def register(data: UserCreate):
         "username": data.username,
         "password_hash": hash_password(data.password),
         "role": "player",
-        "max_actions": 10,
+        "max_actions": 20,
         "used_actions": 0,
         "created_at": now.isoformat(),
         "last_action_reset": now.isoformat()
@@ -380,7 +380,7 @@ async def register(data: UserCreate):
     token = create_token(user_id, "player")
     user_response = UserResponse(
         id=user_id, email=data.email, username=data.username,
-        role="player", max_actions=10, used_actions=0
+        role="player", max_actions=20, used_actions=0
     )
     return TokenResponse(access_token=token, user=user_response)
 
