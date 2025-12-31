@@ -597,8 +597,9 @@ async def get_uploaded_file(filename: str):
 
 @api_router.post("/chat", response_model=ChatResponse)
 async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
-    # Check action limit
-    if user["used_actions"] >= user["max_actions"]:
+    # Check action limit (usa limite effettivo 20 + SEGUACI - SEGUACI_spesi)
+    effective_max = await get_effective_max_actions(user)
+    if user["used_actions"] >= effective_max:
         raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
     
     # Recupera background del PG per filtrare in base ai requisiti
