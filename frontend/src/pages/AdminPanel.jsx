@@ -371,6 +371,9 @@ export default function AdminPanel({ user, token, onLogout }) {
                     onChange={(e) => setKbContent(e.target.value)}
                     placeholder="Inserisci il contenuto del documento..."
                     className="input-gothic rounded-sm min-h-[150px]"
+                    data-testid="kb-content-input"
+                  />
+
                 {/* Restrizioni di accesso opzionali */}
                 <div className="space-y-3 border border-border/30 rounded-sm p-4 mt-2">
                   <p className="font-cinzel text-gold text-xs uppercase tracking-widest">Restrizioni di accesso (opzionali)</p>
