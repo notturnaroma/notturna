@@ -149,38 +149,7 @@ export default function EmbedChat() {
   };
 
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchFollowerStatus = async () => {
-      try {
-        const response = await fetch(`${API}/followers/status`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          const effMax = data.remaining_actions_before + user.used_actions;
-          setRemainingActions(data.remaining_actions_before);
-          setEffectiveMaxActions(effMax);
-        } else {
-          const baseRemaining = user.max_actions - user.used_actions;
-          setRemainingActions(baseRemaining);
-          setEffectiveMaxActions(user.max_actions);
-        }
-      } catch (error) {
-        const baseRemaining = user.max_actions - user.used_actions;
-        setRemainingActions(baseRemaining);
-        setEffectiveMaxActions(user.max_actions);
-      }
-    };
-
-    fetchFollowerStatus();
-  }, [user, token]);
-
-    "--primary-custom": settings.primary_color,
-    "--secondary-custom": settings.secondary_color,
-    "--accent-custom": settings.accent_color,
-    "--bg-custom": settings.background_color
-  };
+ 
 
   if (authLoading) {
     return (
