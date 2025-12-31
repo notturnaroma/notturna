@@ -445,7 +445,7 @@ async def create_knowledge(data: KnowledgeBaseCreate, user: dict = Depends(get_a
         "category": data.category,
         "file_type": data.file_type or "text",
         "file_url": data.file_url,
-        "required_contacts": [c.model_dump() for c in (data.required_contacts or [])],
+        "required_contacts": data.required_contacts or [],
         "required_mentor": data.required_mentor,
         "required_notoriety": data.required_notoriety,
         "created_at": datetime.now(timezone.utc).isoformat(),
