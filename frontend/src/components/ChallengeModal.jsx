@@ -13,6 +13,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [useRefuge, setUseRefuge] = useState(false);
+  const [followersToUse, setFollowersToUse] = useState(0);
 
 
   const handleSelectTest = (index) => {
