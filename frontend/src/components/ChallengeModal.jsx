@@ -39,7 +39,8 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
           challenge_id: challenge.id,
           test_index: selectedTest,
           player_value: parseInt(playerValue),
-          use_refuge: useRefuge
+          use_refuge: useRefuge,
+          followers_to_use: parseInt(followersToUse) || 0
         })
       });
 
