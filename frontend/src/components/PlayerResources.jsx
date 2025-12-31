@@ -80,32 +80,50 @@ export default function PlayerResources({ token }) {
         ) : (
           <div className="space-y-2">
             {state.items.map(item => {
-              const canBuy = state.available_resources >= item.cost_resources;
+              const canAfford = state.available_resources >= item.cost_resources;
+              const outOfStock = item.remaining_quantity != null && item.remaining_quantity <= 0;
+              const canBuy = canAfford && !outOfStock;
               return (
                 <div key={item.id} className="p-3 bg-black/40 border border-border/40 rounded-sm flex items-start justify-between gap-3">
-                  <div>
+                  <div className="flex-1">
                     <p className="font-cinzel text-parchment text-sm">{item.name}</p>
                     {item.description && (
                       <p className="font-body text-xs text-muted-foreground mt-1">{item.description}</p>
                     )}
-                    {item.block_until && (
-                      <p className="font-body text-[11px] text-muted-foreground mt-1">
-                        Blocco fino al: {new Date(item.block_until).toLocaleString()}
-                      </p>
-                    )}
+                    <div className="flex flex-wrap gap-3 mt-1">
+                      {item.block_until && (
+                        <span className="font-body text-[11px] text-muted-foreground">
+                          Blocco fino al: {new Date(item.block_until).toLocaleDateString()}
+                        </span>
+                      )}
+                      {item.total_quantity != null && (
+                        <span className={`font-body text-[11px] ${outOfStock ? "text-red-400" : "text-muted-foreground"}`}>
+                          Disponibili: {item.remaining_quantity}/{item.total_quantity}
+                        </span>
+                      )}
+                      {item.max_per_player != null && (
+                        <span className="font-body text-[11px] text-muted-foreground">
+                          Max per te: {item.max_per_player}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className="font-body text-xs text-gold">
-                      Costo: {item.cost_resources} RISORSE
+                      {item.cost_resources} RISORSE
                     </span>
-                    <Button
-                      size="xs"
-                      disabled={!canBuy || purchasingId === item.id}
-                      onClick={() => handlePurchase(item.id)}
-                      className="mt-1 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm font-cinzel text-xs"
-                    >
-                      {purchasingId === item.id ? "Acquisto..." : "Acquista"}
-                    </Button>
+                    {outOfStock ? (
+                      <span className="font-cinzel text-xs text-red-400 mt-1">Esaurito</span>
+                    ) : (
+                      <Button
+                        size="xs"
+                        disabled={!canBuy || purchasingId === item.id}
+                        onClick={() => handlePurchase(item.id)}
+                        className="mt-1 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm font-cinzel text-xs"
+                      >
+                        {purchasingId === item.id ? "Acquisto..." : "Acquista"}
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
