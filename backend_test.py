@@ -896,6 +896,358 @@ class ArchivioMaledettoAPITester:
 
         return True
 
+    def test_followers_status_endpoint(self):
+        """Test /api/followers/status endpoint with SEGUACI bonus"""
+        if not self.admin_token:
+            self.log_test("Followers Status Test", False, "No admin token available")
+            return False
+
+        # Create test user with admin privileges for testing
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_admin = {
+            "username": f"testfollower_{timestamp}",
+            "email": f"testfollower_{timestamp}@test.com",
+            "password": "test123"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Admin User",
+            "POST",
+            "auth/register",
+            200,
+            data=test_admin
+        )
+        
+        if not success or 'access_token' not in response:
+            self.log_test("Followers Status Test", False, "Failed to create test admin user")
+            return False
+        
+        test_admin_token = response['access_token']
+        test_admin_id = response['user']['id']
+        
+        # Make this user admin via script
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["python", "make_admin.py", test_admin['email']],
+                cwd="/app/backend",
+                capture_output=True,
+                text=True
+            )
+            if result.returncode != 0:
+                print(f"Warning: Could not make user admin: {result.stderr}")
+        except Exception as e:
+            print(f"Warning: Exception making user admin: {str(e)}")
+
+        # Set background with 3 SEGUACI
+        background_data = {
+            "user_id": test_admin_id,
+            "risorse": 5,
+            "seguaci": 3,  # 3 SEGUACI should give effective_max_actions = 23 (20 + 3)
+            "rifugio": 2,
+            "mentor": 1,
+            "notoriety": 0,
+            "contacts": [{"name": "Test Contact", "value": 2}],
+            "locked_for_player": True
+        }
+        
+        success, response = self.run_test(
+            "Set Background with 3 SEGUACI",
+            "PUT",
+            f"admin/background/{test_admin_id}",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success:
+            self.log_test("Followers Status Test", False, "Failed to set background with SEGUACI")
+            return False
+
+        # Test GET /api/followers/status
+        success, response = self.run_test(
+            "Get Followers Status",
+            "GET",
+            "followers/status",
+            200,
+            headers={'Authorization': f'Bearer {test_admin_token}'}
+        )
+        
+        if success:
+            # Verify response contains expected fields
+            required_fields = ['total_followers', 'spent_followers', 'available_followers', 
+                             'remaining_actions_before', 'effective_max_actions']
+            for field in required_fields:
+                if field not in response:
+                    self.log_test("Followers Status Fields", False, f"Missing field: {field}")
+                    return False
+            
+            # Verify effective_max_actions = 23 (20 base + 3 SEGUACI)
+            if response.get('effective_max_actions') != 23:
+                self.log_test("Effective Max Actions", False, 
+                            f"Expected 23, got {response.get('effective_max_actions')}")
+                return False
+            
+            # Verify remaining_actions_before = 23 (since no actions used yet)
+            if response.get('remaining_actions_before') != 23:
+                self.log_test("Remaining Actions Before", False, 
+                            f"Expected 23, got {response.get('remaining_actions_before')}")
+                return False
+            
+            # Verify total_followers = 3
+            if response.get('total_followers') != 3:
+                self.log_test("Total Followers", False, 
+                            f"Expected 3, got {response.get('total_followers')}")
+                return False
+            
+            self.log_test("Followers Status Validation", True, 
+                        f"All fields correct: effective_max_actions={response.get('effective_max_actions')}, "
+                        f"remaining_actions_before={response.get('remaining_actions_before')}")
+        
+        return success
+
+    def test_resources_crud_operations(self):
+        """Test CRUD operations for RISORSE objects"""
+        if not self.admin_token:
+            self.log_test("Resources CRUD Test", False, "No admin token available")
+            return False
+
+        # Test 1: POST /api/resources - Create object with quantity
+        resource_data = {
+            "name": "Test Qty",
+            "description": "Test",
+            "cost_resources": 2,
+            "total_quantity": 3,
+            "max_per_player": 1
+        }
+        
+        success, response = self.run_test(
+            "Create Resource with Quantity",
+            "POST",
+            "resources",
+            200,
+            data=resource_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success or 'id' not in response:
+            self.log_test("Resources CRUD Test", False, "Failed to create resource")
+            return False
+        
+        item_id = response['id']
+        
+        # Verify response fields
+        if response.get('remaining_quantity') != 3:
+            self.log_test("Resource Creation Validation", False, 
+                        f"Expected remaining_quantity=3, got {response.get('remaining_quantity')}")
+            return False
+        
+        if response.get('max_per_player') != 1:
+            self.log_test("Resource Creation Validation", False, 
+                        f"Expected max_per_player=1, got {response.get('max_per_player')}")
+            return False
+        
+        self.log_test("Resource Creation Validation", True, "Resource created with correct fields")
+
+        # Test 2: PUT /api/resources/{item_id} - Modify object
+        update_data = {
+            "name": "Test Qty Modificato",
+            "cost_resources": 3
+        }
+        
+        success, response = self.run_test(
+            "Update Resource",
+            "PUT",
+            f"resources/{item_id}",
+            200,
+            data=update_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success:
+            # Verify name and cost were updated
+            if response.get('name') != "Test Qty Modificato":
+                self.log_test("Resource Update Validation", False, 
+                            f"Expected name='Test Qty Modificato', got '{response.get('name')}'")
+                return False
+            
+            if response.get('cost_resources') != 3:
+                self.log_test("Resource Update Validation", False, 
+                            f"Expected cost_resources=3, got {response.get('cost_resources')}")
+                return False
+            
+            self.log_test("Resource Update Validation", True, "Resource updated correctly")
+
+        # Test 3: DELETE /api/resources/{item_id} - Delete object
+        success, response = self.run_test(
+            "Delete Resource (First Time)",
+            "DELETE",
+            f"resources/{item_id}",
+            200,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if success:
+            # Verify message
+            if response.get('message') != "Oggetto eliminato":
+                self.log_test("Resource Delete Message", False, 
+                            f"Expected 'Oggetto eliminato', got '{response.get('message')}'")
+                return False
+            
+            self.log_test("Resource Delete Message", True, "Correct deletion message")
+
+        # Test 4: DELETE again - should return 404
+        success, response = self.run_test(
+            "Delete Resource (Second Time - Should Return 404)",
+            "DELETE",
+            f"resources/{item_id}",
+            404,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        return success
+
+    def test_purchase_controls(self):
+        """Test purchase controls with max_per_player limits"""
+        if not self.admin_token:
+            self.log_test("Purchase Controls Test", False, "No admin token available")
+            return False
+
+        # Create a new player for testing
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_player = {
+            "username": f"player_{timestamp}",
+            "email": f"player_{timestamp}@test.com",
+            "password": "test123"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Player",
+            "POST",
+            "auth/register",
+            200,
+            data=test_player
+        )
+        
+        if not success or 'access_token' not in response:
+            self.log_test("Purchase Controls Test", False, "Failed to create test player")
+            return False
+        
+        player_token = response['access_token']
+        player_id = response['user']['id']
+
+        # Create background for player with risorse=5
+        background_data = {
+            "user_id": player_id,
+            "risorse": 5,
+            "seguaci": 0,
+            "rifugio": 1,
+            "mentor": 0,
+            "notoriety": 0,
+            "contacts": [],
+            "locked_for_player": True
+        }
+        
+        success, response = self.run_test(
+            "Set Player Background with 5 RISORSE",
+            "PUT",
+            f"admin/background/{player_id}",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success:
+            self.log_test("Purchase Controls Test", False, "Failed to set player background")
+            return False
+
+        # Create object with max_per_player=1
+        resource_data = {
+            "name": "Limited Item",
+            "description": "Test item with purchase limit",
+            "cost_resources": 2,
+            "total_quantity": 5,
+            "max_per_player": 1
+        }
+        
+        success, response = self.run_test(
+            "Create Limited Resource",
+            "POST",
+            "resources",
+            200,
+            data=resource_data,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        
+        if not success or 'id' not in response:
+            self.log_test("Purchase Controls Test", False, "Failed to create limited resource")
+            return False
+        
+        item_id = response['id']
+
+        # First purchase - should succeed
+        purchase_data = {"item_id": item_id}
+        
+        success, response = self.run_test(
+            "First Purchase (Should Succeed)",
+            "POST",
+            "resources/purchase",
+            200,
+            data=purchase_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Purchase Controls Test", False, "First purchase failed")
+            return False
+
+        # Second purchase - should fail with 403 "limite massimo"
+        success, response = self.run_test(
+            "Second Purchase (Should Fail with 403)",
+            "POST",
+            "resources/purchase",
+            403,
+            data=purchase_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Check error message contains "limite massimo"
+            try:
+                # Get the error response for the failed request
+                url = f"{self.base_url}/resources/purchase"
+                headers = {'Authorization': f'Bearer {player_token}', 'Content-Type': 'application/json'}
+                error_response = requests.post(url, json=purchase_data, headers=headers)
+                
+                if error_response.status_code == 403:
+                    error_data = error_response.json()
+                    error_detail = error_data.get('detail', '')
+                    if 'limite massimo' in error_detail:
+                        self.log_test("Purchase Limit Error Message", True, 
+                                    f"Correct error message: {error_detail}")
+                    else:
+                        self.log_test("Purchase Limit Error Message", False, 
+                                    f"Expected 'limite massimo' in error, got: {error_detail}")
+                else:
+                    self.log_test("Purchase Limit Error Message", False, 
+                                f"Expected 403, got {error_response.status_code}")
+            except Exception as e:
+                self.log_test("Purchase Limit Error Message", False, f"Exception checking error: {str(e)}")
+
+        # Cleanup: delete the test resource
+        try:
+            self.run_test(
+                "Cleanup Test Resource",
+                "DELETE",
+                f"resources/{item_id}",
+                200,
+                headers={'Authorization': f'Bearer {self.admin_token}'}
+            )
+        except:
+            pass
+        
+        return success
+
     def run_all_tests(self):
         """Run all tests"""
         print("🔍 Starting L'Archivio Maledetto API Tests...")
