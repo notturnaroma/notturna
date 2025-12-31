@@ -1087,8 +1087,8 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     spent_followers = await get_follower_spent_this_month(user["id"])
     followers_available = max(0, total_followers - spent_followers)
 
-    # followers_to_use arriverà dal frontend (per ora impostiamo 0 finché non integriamo la UI)
-    followers_to_use = 0
+    # followers_to_use arriva dal frontend
+    followers_to_use = max(0, int(getattr(data, "followers_to_use", 0)))
     if followers_to_use < 0:
         followers_to_use = 0
 
