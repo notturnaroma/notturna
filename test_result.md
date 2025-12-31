@@ -101,96 +101,89 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 
-user_problem_statement: "Verificare il nuovo sistema Background e Rifugio: creazione background con lock, uso rifugio nelle prove LARP, eliminazione utenti admin, reset max_actions."
+user_problem_statement: "Bug fix contatore azioni con SEGUACI + Gestione completa oggetti RISORSE (modifica, eliminazione, quantità)"
 backend:
-  - task: "Endpoint aids con end_date e controllo finestra temporale"
+  - task: "Endpoint /api/followers/status con effective_max_actions"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
-    priority: "low"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "Aggiornati modelli AidCreate/AidResponse, funzione is_aid_active e rotte /aids per supportare data di fine e finestra temporale completa. Necessari test end-to-end."
-      - working: true
-        agent: "testing"
-        comment: "✅ TUTTI I TEST SUPERATI - Sistema Focalizzazioni completamente funzionante: 1) POST /api/aids crea correttamente con end_date, response senza _id ✓ 2) GET /api/aids restituisce tutti i campi temporali ✓ 3) GET /api/aids/active filtra correttamente per finestra temporale incluso attraversamento mezzanotte ✓ 4) POST /api/aids/use valida finestra temporale (403 se fuori orario), attributo sufficiente, salva in aid_uses e chat_history, incrementa used_actions ✓. Testato con utenti admin/player reali."
-  - task: "Sistema Background con validazione e lock"
+        comment: "Aggiunto campo effective_max_actions al modello FollowerStatus e all'endpoint. Corretto bug di tipizzazione (dict vs Pydantic model). Testato via curl: utente con 3 SEGUACI riceve correttamente effective_max_actions=23 e remaining_actions_before=23."
+  - task: "PUT /api/resources/{item_id} per modifica oggetti"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "Nuovo task da testare: POST /api/background/me con valori validi (risorse 10, seguaci 2, rifugio 3, mentor 1, notoriety 0, contatti vari per totale <=20). Verificare che locked_for_player diventi true."
       - working: true
-        agent: "testing"
-        comment: "✅ TEST SUPERATO - Sistema Background funzionante: 1) POST /api/background/me crea correttamente background con valori validi (risorse 10, seguaci 2, rifugio 3, mentor 1, notoriety 0, contatti totale 6) ✓ 2) locked_for_player diventa true dopo creazione ✓ 3) Tentativo di modifica background lockato fallisce correttamente con 403 ✓. Validazione vincoli e lock funzionanti."
-  - task: "Sistema Rifugio nelle prove LARP"
+        agent: "main"
+        comment: "Creato endpoint PUT per modificare oggetti del catalogo RISORSE. Supporta modifica parziale di tutti i campi inclusi total_quantity e max_per_player. Testato via curl con successo."
+  - task: "DELETE /api/resources/{item_id} per eliminazione oggetti"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "Nuovo task da testare: Con utente giocatore con rifugio=3 e prova LARP con allow_refuge_defense=true e difficulty=8, chiamare POST /api/challenges/attempt con use_refuge=true e player_value fissato (es. 4) più volte e verificare che la difficoltà effettiva usata nel log sia 7 (8-1) secondo la tabella di rifugio."
       - working: true
-        agent: "testing"
-        comment: "✅ TEST SUPERATO - Sistema Rifugio nelle prove LARP funzionante: 1) Impostato background utente con rifugio=3 tramite admin ✓ 2) Creata prova LARP con allow_refuge_defense=true e difficulty=8 ✓ 3) Tentativo prova con use_refuge=true e player_value=4 ✓ 4) Difficoltà effettiva 7 (8-1) applicata correttamente secondo tabella rifugio ✓ 5) Calcolo e messaggio risultato corretti ✓. Sistema difesa rifugio completamente funzionante."
-  - task: "Eliminazione utenti admin"
+        agent: "main"
+        comment: "Creato endpoint DELETE per eliminare oggetti dal catalogo e relativi lock. Testato via curl: eliminazione funziona, secondo tentativo restituisce 404."
+  - task: "Gestione quantità e max_per_player negli acquisti"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "Nuovo task da testare: Verificare che DELETE /api/admin/users/{user_id} elimini correttamente un PG (non admin) e ritorni 404 se richiamato una seconda volta."
       - working: true
-        agent: "testing"
-        comment: "✅ TEST SUPERATO - Eliminazione utenti admin funzionante: 1) Creato utente test per eliminazione ✓ 2) DELETE /api/admin/users/{user_id} elimina correttamente utente (200) ✓ 3) Secondo tentativo di eliminazione stesso utente ritorna 404 correttamente ✓. Sistema eliminazione utenti completamente funzionante."
-  - task: "Reset max_actions per tutti gli utenti"
-    implemented: true
-    working: true
-    file: "backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "Nuovo task da testare: Verificare che POST /api/admin/users/reset-max-actions imposti max_actions=20 per tutti gli utenti (controllare con GET /api/admin/users lato admin)."
-      - working: true
-        agent: "testing"
-        comment: "✅ TEST SUPERATO - Reset max_actions funzionante: 1) POST /api/admin/users/reset-max-actions eseguito con successo (200) ✓ 2) GET /api/admin/users verifica che tutti gli utenti hanno max_actions=20 ✓ 3) Validazione su tutti gli utenti nel sistema completata ✓. Sistema reset azioni completamente funzionante."
+        agent: "main"
+        comment: "Aggiornato endpoint /resources/purchase per controllare remaining_quantity e max_per_player. Decrementa remaining_quantity dopo ogni acquisto. Restituisce errore 403 se esaurito o raggiunto limite."
 frontend:
-  - task: "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
+  - task: "Contatore azioni dinamico nella Dashboard"
     implemented: true
     working: true
-    file: "frontend/src/components/AidsModal.jsx"
-    stuck_count: 0
+    file: "frontend/src/pages/Dashboard.jsx"
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
-        agent: "main"
-        comment: "Aggiornato AidsModal per opzione B (inserimento valori per tutti e 3 gli attributi), AidsPanel per select attributo fisso + end_date e macrofinestra evento nel CustomizePanel. Da verificare e2e."
-      - working: false
-        agent: "testing"
-        comment: "❌ CRITICAL ISSUES FOUND: 1) Frontend login flow non funziona - rimane sulla pagina login invece di reindirizzare al dashboard 2) Persistenza valori attributi non funziona - alla seconda apertura del modale richiede nuovamente i valori invece di saltare al passo di selezione 3) Archivio non testato per problemi di overlay modal. ✅ FUNZIONALITÀ CORE TESTATE: Prima apertura modale con inserimento valori (Saggezza=5, Percezione=3, Intelligenza=4) ✓, visualizzazione 7 Focalizzazioni disponibili ✓, uso Focalizzazione con successo ✓, notifica 'Focalizzazione ottenuta' ✓. Backend API completamente funzionante."
+        agent: "user"
+        comment: "Il contatore non mostrava il bonus dei SEGUACI"
       - working: true
-        agent: "testing"
-        comment: "✅ TUTTI I TEST SUPERATI - Sistema Focalizzazioni con persistenza localStorage completamente funzionante: 1) Login flow funziona correttamente ✓ 2) Prima apertura modale: mostra 3 campi attributi (Saggezza/Percezione/Intelligenza) ✓ 3) Inserimento valori (5/3/4) e click CERCA FOCALIZZAZIONI funziona ✓ 4) Visualizzazione 6 Focalizzazioni disponibili e uso con successo ✓ 5) PERSISTENZA LOCALSTORAGE: seconda apertura salta input step e va direttamente a selezione ✓ 6) Riepilogo valori salvati mostrato correttamente ✓ 7) Lista Focalizzazioni ricalcolata in base ai valori salvati ✓. Sistema pronto per produzione."
+        agent: "main"
+        comment: "Corretto il calcolo nel frontend: ora usa direttamente effective_max_actions dall'API invece di calcolare localmente. Aggiunta funzione refreshActionsCount() che viene chiamata dopo ogni azione. Screenshot mostra 23/23 per utente con 3 SEGUACI."
+  - task: "UI modifica/eliminazione oggetti RISORSE"
+    implemented: true
+    working: true
+    file: "frontend/src/components/ResourcesPanel.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiunta UI completa: pulsanti modifica (matita) e elimina (cestino) per ogni oggetto. Form inline per editing con tutti i campi (nome, costo, descrizione, blocco, quantità, max/giocatore). Conferma prima di eliminare."
+  - task: "UI quantità e max_per_player nel catalogo"
+    implemented: true
+    working: true
+    file: "frontend/src/components/PlayerResources.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiornata UI giocatore per mostrare disponibilità (X/Y), max per giocatore, e stato 'Esaurito' in rosso. Pulsante acquisto disabilitato se esaurito."
 metadata:
   created_by: "main_agent"
   version: "1.0"
