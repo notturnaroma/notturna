@@ -726,6 +726,11 @@ export default function AdminPanel({ user, token, onLogout }) {
           <TabsContent value="aids">
             <AidsPanel token={token} />
           </TabsContent>
+
+          {/* Resources Tab */}
+          <TabsContent value="resources">
+            <ResourcesPanel token={token} />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
