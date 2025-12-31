@@ -792,6 +792,8 @@ class ArchivioMaledettoAPITester:
             self.log_test("Max Actions Verification", True, f"All {len(response)} users have max_actions=20")
         
         return success
+
+    def cleanup_created_aids(self):
         """Clean up aids created during testing"""
         if not self.admin_token or not self.created_aids:
             return
