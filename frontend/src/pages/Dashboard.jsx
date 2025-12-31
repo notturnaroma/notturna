@@ -193,6 +193,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       setAttemptedChallenges(prev => [...prev, activeChallenge.id]);
     }
     refreshUser();
+    refreshActionsCount();
   };
 
   const handleCloseChallenge = () => {
