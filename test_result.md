@@ -119,48 +119,60 @@ backend:
         comment: "✅ TUTTI I TEST SUPERATI - Sistema Focalizzazioni completamente funzionante: 1) POST /api/aids crea correttamente con end_date, response senza _id ✓ 2) GET /api/aids restituisce tutti i campi temporali ✓ 3) GET /api/aids/active filtra correttamente per finestra temporale incluso attraversamento mezzanotte ✓ 4) POST /api/aids/use valida finestra temporale (403 se fuori orario), attributo sufficiente, salva in aid_uses e chat_history, incrementa used_actions ✓. Testato con utenti admin/player reali."
   - task: "Sistema Background con validazione e lock"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Nuovo task da testare: POST /api/background/me con valori validi (risorse 10, seguaci 2, rifugio 3, mentor 1, notoriety 0, contatti vari per totale <=20). Verificare che locked_for_player diventi true."
+      - working: true
+        agent: "testing"
+        comment: "✅ TEST SUPERATO - Sistema Background funzionante: 1) POST /api/background/me crea correttamente background con valori validi (risorse 10, seguaci 2, rifugio 3, mentor 1, notoriety 0, contatti totale 6) ✓ 2) locked_for_player diventa true dopo creazione ✓ 3) Tentativo di modifica background lockato fallisce correttamente con 403 ✓. Validazione vincoli e lock funzionanti."
   - task: "Sistema Rifugio nelle prove LARP"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Nuovo task da testare: Con utente giocatore con rifugio=3 e prova LARP con allow_refuge_defense=true e difficulty=8, chiamare POST /api/challenges/attempt con use_refuge=true e player_value fissato (es. 4) più volte e verificare che la difficoltà effettiva usata nel log sia 7 (8-1) secondo la tabella di rifugio."
+      - working: true
+        agent: "testing"
+        comment: "✅ TEST SUPERATO - Sistema Rifugio nelle prove LARP funzionante: 1) Impostato background utente con rifugio=3 tramite admin ✓ 2) Creata prova LARP con allow_refuge_defense=true e difficulty=8 ✓ 3) Tentativo prova con use_refuge=true e player_value=4 ✓ 4) Difficoltà effettiva 7 (8-1) applicata correttamente secondo tabella rifugio ✓ 5) Calcolo e messaggio risultato corretti ✓. Sistema difesa rifugio completamente funzionante."
   - task: "Eliminazione utenti admin"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Nuovo task da testare: Verificare che DELETE /api/admin/users/{user_id} elimini correttamente un PG (non admin) e ritorni 404 se richiamato una seconda volta."
+      - working: true
+        agent: "testing"
+        comment: "✅ TEST SUPERATO - Eliminazione utenti admin funzionante: 1) Creato utente test per eliminazione ✓ 2) DELETE /api/admin/users/{user_id} elimina correttamente utente (200) ✓ 3) Secondo tentativo di eliminazione stesso utente ritorna 404 correttamente ✓. Sistema eliminazione utenti completamente funzionante."
   - task: "Reset max_actions per tutti gli utenti"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Nuovo task da testare: Verificare che POST /api/admin/users/reset-max-actions imposti max_actions=20 per tutti gli utenti (controllare con GET /api/admin/users lato admin)."
+      - working: true
+        agent: "testing"
+        comment: "✅ TEST SUPERATO - Reset max_actions funzionante: 1) POST /api/admin/users/reset-max-actions eseguito con successo (200) ✓ 2) GET /api/admin/users verifica che tutti gli utenti hanno max_actions=20 ✓ 3) Validazione su tutti gli utenti nel sistema completata ✓. Sistema reset azioni completamente funzionante."
 frontend:
   - task: "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
     implemented: true
