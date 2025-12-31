@@ -581,7 +581,7 @@ async def get_chat_history(user: dict = Depends(get_current_user)):
     history = await db.chat_history.find(
         {"user_id": user["id"]},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    ).sort("created_at", -1).to_list(1000)
     return [ChatResponse(
         id=h["id"],
         question=h["question"],
