@@ -187,8 +187,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Endpoint aids con end_date e controllo finestra temporale"
-    - "Flusso Focalizzazioni con inserimento valori per Saggezza/Percezione/Intelligenza e UI testi custom"
+    - "Sistema Background con validazione e lock"
+    - "Sistema Rifugio nelle prove LARP"
+    - "Eliminazione utenti admin"
+    - "Reset max_actions per tutti gli utenti"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
