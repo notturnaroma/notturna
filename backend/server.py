@@ -288,6 +288,33 @@ class Background(BaseModel):
     locked_for_player: bool = False
 
 # ==================== AIUTI ATTRIBUTO MODELS ====================
+# ==================== RISORSE & SEGUACI SUPPORT ====================
+
+class ResourceItemCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    cost_resources: int = 1
+    block_until: Optional[str] = None  # ISO datetime (opzionale)
+
+class ResourceItemResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: Optional[str] = None
+    cost_resources: int
+    block_until: Optional[str] = None
+
+class ResourceAvailableResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    total_resources: int
+    locked_resources: int
+    available_resources: int
+    items: List[ResourceItemResponse]
+
+class ResourcePurchaseRequest(BaseModel):
+    item_id: str
+
+
 
 class AidLevel(BaseModel):
     level: int  # 2, 4, o 5
@@ -336,6 +363,28 @@ def create_token(user_id: str, role: str) -> str:
         "exp": datetime.now(timezone.utc).timestamp() + 86400 * 7  # 7 days
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def get_month_key(dt: datetime) -> str:
+    return dt.strftime("%Y-%m")
+
+async def get_follower_spent_this_month(user_id: str) -> int:
+    """Somma dei punti SEGUACI spesi in questo mese"""
+    now = datetime.now(timezone.utc)
+    month_key = get_month_key(now)
+    spends = await db.follower_spends.find({
+        "user_id": user_id,
+        "month_key": month_key
+    }, {"_id": 0, "amount": 1}).to_list(1000)
+    return sum(int(s.get("amount", 0)) for s in spends)
+
+async def get_effective_max_actions(user: dict) -> int:
+    """Calcola il limite effettivo di consultazioni per il mese corrente (20 + SEGUACI - SEGUACI_spesi)."""
+    base_max = int(user.get("max_actions", 20))
+    bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "seguaci": 1}) or {}
+    seguaci = int(bg.get("seguaci", 0))
+    spent = await get_follower_spent_this_month(user["id"])
+    return max(0, base_max + seguaci - spent)
+
 
 async def check_monthly_reset(user: dict) -> dict:
     """Reset azioni se è passato un mese dall'ultimo reset"""
