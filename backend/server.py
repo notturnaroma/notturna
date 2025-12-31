@@ -926,6 +926,22 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
     if cost <= 0:
         raise HTTPException(status_code=400, detail="Costo RISORSE non valido")
 
+    # Controllo quantità rimanente globale
+    remaining_qty = item.get("remaining_quantity")
+    if remaining_qty is not None and remaining_qty <= 0:
+        raise HTTPException(status_code=403, detail="Oggetto esaurito")
+
+    # Controllo max per giocatore
+    max_per_player = item.get("max_per_player")
+    if max_per_player is not None:
+        # Conta quanti di questo oggetto ha già acquistato il giocatore
+        player_purchases = await db.resource_locks.count_documents({
+            "user_id": user["id"],
+            "item_id": req.item_id
+        })
+        if player_purchases >= max_per_player:
+            raise HTTPException(status_code=403, detail=f"Hai già raggiunto il limite massimo ({max_per_player}) per questo oggetto")
+
     # Calcola RISORSE disponibili
     bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "risorse": 1}) or {}
     total = int(bg.get("risorse", 0))
@@ -960,6 +976,13 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
         "unlock_at": unlock_at
     }
     await db.resource_locks.insert_one(lock_doc)
+
+    # Decrementa la quantità rimanente se l'oggetto ha un limite
+    if remaining_qty is not None:
+        await db.resource_items.update_one(
+            {"id": req.item_id},
+            {"$inc": {"remaining_quantity": -1}}
+        )
 
     # Ritorna stato aggiornato
     return await get_available_resources(user)
