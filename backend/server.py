@@ -778,6 +778,102 @@ async def create_or_update_my_background(data: Background, user: dict = Depends(
     return Background(**doc)
 
 @api_router.get("/admin/background/{user_id}", response_model=Background)
+@api_router.post("/resources", response_model=ResourceItemResponse)
+async def create_resource_item(data: ResourceItemCreate, admin: dict = Depends(get_admin_user)):
+    if data.cost_resources <= 0:
+        raise HTTPException(status_code=400, detail="Il costo in RISORSE deve essere almeno 1")
+
+    item_id = str(uuid.uuid4())
+    doc = {
+        "id": item_id,
+        "name": data.name,
+        "description": data.description,
+        "cost_resources": data.cost_resources,
+        "block_until": data.block_until
+    }
+    await db.resource_items.insert_one(doc)
+    return ResourceItemResponse(**doc)
+
+@api_router.get("/resources", response_model=List[ResourceItemResponse])
+async def list_resource_items(admin: dict = Depends(get_admin_user)):
+    docs = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
+    return [ResourceItemResponse(**d) for d in docs]
+
+@api_router.get("/resources/available", response_model=ResourceAvailableResponse)
+async def get_available_resources(user: dict = Depends(get_current_user)):
+    # RISORSE totali dal background
+    bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "risorse": 1}) or {}
+    total = int(bg.get("risorse", 0))
+    now = datetime.now(timezone.utc)
+    # Somma dei lock attivi
+    locks = await db.resource_locks.find({
+        "user_id": user["id"],
+        "unlock_at": {"$gt": now.isoformat()}
+    }, {"_id": 0, "amount": 1}).to_list(1000)
+    locked = sum(int(l.get("amount", 0)) for l in locks)
+    available = max(0, total - locked)
+
+    items_docs = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
+    items = [ResourceItemResponse(**d) for d in items_docs]
+
+    return ResourceAvailableResponse(
+        total_resources=total,
+        locked_resources=locked,
+        available_resources=available,
+        items=items
+    )
+
+@api_router.post("/resources/purchase", response_model=ResourceAvailableResponse)
+async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(get_current_user)):
+    now = datetime.now(timezone.utc)
+    # Trova oggetto
+    item = await db.resource_items.find_one({"id": req.item_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Oggetto non trovato")
+
+    cost = int(item.get("cost_resources", 0))
+    if cost <= 0:
+        raise HTTPException(status_code=400, detail="Costo RISORSE non valido")
+
+    # Calcola RISORSE disponibili
+    bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "risorse": 1}) or {}
+    total = int(bg.get("risorse", 0))
+
+    locks = await db.resource_locks.find({
+        "user_id": user["id"],
+        "unlock_at": {"$gt": now.isoformat()}
+    }, {"_id": 0, "amount": 1}).to_list(1000)
+    locked = sum(int(l.get("amount", 0)) for l in locks)
+    available = max(0, total - locked)
+
+    if available < cost:
+        raise HTTPException(status_code=403, detail="Non hai RISORSE sufficienti per questo acquisto")
+
+    # Calcola unlock_at: se l'oggetto ha block_until, usa quello, altrimenti primo giorno del mese successivo
+    block_until = item.get("block_until")
+    if block_until:
+        unlock_at = block_until
+    else:
+        # Primo giorno del mese successivo
+        year = now.year + (1 if now.month == 12 else 0)
+        month = 1 if now.month == 12 else now.month + 1
+        unlock_date = datetime(year, month, 1, tzinfo=timezone.utc)
+        unlock_at = unlock_date.isoformat()
+
+    lock_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "item_id": item["id"],
+        "amount": cost,
+        "locked_at": now.isoformat(),
+        "unlock_at": unlock_at
+    }
+    await db.resource_locks.insert_one(lock_doc)
+
+    # Ritorna stato aggiornato
+    return await get_available_resources(user)
+
+
 async def get_user_background(user_id: str, admin: dict = Depends(get_admin_user)):
     doc = await db.backgrounds.find_one({"user_id": user_id}, {"_id": 0})
     if not doc:
