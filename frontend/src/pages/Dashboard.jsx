@@ -59,30 +59,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   // Aggiorna il conteggio azioni tenendo conto dei SEGUACI
   useEffect(() => {
     if (!user) return;
-
-    const fetchFollowerStatus = async () => {
-      try {
-        const response = await fetch(`${API}/followers/status`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          // Usiamo direttamente i valori calcolati dal backend
-          setRemainingActions(data.remaining_actions_before);
-          setEffectiveMaxActions(data.effective_max_actions);
-        } else {
-          const baseRemaining = user.max_actions - user.used_actions;
-          setRemainingActions(baseRemaining);
-          setEffectiveMaxActions(user.max_actions);
-        }
-      } catch (error) {
-        const baseRemaining = user.max_actions - user.used_actions;
-        setRemainingActions(baseRemaining);
-        setEffectiveMaxActions(user.max_actions);
-      }
-    };
-
-    fetchFollowerStatus();
+    refreshActionsCount();
   }, [user, token]);
 
   useEffect(() => {
