@@ -92,7 +92,7 @@ class KnowledgeBaseCreate(BaseModel):
     file_type: Optional[str] = "text"
     file_url: Optional[str] = None
     # Restrizioni di accesso opzionali
-    required_contacts: Optional[List[BackgroundContact]] = None
+    required_contacts: Optional[List[dict]] = None
     required_mentor: Optional[int] = None
     required_notoriety: Optional[int] = None
 
