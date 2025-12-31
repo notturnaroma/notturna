@@ -830,7 +830,10 @@ async def create_resource_item(data: ResourceItemCreate, admin: dict = Depends(g
         "name": data.name,
         "description": data.description,
         "cost_resources": data.cost_resources,
-        "block_until": data.block_until
+        "block_until": data.block_until,
+        "total_quantity": data.total_quantity,
+        "remaining_quantity": data.total_quantity,  # Inizialmente uguale al totale
+        "max_per_player": data.max_per_player
     }
     await db.resource_items.insert_one(doc)
     return ResourceItemResponse(**doc)
