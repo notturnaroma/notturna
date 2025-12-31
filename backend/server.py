@@ -91,6 +91,10 @@ class KnowledgeBaseCreate(BaseModel):
     category: Optional[str] = "general"
     file_type: Optional[str] = "text"
     file_url: Optional[str] = None
+    # Restrizioni di accesso opzionali
+    required_contacts: Optional[List[BackgroundContact]] = None
+    required_mentor: Optional[int] = None
+    required_notoriety: Optional[int] = None
 
 class KnowledgeBaseResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
