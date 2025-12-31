@@ -598,7 +598,7 @@ class ArchivioMaledettoAPITester:
             self.log_test("Refuge Defense System", False, "Missing admin or user token")
             return False
 
-        # First, ensure user has rifugio=3 in background
+        # Use admin endpoint to set user background with rifugio=3
         background_data = {
             "user_id": self.user_id,
             "risorse": 5,
@@ -607,20 +607,20 @@ class ArchivioMaledettoAPITester:
             "mentor": 0,
             "notoriety": 0,
             "contacts": [{"name": "Test Contact", "value": 2}],
-            "locked_for_player": False
+            "locked_for_player": True
         }
         
         success, response = self.run_test(
-            "Set User Background with Rifugio=3",
-            "POST",
-            "background/me",
+            "Set User Background with Rifugio=3 (Admin)",
+            "PUT",
+            f"admin/background/{self.user_id}",
             200,
             data=background_data,
-            headers={'Authorization': f'Bearer {self.token}'}
+            headers={'Authorization': f'Bearer {self.admin_token}'}
         )
         
         if not success:
-            self.log_test("Refuge Defense System", False, "Failed to set background")
+            self.log_test("Refuge Defense System", False, "Failed to set background via admin")
             return False
 
         # Create a challenge with allow_refuge_defense=true and difficulty=8
@@ -689,6 +689,13 @@ class ArchivioMaledettoAPITester:
             if "message" in response:
                 message = response["message"]
                 self.log_test("Refuge Defense Message", True, f"Challenge result: {message}")
+                
+                # Check if the effective difficulty 7 is mentioned in logs
+                # The backend should log the effective difficulty calculation
+                if "7" in message and "8" in message:
+                    self.log_test("Refuge Defense Effective Difficulty", True, "Effective difficulty 7 (8-1) applied correctly")
+                else:
+                    self.log_test("Refuge Defense Effective Difficulty", False, f"Could not verify effective difficulty in message: {message}")
         
         # Cleanup: delete the challenge
         try:
