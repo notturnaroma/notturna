@@ -364,6 +364,92 @@ export default function AdminPanel({ user, token, onLogout }) {
                     onChange={(e) => setKbContent(e.target.value)}
                     placeholder="Inserisci il contenuto del documento..."
                     className="input-gothic rounded-sm min-h-[150px]"
+                {/* Restrizioni di accesso opzionali */}
+                <div className="space-y-3 border border-border/30 rounded-sm p-4 mt-2">
+                  <p className="font-cinzel text-gold text-xs uppercase tracking-widest">Restrizioni di accesso (opzionali)</p>
+                  <p className="font-body text-xs text-muted-foreground">
+                    Se lasci tutti i campi vuoti, il documento sarà accessibile a tutti i PG.
+                  </p>
+
+                  {/* Contatti richiesti */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-cinzel text-gold text-xs uppercase">Contatti richiesti</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        onClick={() => setKbRequiredContacts(prev => [...prev, { name: "", value: 1 }])}
+                        className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                      >
+                        <Plus className="w-3 h-3 mr-1" /> Aggiungi contatto
+                      </Button>
+                    </div>
+                    {kbRequiredContacts.length === 0 && (
+                      <p className="font-body text-xs text-muted-foreground">
+                        Nessun contatto richiesto.
+                      </p>
+                    )}
+                    <div className="space-y-2">
+                      {kbRequiredContacts.map((c, idx) => (
+                        <div key={idx} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                          <Input
+                            value={c.name}
+                            onChange={(e) => setKbRequiredContacts(prev => prev.map((item, i) => i === idx ? { ...item, name: e.target.value } : item))}
+                            placeholder="es. polizia, criminalità..."
+                            className="input-gothic rounded-sm"
+                          />
+                          <Input
+                            type="number"
+                            min="1"
+                            max="5"
+                            value={c.value}
+                            onChange={(e) => setKbRequiredContacts(prev => prev.map((item, i) => i === idx ? { ...item, value: parseInt(e.target.value) || 1 } : item))}
+                            className="w-20 input-gothic rounded-sm text-center"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setKbRequiredContacts(prev => prev.filter((_, i) => i !== idx))}
+                            className="text-red-500 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Mentor / Notorietà richiesti */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="font-cinzel text-gold text-xs uppercase">MENTORE minimo (0–5)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="5"
+                        value={kbRequiredMentor}
+                        onChange={(e) => setKbRequiredMentor(e.target.value)}
+                        className="input-gothic rounded-sm"
+                        placeholder="lascia vuoto per nessun requisito"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-cinzel text-gold text-xs uppercase">NOTORIETÀ minima (0–5)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="5"
+                        value={kbRequiredNotoriety}
+                        onChange={(e) => setKbRequiredNotoriety(e.target.value)}
+                        className="input-gothic rounded-sm"
+                        placeholder="lascia vuoto per nessun requisito"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                     data-testid="kb-content-input"
                   />
                 </div>
