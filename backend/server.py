@@ -319,6 +319,7 @@ class FollowerStatus(BaseModel):
     spent_followers: int
     available_followers: int
     remaining_actions_before: int
+    effective_max_actions: int
 
 
 
@@ -456,7 +457,8 @@ async def get_follower_status(current_user: UserResponse = Depends(get_current_u
         total_followers=total_followers,
         spent_followers=spent_followers,
         available_followers=available_followers,
-        remaining_actions_before=remaining_before
+        remaining_actions_before=remaining_before,
+        effective_max_actions=effective_max
     )
 
 # ==================== AUTH ROUTES ====================
