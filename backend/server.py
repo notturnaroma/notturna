@@ -256,6 +256,11 @@ class ChallengeResponse(BaseModel):
     created_by: str
 
 class ChallengeAttempt(BaseModel):
+    challenge_id: str
+    test_index: int  # quale prova ha scelto (0, 1, 2...)
+    player_value: int  # valore attributo del giocatore
+    use_refuge: bool = False  # se il PG vuole usare il proprio rifugio difensivo
+
 class BackgroundContact(BaseModel):
     name: str
     value: int
@@ -270,11 +275,6 @@ class Background(BaseModel):
     notoriety: int = 0
     contacts: List[BackgroundContact] = []
     locked_for_player: bool = False
-
-
-    challenge_id: str
-    test_index: int  # quale prova ha scelto (0, 1, 2...)
-    player_value: int  # valore attributo del giocatore
 
 # ==================== AIUTI ATTRIBUTO MODELS ====================
 
