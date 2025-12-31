@@ -818,7 +818,7 @@ async def get_available_resources(user: dict = Depends(get_current_user)):
         "user_id": user["id"],
         "unlock_at": {"$gt": now.isoformat()}
     }, {"_id": 0, "amount": 1}).to_list(1000)
-    locked = sum(int(l.get("amount", 0)) for l in locks)
+    locked = sum(int(lock.get("amount", 0)) for lock in locks)
     available = max(0, total - locked)
 
     items_docs = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
@@ -851,7 +851,7 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
         "user_id": user["id"],
         "unlock_at": {"$gt": now.isoformat()}
     }, {"_id": 0, "amount": 1}).to_list(1000)
-    locked = sum(int(l.get("amount", 0)) for l in locks)
+    locked = sum(int(lock.get("amount", 0)) for lock in locks)
     available = max(0, total - locked)
 
     if available < cost:
