@@ -271,6 +271,7 @@ class ChallengeAttempt(BaseModel):
     test_index: int  # quale prova ha scelto (0, 1, 2...)
     player_value: int  # valore attributo del giocatore
     use_refuge: bool = False  # se il PG vuole usare il proprio rifugio difensivo
+    followers_to_use: int = 0  # quanti punti SEGUACI il PG vuole usare per questa prova
 
 class BackgroundContact(BaseModel):
     name: str
@@ -313,6 +314,13 @@ class ResourceAvailableResponse(BaseModel):
 
 class ResourcePurchaseRequest(BaseModel):
     item_id: str
+class FollowerStatus(BaseModel):
+    total_followers: int
+    spent_followers: int
+    available_followers: int
+    remaining_actions_before: int
+
+
 
 
 
