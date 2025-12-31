@@ -38,6 +38,8 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   useEffect(() => {
     fetchChallenges();
     fetchAttemptedChallenges();
+  }, []);
+
   // Aggiorna il conteggio azioni tenendo conto dei SEGUACI
   useEffect(() => {
     if (!user) return;
