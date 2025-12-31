@@ -542,6 +542,16 @@ export default function AdminPanel({ user, token, onLogout }) {
                                 <Shield className="w-5 h-5 text-muted-foreground" />
                               )}
                             </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteUser(u.id)}
+                              className="text-red-500 hover:bg-red-500/10"
+                              data-testid={`delete-user-${u.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+
                             <div>
                               <h3 className="font-cinzel text-parchment">{u.username}</h3>
                               <p className="font-body text-muted-foreground text-sm">{u.email}</p>
