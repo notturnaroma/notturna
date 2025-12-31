@@ -171,6 +171,25 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                   />
                   <label htmlFor="use_refuge" className="font-body text-xs text-muted-foreground">
                     Usa il tuo RIFUGIO per ridurre la difficoltà secondo la tabella (1→0, 2-3→-1, 4→-2, 5→-3)
+              {/* SEGUACI: input opzionale numerico per ridurre la difficoltà e consumare consultazioni */}
+              <div className="space-y-1">
+                <label className="font-cinzel text-gold text-xs uppercase tracking-widest block">
+                  Punti SEGUACI da usare (opzionale)
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={followersToUse}
+                  onChange={(e) => setFollowersToUse(e.target.value)}
+                  className="input-gothic rounded-sm text-center h-9"
+                  data-testid="followers-to-use-input"
+                />
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Ogni punto SEGUACI abbassa la difficoltà di 1 e consuma una consultazione mensile.
+                </p>
+              </div>
+
                   </label>
                 </div>
               )}
