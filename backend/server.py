@@ -942,8 +942,9 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     if existing_attempt:
         raise HTTPException(status_code=403, detail="Hai già tentato questa prova. Non puoi ripeterla.")
     
-    # Check action limit
-    if user["used_actions"] >= user["max_actions"]:
+    # Check action limit (usa limite effettivo 20 + SEGUACI - SEGUACI_spesi)
+    effective_max = await get_effective_max_actions(user)
+    if user["used_actions"] >= effective_max:
         raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
     
     challenge = await db.challenges.find_one({"id": data.challenge_id}, {"_id": 0})
