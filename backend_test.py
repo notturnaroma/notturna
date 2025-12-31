@@ -1269,6 +1269,12 @@ class ArchivioMaledettoAPITester:
         self.test_chat_functionality()
         self.test_knowledge_base_operations()
         
+        # NEW TESTS: SEGUACI and RISORSE functionality (Priority tests from review request)
+        print("\n🎯 Testing SEGUACI and RISORSE System (Priority Tests)...")
+        self.test_followers_status_endpoint()
+        self.test_resources_crud_operations()
+        self.test_purchase_controls()
+        
         # Test AIDS (Focalizzazioni) functionality - keeping for regression
         print("\n🎯 Testing AIDS (Focalizzazioni) System...")
         self.test_aids_creation()
@@ -1276,7 +1282,7 @@ class ArchivioMaledettoAPITester:
         self.test_aids_active_filtering()
         self.test_aids_use_functionality()
         
-        # NEW TESTS: Background and Rifugio System
+        # Background and Rifugio System
         print("\n🏰 Testing Background and Rifugio System...")
         self.test_background_system()
         self.test_refuge_defense_system()
