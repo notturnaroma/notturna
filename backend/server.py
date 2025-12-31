@@ -418,6 +418,26 @@ async def check_monthly_reset(user: dict) -> dict:
             {"$set": {"last_action_reset": now.isoformat()}}
         )
         user["last_action_reset"] = now.isoformat()
+@api_router.get("/followers/status", response_model=FollowerStatus)
+async def get_follower_status(user: dict = Depends(get_current_user)):
+    """Ritorna la situazione dei SEGUACI per il mese corrente"""
+    now = datetime.now(timezone.utc)
+    effective_max = await get_effective_max_actions(user)
+    remaining_before = max(0, effective_max - user["used_actions"])
+
+    bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "seguaci": 1}) or {}
+    total_followers = int(bg.get("seguaci", 0))
+    spent_followers = await get_follower_spent_this_month(user["id"])
+    available_followers = max(0, total_followers - spent_followers)
+
+    return FollowerStatus(
+        total_followers=total_followers,
+        spent_followers=spent_followers,
+        available_followers=available_followers,
+        remaining_actions_before=remaining_before
+    )
+
+
     
     return user
 
