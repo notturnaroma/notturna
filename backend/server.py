@@ -798,6 +798,7 @@ async def update_challenge(challenge_id: str, data: ChallengeCreate, user: dict 
         "description": data.description,
         "tests": [t.model_dump() for t in data.tests],
         "keywords": [k.lower() for k in data.keywords],
+        "allow_refuge_defense": data.allow_refuge_defense,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "updated_by": user["username"]
     }
