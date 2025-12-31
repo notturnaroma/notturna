@@ -1006,7 +1006,7 @@ async def create_aid(data: AidCreate, user: dict = Depends(get_admin_user)):
         "id": aid_id,
         "name": data.name,
         "attribute": data.attribute,
-        "levels": [l.model_dump() for l in data.levels],
+        "levels": [level.model_dump() for level in data.levels],
         "event_date": data.event_date,
         "end_date": data.end_date,
         "start_time": data.start_time,
@@ -1048,7 +1048,7 @@ async def update_aid(aid_id: str, data: AidCreate, user: dict = Depends(get_admi
     update_doc = {
         "name": data.name,
         "attribute": data.attribute,
-        "levels": [l.model_dump() for l in data.levels],
+        "levels": [level.model_dump() for level in data.levels],
         "event_date": data.event_date,
         "end_date": data.end_date,
         "start_time": data.start_time,
