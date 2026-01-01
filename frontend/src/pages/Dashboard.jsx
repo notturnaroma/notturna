@@ -14,7 +14,9 @@ import {
   Shield,
   MessageSquare,
   Swords,
-  Sparkles
+  Sparkles,
+  Coins,
+  Package
 } from "lucide-react";
 import ChallengeModal from "@/components/ChallengeModal";
 import AidsModal from "@/components/AidsModal";
