@@ -683,6 +683,18 @@ export default function AdminPanel({ user, token, onLogout }) {
                               Background
                             </Button>
 
+                            {/* View Equipment Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setViewingEquipmentUser(u)}
+                              className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                              data-testid={`view-equip-${u.id}`}
+                            >
+                              <Package className="w-3 h-3 mr-1" />
+                              Equip
+                            </Button>
+
                             {/* Role Select */}
                             <Select
                               value={u.role}
