@@ -827,8 +827,8 @@ async def create_or_update_my_background(data: Background, user: dict = Depends(
 @api_router.get("/admin/background/{user_id}", response_model=Background)
 @api_router.post("/resources", response_model=ResourceItemResponse)
 async def create_resource_item(data: ResourceItemCreate, admin: dict = Depends(get_admin_user)):
-    if data.cost_resources <= 0:
-        raise HTTPException(status_code=400, detail="Il costo in RISORSE deve essere almeno 1")
+    if data.cost_resources < 0:
+        raise HTTPException(status_code=400, detail="Il costo in RISORSE deve essere almeno 0")
 
     item_id = str(uuid.uuid4())
     doc = {
@@ -839,7 +839,9 @@ async def create_resource_item(data: ResourceItemCreate, admin: dict = Depends(g
         "block_until": data.block_until,
         "total_quantity": data.total_quantity,
         "remaining_quantity": data.total_quantity,  # Inizialmente uguale al totale
-        "max_per_player": data.max_per_player
+        "max_per_player": data.max_per_player,
+        "is_public": data.is_public,
+        "location_keywords": data.location_keywords
     }
     await db.resource_items.insert_one(doc)
     return ResourceItemResponse(**doc)
