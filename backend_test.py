@@ -1273,7 +1273,7 @@ class ArchivioMaledettoAPITester:
         
         # Login as player
         success, player_response = self.run_test(
-            "Login as Player (giocatore@test.com)",
+            "Login as Player (player2@test.com)",
             "POST",
             "auth/login",
             200,
