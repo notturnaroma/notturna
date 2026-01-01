@@ -280,6 +280,7 @@ class ChallengeAttempt(BaseModel):
     player_value: int  # valore attributo del giocatore
     use_refuge: bool = False  # se il PG vuole usare il proprio rifugio difensivo
     followers_to_use: int = 0  # quanti punti SEGUACI il PG vuole usare per questa prova
+    equipment_id: Optional[str] = None  # ID del lock dell'oggetto da usare (dall'equipaggiamento)
 
 class BackgroundContact(BaseModel):
     name: str
