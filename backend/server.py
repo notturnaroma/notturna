@@ -736,6 +736,18 @@ async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
 Se pertinente alla domanda del giocatore, menziona questi oggetti nella tua risposta narrativa.
 """
     
+    # Info sul Clan del giocatore
+    clan_hint = ""
+    player_clan = bg.get("clan")
+    if player_clan:
+        clan_hint = f"""
+
+=== INFORMAZIONI SUL GIOCATORE ===
+Il personaggio che ti sta parlando appartiene al Clan {player_clan}.
+Tieni conto di questa appartenenza nelle tue risposte, usando riferimenti appropriati al Clan e alle sue tradizioni.
+=== FINE INFO GIOCATORE ===
+"""
+    
     system_message = f"""Sei l'Oracolo di un live action role‑playing game (LARP) ambientato in Vampire: The Masquerade.
 Tutte le domande che ricevi sono **in gioco** e riguardano personaggi e situazioni di finzione.
 Non stai dando consigli reali, ma solo risposte narrative per un gioco.
@@ -752,7 +764,7 @@ Basati SOLO sulle informazioni fornite nel contesto seguente.
 
 === CONTESTO DELL'EVENTO ===
 {context}
-=== FINE CONTESTO ==={items_hint}"""
+=== FINE CONTESTO ==={clan_hint}{items_hint}"""
     
     try:
         chat = LlmChat(
