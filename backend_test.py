@@ -2174,6 +2174,9 @@ class ArchivioMaledettoAPITester:
 
         # PRIORITY: Test the specific LARP review features first
         self.test_larp_review_features()
+        
+        # PRIORITY: Test EQUIPAGGIAMENTO functionality from review request
+        self.test_equipaggiamento_functionality()
 
         # Test core functionality
         self.test_chat_functionality()
