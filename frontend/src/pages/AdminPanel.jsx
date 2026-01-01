@@ -42,6 +42,7 @@ import ChallengesPanel from "@/components/ChallengesPanel";
 import AidsPanel from "@/components/AidsPanel";
 import ResourcesPanel from "@/components/ResourcesPanel";
 import EditBackgroundModal from "@/components/EditBackgroundModal";
+import ViewEquipmentModal from "@/components/ViewEquipmentModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
