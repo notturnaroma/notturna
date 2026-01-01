@@ -1253,8 +1253,8 @@ class ArchivioMaledettoAPITester:
         print("\n🎭 Testing LARP Review Features...")
         
         # Test credentials from review request
-        admin_creds = {"email": "narrazione@test.com", "password": "test123"}
-        player_creds = {"email": "giocatore@test.com", "password": "test123"}
+        admin_creds = {"email": "admin2@test.com", "password": "test123"}
+        player_creds = {"email": "player2@test.com", "password": "test123"}
         
         # Login as admin
         success, admin_response = self.run_test(
