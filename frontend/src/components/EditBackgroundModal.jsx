@@ -11,6 +11,7 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [background, setBackground] = useState({
+    clan: "",
     risorse: 0,
     seguaci: 0,
     rifugio: 1,
