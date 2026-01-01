@@ -1258,7 +1258,7 @@ class ArchivioMaledettoAPITester:
         
         # Login as admin
         success, admin_response = self.run_test(
-            "Login as Admin (narrazione@test.com)",
+            "Login as Admin (admin2@test.com)",
             "POST",
             "auth/login",
             200,
