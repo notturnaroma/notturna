@@ -33,6 +33,7 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
       if (response.ok) {
         const data = await response.json();
         setBackground({
+          clan: data.clan ?? "",
           risorse: data.risorse ?? 0,
           seguaci: data.seguaci ?? 0,
           rifugio: data.rifugio ?? 1,
