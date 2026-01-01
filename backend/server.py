@@ -1054,6 +1054,14 @@ async def get_my_equipment(user: dict = Depends(get_current_user)):
     for lock in locks:
         item = await db.resource_items.find_one({"id": lock["item_id"]}, {"_id": 0})
         if item:
+            # Calcola utilizzi rimanenti
+            item_uses = item.get("uses")
+            remaining_uses = lock.get("remaining_uses")
+            
+            # Se l'oggetto ha utilizzi limitati e sono esauriti, non mostrarlo
+            if remaining_uses is not None and remaining_uses <= 0:
+                continue
+            
             equipment.append(EquipmentItem(
                 id=lock["id"],
                 item_id=item["id"],
@@ -1061,7 +1069,12 @@ async def get_my_equipment(user: dict = Depends(get_current_user)):
                 item_description=item.get("description"),
                 cost_resources=lock.get("amount", 0),
                 acquired_at=lock["locked_at"],
-                unlock_at=lock.get("unlock_at")
+                unlock_at=lock.get("unlock_at"),
+                uses=item_uses,
+                remaining_uses=remaining_uses,
+                bonus=item.get("bonus"),
+                malus=item.get("malus"),
+                bonus_attribute=item.get("bonus_attribute")
             ))
     
     return EquipmentResponse(items=equipment)
@@ -1075,6 +1088,10 @@ async def get_user_equipment_admin(user_id: str, admin: dict = Depends(get_admin
     for lock in locks:
         item = await db.resource_items.find_one({"id": lock["item_id"]}, {"_id": 0})
         if item:
+            item_uses = item.get("uses")
+            remaining_uses = lock.get("remaining_uses")
+            
+            # Mostra anche oggetti esauriti per l'admin (per debug)
             equipment.append(EquipmentItem(
                 id=lock["id"],
                 item_id=item["id"],
@@ -1082,7 +1099,12 @@ async def get_user_equipment_admin(user_id: str, admin: dict = Depends(get_admin
                 item_description=item.get("description"),
                 cost_resources=lock.get("amount", 0),
                 acquired_at=lock["locked_at"],
-                unlock_at=lock.get("unlock_at")
+                unlock_at=lock.get("unlock_at"),
+                uses=item_uses,
+                remaining_uses=remaining_uses,
+                bonus=item.get("bonus"),
+                malus=item.get("malus"),
+                bonus_attribute=item.get("bonus_attribute")
             ))
     
     return EquipmentResponse(items=equipment)
