@@ -288,6 +288,7 @@ class BackgroundContact(BaseModel):
 class Background(BaseModel):
     model_config = ConfigDict(extra="ignore")
     user_id: str
+    clan: Optional[str] = None  # Clan di appartenenza del PG
     risorse: int = 0
     seguaci: int = 0
     rifugio: int = 1
