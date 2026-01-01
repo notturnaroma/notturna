@@ -160,7 +160,12 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       const data = await response.json();
 
       if (response.ok) {
-        const aiMessage = { type: "ai", text: data.answer, timestamp: data.created_at };
+        const aiMessage = { 
+          type: "ai", 
+          text: data.answer, 
+          timestamp: data.created_at,
+          foundItems: data.found_items || []  // Oggetti trovabili
+        };
         setMessages(prev => [...prev, aiMessage]);
         refreshUser();
         refreshActionsCount();
