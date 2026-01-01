@@ -1496,7 +1496,7 @@ class ArchivioMaledettoAPITester:
         except:
             pass
         
-        # Test 2: Resource System with Visibility
+        # Test 4: Resource System with Visibility (keeping existing test)
         print("  👁️ Testing Resource System with Visibility...")
         
         # Create hidden resource with keywords
