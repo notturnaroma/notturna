@@ -975,6 +975,14 @@ async def update_resource_item(item_id: str, data: ResourceItemUpdate, admin: di
         update_fields["is_public"] = data.is_public
     if data.location_keywords is not None:
         update_fields["location_keywords"] = data.location_keywords
+    if data.uses is not None:
+        update_fields["uses"] = data.uses
+    if data.bonus is not None:
+        update_fields["bonus"] = data.bonus
+    if data.malus is not None:
+        update_fields["malus"] = data.malus
+    if data.bonus_attribute is not None:
+        update_fields["bonus_attribute"] = data.bonus_attribute
     
     if update_fields:
         await db.resource_items.update_one({"id": item_id}, {"$set": update_fields})
