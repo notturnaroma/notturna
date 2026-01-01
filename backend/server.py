@@ -298,6 +298,8 @@ class ResourceItemCreate(BaseModel):
     block_until: Optional[str] = None  # ISO datetime (opzionale)
     total_quantity: Optional[int] = None  # Null = illimitato
     max_per_player: Optional[int] = None  # Null = illimitato
+    is_public: bool = True  # Se False, non appare nel catalogo ma può essere trovato tramite IA
+    location_keywords: Optional[str] = None  # Keywords per matching con KB (es. "magazzino, portuense")
 
 class ResourceItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -306,6 +308,8 @@ class ResourceItemUpdate(BaseModel):
     block_until: Optional[str] = None
     total_quantity: Optional[int] = None
     max_per_player: Optional[int] = None
+    is_public: Optional[bool] = None
+    location_keywords: Optional[str] = None
 
 class ResourceItemResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -317,6 +321,8 @@ class ResourceItemResponse(BaseModel):
     total_quantity: Optional[int] = None
     remaining_quantity: Optional[int] = None
     max_per_player: Optional[int] = None
+    is_public: bool = True
+    location_keywords: Optional[str] = None
 
 class ResourceAvailableResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
