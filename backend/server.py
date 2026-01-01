@@ -864,8 +864,8 @@ async def update_resource_item(item_id: str, data: ResourceItemUpdate, admin: di
     if data.description is not None:
         update_fields["description"] = data.description
     if data.cost_resources is not None:
-        if data.cost_resources <= 0:
-            raise HTTPException(status_code=400, detail="Il costo in RISORSE deve essere almeno 1")
+        if data.cost_resources < 0:
+            raise HTTPException(status_code=400, detail="Il costo in RISORSE non può essere negativo")
         update_fields["cost_resources"] = data.cost_resources
     if data.block_until is not None:
         update_fields["block_until"] = data.block_until
@@ -881,6 +881,10 @@ async def update_resource_item(item_id: str, data: ResourceItemUpdate, admin: di
             update_fields["remaining_quantity"] = data.total_quantity
     if data.max_per_player is not None:
         update_fields["max_per_player"] = data.max_per_player
+    if data.is_public is not None:
+        update_fields["is_public"] = data.is_public
+    if data.location_keywords is not None:
+        update_fields["location_keywords"] = data.location_keywords
     
     if update_fields:
         await db.resource_items.update_one({"id": item_id}, {"$set": update_fields})
