@@ -178,17 +178,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Contatore azioni dinamico nella Dashboard"
-    - "UI modifica/eliminazione oggetti RISORSE"
-    - "Gestione quantità e max_per_player negli acquisti"
+    - "UI modifica Background nella sezione UTENTI"
+    - "UI RISORSE con visibilità e keywords"
+    - "Chat con oggetti acquistabili"
+    - "Sistema RISORSE con is_public e location_keywords"
+    - "Chat con matching oggetti RISORSE"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Ho implementato: 1) Fix bug contatore azioni - ora mostra correttamente il bonus SEGUACI (es. 23/23 per utente con 3 SEGUACI). 2) Modifica/Eliminazione oggetti RISORSE nel pannello admin. 3) Gestione quantità totale e max per giocatore. Per favore testa: a) Login come giocatore con SEGUACI e verifica contatore mostra bonus. b) Login come admin, vai a RISORSE, crea oggetto con quantità, modifica, elimina. c) Come giocatore, prova ad acquistare oggetto con limite e verifica controlli."
-  - agent: "testing"
-    message: "BACKEND TESTING COMPLETATO ✅ Tutti i test prioritari sono passati: 1) GET /api/followers/status restituisce correttamente effective_max_actions=23 e remaining_actions_before=23 per utente con 3 SEGUACI. 2) CRUD RISORSE: POST crea oggetto con quantità (remaining_quantity=3, max_per_player=1), PUT modifica nome e costo, DELETE elimina con messaggio 'Oggetto eliminato' e secondo DELETE restituisce 404. 3) Controlli acquisto: primo acquisto successo, secondo acquisto fallisce con 403 'limite massimo raggiunto'. Tutti i backend endpoints funzionano correttamente secondo le specifiche."
+    message: "Ho implementato nuove funzionalità: 1) Modifica Background utenti dalla Narrazione (EditBackgroundModal.jsx con form completo). 2) Sistema RISORSE con visibilità controllata (is_public, location_keywords). 3) Chat con matching IA per oggetti nascosti. 4) UI per gestire visibilità e keywords oggetti. 5) Acquisto oggetti dalla chat. Per favore testa: a) Login admin, vai UTENTI, modifica background. b) Crea oggetto nascosto con keywords. c) Chat giocatore con keywords matching. d) Acquisto oggetti dalla chat."
 
 #====================================================================================================
