@@ -34,7 +34,8 @@ import {
   File,
   ExternalLink,
   Sparkles,
-  Coins
+  Coins,
+  UserCog
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
