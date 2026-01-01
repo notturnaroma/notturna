@@ -1489,7 +1489,9 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
         outcome_text = test["failure_text"]
     
     # Formato output richiesto
-    result_message = f"Con il risultato di ({data.player_value}×{player_roll}) {player_result} contro ({test['difficulty']}×{difficulty_roll}) {difficulty_result}: {outcome_text}"
+    equip_text = f" (usando {equipment_name}: +{equipment_bonus})" if equipment_name and equipment_bonus > 0 else ""
+    equip_text += f" (usando {equipment_name}: -{equipment_malus})" if equipment_name and equipment_malus > 0 and equipment_bonus == 0 else ""
+    result_message = f"Con il risultato di ({effective_player_value}×{player_roll}) {player_result}{equip_text} contro ({test['difficulty']}×{difficulty_roll}) {difficulty_result}: {outcome_text}"
     
     # Salva nel log (questo blocca tentativi futuri)
     attempt_log = {
