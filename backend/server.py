@@ -1034,6 +1034,11 @@ class EquipmentItem(BaseModel):
     cost_resources: int
     acquired_at: str
     unlock_at: Optional[str] = None
+    uses: Optional[int] = None  # Utilizzi totali (Null = illimitato)
+    remaining_uses: Optional[int] = None  # Utilizzi rimanenti
+    bonus: Optional[int] = None
+    malus: Optional[int] = None
+    bonus_attribute: Optional[str] = None
 
 class EquipmentResponse(BaseModel):
     items: List[EquipmentItem]
