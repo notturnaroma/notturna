@@ -296,6 +296,18 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               </Button>
             </Link>
 
+            <Link to="/equipment">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gold hover:bg-gold/10 font-cinzel"
+                data-testid="equipment-nav-btn"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">{settings.nav_equipment || "EQUIP"}</span>
+              </Button>
+            </Link>
+
             <Link to="/archive">
               <Button 
                 variant="ghost" 
