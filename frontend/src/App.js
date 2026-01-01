@@ -93,6 +93,7 @@ function App() {
             <Route path="/dashboard" element={token ? <Dashboard user={user} token={token} onLogout={handleLogout} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
             <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/background" element={token ? <Background user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+            <Route path="/equipment" element={token ? <EquipmentPage user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/admin" element={token && user?.role === "admin" ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
             <Route path="/embed" element={<EmbedChat />} />
           </Routes>
