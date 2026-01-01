@@ -101,80 +101,54 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 
-user_problem_statement: "Bug fix contatore azioni con SEGUACI + Gestione completa oggetti RISORSE (modifica, eliminazione, quantità)"
+user_problem_statement: "1) Modifica Background dalla Narrazione nella sezione UTENTI. 2) Sistema RISORSE con visibilità controllata e matching IA per oggetti nascosti."
 backend:
-  - task: "Endpoint /api/followers/status con effective_max_actions"
+  - task: "Modifica Background utenti da admin"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Aggiunto campo effective_max_actions al modello FollowerStatus e all'endpoint. Corretto bug di tipizzazione (dict vs Pydantic model). Testato via curl: utente con 3 SEGUACI riceve correttamente effective_max_actions=23 e remaining_actions_before=23."
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTATO: GET /api/followers/status funziona correttamente. Utente con 3 SEGUACI nel background riceve effective_max_actions=23 (20 base + 3 SEGUACI) e remaining_actions_before=23. Tutti i campi richiesti presenti nella risposta (total_followers=3, spent_followers=0, available_followers=3)."
-  - task: "PUT /api/resources/{item_id} per modifica oggetti"
-    implemented: true
-    working: true
-    file: "backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Creato endpoint PUT per modificare oggetti del catalogo RISORSE. Supporta modifica parziale di tutti i campi inclusi total_quantity e max_per_player. Testato via curl con successo."
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTATO: PUT /api/resources/{item_id} funziona correttamente. Modifica parziale testata con successo: nome cambiato da 'Test Qty' a 'Test Qty Modificato' e cost_resources da 2 a 3. Endpoint risponde con 200 e dati aggiornati."
-  - task: "DELETE /api/resources/{item_id} per eliminazione oggetti"
-    implemented: true
-    working: true
-    file: "backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Creato endpoint DELETE per eliminare oggetti dal catalogo e relativi lock. Testato via curl: eliminazione funziona, secondo tentativo restituisce 404."
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTATO: DELETE /api/resources/{item_id} funziona correttamente. Prima eliminazione restituisce 200 con messaggio 'Oggetto eliminato'. Seconda eliminazione dello stesso oggetto restituisce 404 come previsto. Lock relativi all'oggetto vengono rimossi."
-  - task: "Gestione quantità e max_per_player negli acquisti"
-    implemented: true
-    working: true
-    file: "backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Aggiornato endpoint /resources/purchase per controllare remaining_quantity e max_per_player. Decrementa remaining_quantity dopo ogni acquisto. Restituisce errore 403 se esaurito o raggiunto limite."
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTATO: Controlli acquisto funzionano correttamente. Creato oggetto con max_per_player=1, primo acquisto successo (200), secondo acquisto fallisce con 403 e messaggio di errore contenente 'limite massimo'. Giocatore con 5 RISORSE può acquistare oggetto da 2 RISORSE. Validazione quantità e limiti per giocatore implementata correttamente."
-frontend:
-  - task: "Contatore azioni dinamico nella Dashboard"
-    implemented: true
-    working: true
-    file: "frontend/src/pages/Dashboard.jsx"
-    stuck_count: 1
     priority: "high"
     needs_retesting: true
     status_history:
-      - working: false
-        agent: "user"
-        comment: "Il contatore non mostrava il bonus dei SEGUACI"
       - working: true
         agent: "main"
-        comment: "Corretto il calcolo nel frontend: ora usa direttamente effective_max_actions dall'API invece di calcolare localmente. Aggiunta funzione refreshActionsCount() che viene chiamata dopo ogni azione. Screenshot mostra 23/23 per utente con 3 SEGUACI."
-  - task: "UI modifica/eliminazione oggetti RISORSE"
+        comment: "Endpoint PUT /api/admin/background/{user_id} già esistente. Permette alla Narrazione di modificare tutti i campi del background senza limiti."
+  - task: "Sistema RISORSE con is_public e location_keywords"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiunti campi is_public e location_keywords ai modelli ResourceItemCreate/Update/Response. Endpoint /resources/available filtra solo oggetti pubblici. Creato oggetto test nascosto con keywords 'magazzino, portuense, porto'."
+  - task: "Chat con matching oggetti RISORSE"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Endpoint POST /chat modificato per cercare oggetti con location_keywords matching. Gli oggetti trovati vengono passati all'IA nel contesto e restituiti in found_items nella risposta. Aggiunto modello FoundResourceItem."
+frontend:
+  - task: "UI modifica Background nella sezione UTENTI"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/AdminPanel.jsx, frontend/src/components/EditBackgroundModal.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Creato EditBackgroundModal.jsx con form completo per modificare RISORSE, SEGUACI, RIFUGIO, MENTORE, NOTORIETÀ e CONTATTI. Aggiunto pulsante 'Background' nella lista utenti."
+  - task: "UI RISORSE con visibilità e keywords"
     implemented: true
     working: true
     file: "frontend/src/components/ResourcesPanel.jsx"
@@ -184,18 +158,18 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Aggiunta UI completa: pulsanti modifica (matita) e elimina (cestino) per ogni oggetto. Form inline per editing con tutti i campi (nome, costo, descrizione, blocco, quantità, max/giocatore). Conferma prima di eliminare."
-  - task: "UI quantità e max_per_player nel catalogo"
+        comment: "Aggiunta checkbox 'Visibile nel catalogo pubblico' e campo 'Keywords luogo'. Costo 0 permesso per oggetti gratuiti. Icone Eye/EyeOff per indicare visibilità nel catalogo."
+  - task: "Chat con oggetti acquistabili"
     implemented: true
     working: true
-    file: "frontend/src/components/PlayerResources.jsx"
+    file: "frontend/src/pages/Dashboard.jsx"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: true
         agent: "main"
-        comment: "Aggiornata UI giocatore per mostrare disponibilità (X/Y), max per giocatore, e stato 'Esaurito' in rosso. Pulsante acquisto disabilitato se esaurito."
+        comment: "Aggiunta visualizzazione oggetti trovati (foundItems) nella risposta AI con pulsanti acquisto. Aggiunta funzione handlePurchaseItem per acquistare oggetti dalla chat. Aggiunto tipo messaggio 'purchase-result' per conferma acquisto."
 metadata:
   created_by: "main_agent"
   version: "1.0"
