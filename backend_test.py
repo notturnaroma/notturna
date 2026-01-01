@@ -1591,7 +1591,7 @@ class ArchivioMaledettoAPITester:
                 
                 self.log_test("Chat Object Matching", True, "Pistola Arrugginita found in chat with correct properties")
         
-        # Test 4: Purchase Object from Chat
+        # Test 6: Purchase Object from Chat (keeping existing test)
         print("  🛒 Testing Object Purchase from Chat...")
         
         # POST /api/resources/purchase with the hidden item
