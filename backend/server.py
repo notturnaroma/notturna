@@ -1030,26 +1030,28 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
     if available < cost:
         raise HTTPException(status_code=403, detail="Non hai RISORSE sufficienti per questo acquisto")
 
-    # Calcola unlock_at: se l'oggetto ha block_until, usa quello, altrimenti primo giorno del mese successivo
-    block_until = item.get("block_until")
-    if block_until:
-        unlock_at = block_until
-    else:
-        # Primo giorno del mese successivo
-        year = now.year + (1 if now.month == 12 else 0)
-        month = 1 if now.month == 12 else now.month + 1
-        unlock_date = datetime(year, month, 1, tzinfo=timezone.utc)
-        unlock_at = unlock_date.isoformat()
+    # Only create a lock if cost > 0
+    if cost > 0:
+        # Calcola unlock_at: se l'oggetto ha block_until, usa quello, altrimenti primo giorno del mese successivo
+        block_until = item.get("block_until")
+        if block_until:
+            unlock_at = block_until
+        else:
+            # Primo giorno del mese successivo
+            year = now.year + (1 if now.month == 12 else 0)
+            month = 1 if now.month == 12 else now.month + 1
+            unlock_date = datetime(year, month, 1, tzinfo=timezone.utc)
+            unlock_at = unlock_date.isoformat()
 
-    lock_doc = {
-        "id": str(uuid.uuid4()),
-        "user_id": user["id"],
-        "item_id": item["id"],
-        "amount": cost,
-        "locked_at": now.isoformat(),
-        "unlock_at": unlock_at
-    }
-    await db.resource_locks.insert_one(lock_doc)
+        lock_doc = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "item_id": item["id"],
+            "amount": cost,
+            "locked_at": now.isoformat(),
+            "unlock_at": unlock_at
+        }
+        await db.resource_locks.insert_one(lock_doc)
 
     # Decrementa la quantità rimanente se l'oggetto ha un limite
     if remaining_qty is not None:
