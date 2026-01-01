@@ -139,6 +139,17 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
               Come Narrazione puoi modificare questi valori senza limiti.
             </p>
 
+            {/* Clan */}
+            <div className="space-y-2">
+              <Label className="font-cinzel text-gold text-xs uppercase">CLAN</Label>
+              <Input
+                value={background.clan}
+                onChange={(e) => handleChange("clan", e.target.value)}
+                placeholder="es. Brujah, Ventrue, Nosferatu..."
+                className="input-gothic rounded-sm"
+              />
+            </div>
+
             {/* Valori principali */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
