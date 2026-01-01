@@ -668,6 +668,18 @@ export default function AdminPanel({ user, token, onLogout }) {
                           </div>
 
                           <div className="flex flex-wrap items-center gap-3">
+                            {/* Modifica Background Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingBackgroundUser(u)}
+                              className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                              data-testid={`edit-bg-${u.id}`}
+                            >
+                              <UserCog className="w-3 h-3 mr-1" />
+                              Background
+                            </Button>
+
                             {/* Role Select */}
                             <Select
                               value={u.role}
