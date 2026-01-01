@@ -1633,6 +1633,528 @@ class ArchivioMaledettoAPITester:
         
         return True
 
+    def test_equipaggiamento_functionality(self):
+        """Test EQUIPAGGIAMENTO functionality as requested in review"""
+        print("\n⚔️ Testing EQUIPAGGIAMENTO (Equipment) Functionality...")
+        
+        # Test credentials from review request
+        admin_creds = {"email": "admin2@test.com", "password": "test123"}
+        player_creds = {"email": "player2@test.com", "password": "test123"}
+        
+        # Login as admin
+        success, admin_response = self.run_test(
+            "Login as Admin for Equipment Test",
+            "POST",
+            "auth/login",
+            200,
+            data=admin_creds
+        )
+        
+        if not success or 'access_token' not in admin_response:
+            self.log_test("Equipment Test Setup", False, "Failed to login as admin")
+            return False
+        
+        admin_token = admin_response['access_token']
+        
+        # Login as player
+        success, player_response = self.run_test(
+            "Login as Player for Equipment Test",
+            "POST",
+            "auth/login",
+            200,
+            data=player_creds
+        )
+        
+        if not success or 'access_token' not in player_response:
+            self.log_test("Equipment Test Setup", False, "Failed to login as player")
+            return False
+        
+        player_token = player_response['access_token']
+        player_id = player_response['user']['id']
+        
+        # Set player background with sufficient resources
+        background_data = {
+            "user_id": player_id,
+            "risorse": 10,
+            "seguaci": 2,
+            "rifugio": 2,
+            "mentor": 1,
+            "notoriety": 0,
+            "contacts": [],
+            "locked_for_player": True
+        }
+        
+        success, bg_response = self.run_test(
+            "Set Player Background for Equipment Test",
+            "PUT",
+            f"admin/background/{player_id}",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success:
+            self.log_test("Equipment Test Setup", False, "Failed to set player background")
+            return False
+        
+        # Test 1: SEGUACI in Challenges (verify existing functionality)
+        print("  👥 Testing SEGUACI in Challenges...")
+        
+        # Create a challenge for testing
+        challenge_data = {
+            "name": "Test Challenge for SEGUACI",
+            "description": "Una prova per testare l'uso dei SEGUACI",
+            "tests": [
+                {
+                    "attribute": "FORZA",
+                    "difficulty": 8,
+                    "success_text": "Riesci nella prova con successo",
+                    "tie_text": "Pareggi nella prova",
+                    "failure_text": "Fallisci nella prova"
+                }
+            ],
+            "keywords": ["test", "seguaci"],
+            "allow_refuge_defense": False
+        }
+        
+        success, challenge_response = self.run_test(
+            "Create Challenge for SEGUACI Test",
+            "POST",
+            "challenges",
+            200,
+            data=challenge_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success or 'id' not in challenge_response:
+            self.log_test("SEGUACI Challenge Test", False, "Failed to create test challenge")
+            return False
+        
+        challenge_id = challenge_response['id']
+        
+        # Test challenge attempt with followers_to_use
+        attempt_data = {
+            "challenge_id": challenge_id,
+            "test_index": 0,
+            "player_value": 5,
+            "followers_to_use": 2  # Use 2 SEGUACI to reduce difficulty from 8 to 6
+        }
+        
+        success, attempt_response = self.run_test(
+            "Attempt Challenge with SEGUACI",
+            "POST",
+            "challenges/attempt",
+            200,
+            data=attempt_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Verify the attempt was recorded
+            if 'message' in attempt_response:
+                self.log_test("SEGUACI Challenge Attempt", True, f"Challenge attempted with SEGUACI: {attempt_response['message']}")
+            else:
+                self.log_test("SEGUACI Challenge Attempt", False, "No message in challenge response")
+        
+        # Test 2: Create Object with Bonus/Malus
+        print("  🗡️ Testing Objects with Bonus/Malus...")
+        
+        # Create object with uses=2, bonus=3, bonus_attribute="FORZA"
+        equipment_data = {
+            "name": "Spada Magica",
+            "description": "Una spada che conferisce bonus alla FORZA",
+            "cost_resources": 3,
+            "uses": 2,
+            "bonus": 3,
+            "bonus_attribute": "FORZA",
+            "is_public": True
+        }
+        
+        success, equipment_response = self.run_test(
+            "Create Equipment with Bonus",
+            "POST",
+            "resources",
+            200,
+            data=equipment_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success or 'id' not in equipment_response:
+            self.log_test("Equipment Creation", False, "Failed to create equipment with bonus")
+            return False
+        
+        equipment_id = equipment_response['id']
+        
+        # Verify equipment properties
+        if equipment_response.get('uses') != 2:
+            self.log_test("Equipment Properties", False, f"Expected uses=2, got {equipment_response.get('uses')}")
+            return False
+        
+        if equipment_response.get('bonus') != 3:
+            self.log_test("Equipment Properties", False, f"Expected bonus=3, got {equipment_response.get('bonus')}")
+            return False
+        
+        if equipment_response.get('bonus_attribute') != "FORZA":
+            self.log_test("Equipment Properties", False, f"Expected bonus_attribute='FORZA', got '{equipment_response.get('bonus_attribute')}'")
+            return False
+        
+        self.log_test("Equipment Properties", True, "Equipment created with correct bonus properties")
+        
+        # Test 3: Player Acquires the Object
+        print("  🛒 Testing Object Acquisition...")
+        
+        purchase_data = {"item_id": equipment_id}
+        
+        success, purchase_response = self.run_test(
+            "Purchase Equipment Item",
+            "POST",
+            "resources/purchase",
+            200,
+            data=purchase_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Equipment Purchase", False, "Failed to purchase equipment")
+            return False
+        
+        self.log_test("Equipment Purchase", True, "Equipment purchased successfully")
+        
+        # Test 4: Verify GET /api/equipment/me shows remaining_uses=2
+        print("  📦 Testing Equipment Inventory...")
+        
+        success, inventory_response = self.run_test(
+            "Get Player Equipment Inventory",
+            "GET",
+            "equipment/me",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Equipment Inventory", False, "Failed to get equipment inventory")
+            return False
+        
+        # Verify equipment appears in inventory
+        if 'items' not in inventory_response:
+            self.log_test("Equipment Inventory Structure", False, "Missing 'items' field in inventory")
+            return False
+        
+        items = inventory_response.get('items', [])
+        spada_item = None
+        
+        for item in items:
+            if item.get('item_name') == 'Spada Magica':
+                spada_item = item
+                break
+        
+        if not spada_item:
+            self.log_test("Equipment in Inventory", False, "Spada Magica not found in player inventory")
+            return False
+        
+        # Verify remaining_uses=2
+        if spada_item.get('remaining_uses') != 2:
+            self.log_test("Equipment Remaining Uses", False, f"Expected remaining_uses=2, got {spada_item.get('remaining_uses')}")
+            return False
+        
+        # Verify bonus properties
+        if spada_item.get('bonus') != 3:
+            self.log_test("Equipment Bonus in Inventory", False, f"Expected bonus=3, got {spada_item.get('bonus')}")
+            return False
+        
+        if spada_item.get('bonus_attribute') != "FORZA":
+            self.log_test("Equipment Bonus Attribute", False, f"Expected bonus_attribute='FORZA', got '{spada_item.get('bonus_attribute')}'")
+            return False
+        
+        self.log_test("Equipment in Inventory", True, "Spada Magica found in inventory with remaining_uses=2 and correct bonus")
+        
+        equipment_lock_id = spada_item.get('id')  # This is the lock ID we need for using the equipment
+        
+        # Test 5: Use Object in Challenge
+        print("  ⚔️ Testing Object Usage in Challenges...")
+        
+        # Create a new challenge for equipment testing (since we already used the first one)
+        equipment_challenge_data = {
+            "name": "Test Challenge for Equipment",
+            "description": "Una prova per testare l'uso dell'equipaggiamento",
+            "tests": [
+                {
+                    "attribute": "FORZA",
+                    "difficulty": 7,
+                    "success_text": "La tua forza ti permette di superare la prova",
+                    "tie_text": "Riesci a malapena",
+                    "failure_text": "Non hai abbastanza forza"
+                }
+            ],
+            "keywords": ["equipment", "test"],
+            "allow_refuge_defense": False
+        }
+        
+        success, eq_challenge_response = self.run_test(
+            "Create Challenge for Equipment Test",
+            "POST",
+            "challenges",
+            200,
+            data=equipment_challenge_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success or 'id' not in eq_challenge_response:
+            self.log_test("Equipment Challenge Creation", False, "Failed to create equipment test challenge")
+            return False
+        
+        eq_challenge_id = eq_challenge_response['id']
+        
+        # Attempt challenge with equipment
+        equipment_attempt_data = {
+            "challenge_id": eq_challenge_id,
+            "test_index": 0,
+            "player_value": 5,  # Base value
+            "equipment_id": equipment_lock_id  # Use the equipment lock ID
+        }
+        
+        success, eq_attempt_response = self.run_test(
+            "Attempt Challenge with Equipment",
+            "POST",
+            "challenges/attempt",
+            200,
+            data=equipment_attempt_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Equipment Challenge Attempt", False, "Failed to attempt challenge with equipment")
+            return False
+        
+        # Verify the bonus was applied (effective player value should be 5+3=8)
+        if 'message' in eq_attempt_response:
+            message = eq_attempt_response['message']
+            # Look for evidence that bonus was applied
+            if "usando Spada Magica" in message and "+3" in message:
+                self.log_test("Equipment Bonus Application", True, f"Equipment bonus applied correctly: {message}")
+            else:
+                self.log_test("Equipment Bonus Application", False, f"Equipment bonus not clearly applied in message: {message}")
+        
+        # Test 6: Verify remaining_uses decremented (from 2 to 1)
+        print("  📉 Testing Usage Decrement...")
+        
+        success, updated_inventory = self.run_test(
+            "Get Updated Equipment Inventory",
+            "GET",
+            "equipment/me",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            updated_items = updated_inventory.get('items', [])
+            updated_spada = None
+            
+            for item in updated_items:
+                if item.get('item_name') == 'Spada Magica':
+                    updated_spada = item
+                    break
+            
+            if not updated_spada:
+                self.log_test("Equipment Usage Decrement", False, "Spada Magica not found after usage")
+                return False
+            
+            # Verify remaining_uses decremented to 1
+            if updated_spada.get('remaining_uses') != 1:
+                self.log_test("Equipment Usage Decrement", False, f"Expected remaining_uses=1 after usage, got {updated_spada.get('remaining_uses')}")
+                return False
+            
+            self.log_test("Equipment Usage Decrement", True, "Equipment remaining_uses correctly decremented from 2 to 1")
+        
+        # Test 7: Use Object Again to Exhaust Uses
+        print("  🔄 Testing Usage Exhaustion...")
+        
+        # Create another challenge for the second usage
+        final_challenge_data = {
+            "name": "Final Equipment Test Challenge",
+            "description": "Ultima prova per esaurire l'equipaggiamento",
+            "tests": [
+                {
+                    "attribute": "FORZA",
+                    "difficulty": 6,
+                    "success_text": "Ultima vittoria con l'equipaggiamento",
+                    "tie_text": "Pareggio finale",
+                    "failure_text": "Sconfitta finale"
+                }
+            ],
+            "keywords": ["final", "test"],
+            "allow_refuge_defense": False
+        }
+        
+        success, final_challenge_response = self.run_test(
+            "Create Final Challenge for Equipment",
+            "POST",
+            "challenges",
+            200,
+            data=final_challenge_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success or 'id' not in final_challenge_response:
+            self.log_test("Final Equipment Challenge", False, "Failed to create final challenge")
+            return False
+        
+        final_challenge_id = final_challenge_response['id']
+        
+        # Use equipment one more time
+        final_attempt_data = {
+            "challenge_id": final_challenge_id,
+            "test_index": 0,
+            "player_value": 4,
+            "equipment_id": equipment_lock_id
+        }
+        
+        success, final_attempt_response = self.run_test(
+            "Final Equipment Usage",
+            "POST",
+            "challenges/attempt",
+            200,
+            data=final_attempt_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            self.log_test("Final Equipment Usage", True, "Equipment used for the second and final time")
+        
+        # Test 8: Verify Object No Longer Appears in Inventory
+        print("  🚫 Testing Equipment Disappearance...")
+        
+        success, final_inventory = self.run_test(
+            "Get Final Equipment Inventory",
+            "GET",
+            "equipment/me",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            final_items = final_inventory.get('items', [])
+            exhausted_spada = None
+            
+            for item in final_items:
+                if item.get('item_name') == 'Spada Magica':
+                    exhausted_spada = item
+                    break
+            
+            if exhausted_spada:
+                # Check if remaining_uses is 0 or if item is still there
+                remaining = exhausted_spada.get('remaining_uses')
+                if remaining is not None and remaining <= 0:
+                    self.log_test("Equipment Exhaustion", False, "Equipment still appears in inventory with 0 uses (should be hidden)")
+                    return False
+                else:
+                    self.log_test("Equipment Exhaustion", False, f"Equipment still appears in inventory with {remaining} uses")
+                    return False
+            else:
+                self.log_test("Equipment Exhaustion", True, "Equipment correctly removed from inventory after exhausting uses")
+        
+        # Test 9: Try to Use Exhausted Equipment (should fail)
+        print("  ❌ Testing Exhausted Equipment Usage...")
+        
+        # Create one more challenge to test exhausted equipment
+        exhausted_challenge_data = {
+            "name": "Exhausted Equipment Test",
+            "description": "Prova per testare equipaggiamento esaurito",
+            "tests": [
+                {
+                    "attribute": "FORZA",
+                    "difficulty": 5,
+                    "success_text": "Successo senza equipaggiamento",
+                    "tie_text": "Pareggio",
+                    "failure_text": "Fallimento"
+                }
+            ],
+            "keywords": ["exhausted"],
+            "allow_refuge_defense": False
+        }
+        
+        success, exhausted_challenge_response = self.run_test(
+            "Create Exhausted Equipment Challenge",
+            "POST",
+            "challenges",
+            200,
+            data=exhausted_challenge_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success and 'id' in exhausted_challenge_response:
+            exhausted_challenge_id = exhausted_challenge_response['id']
+            
+            # Try to use exhausted equipment (should fail with 400)
+            exhausted_attempt_data = {
+                "challenge_id": exhausted_challenge_id,
+                "test_index": 0,
+                "player_value": 4,
+                "equipment_id": equipment_lock_id  # Same equipment ID, but should be exhausted
+            }
+            
+            success, exhausted_attempt_response = self.run_test(
+                "Attempt to Use Exhausted Equipment (Should Fail)",
+                "POST",
+                "challenges/attempt",
+                400,  # Should fail with 400 "L'oggetto ha esaurito gli utilizzi"
+                data=exhausted_attempt_data,
+                headers={'Authorization': f'Bearer {player_token}'}
+            )
+            
+            if success:
+                self.log_test("Exhausted Equipment Protection", True, "System correctly prevents usage of exhausted equipment")
+            
+            # Cleanup exhausted challenge
+            try:
+                self.run_test(
+                    "Cleanup Exhausted Challenge",
+                    "DELETE",
+                    f"challenges/{exhausted_challenge_id}",
+                    200,
+                    headers={'Authorization': f'Bearer {admin_token}'}
+                )
+            except:
+                pass
+        
+        # Cleanup: Delete test challenges and equipment
+        try:
+            self.run_test(
+                "Cleanup Equipment Challenge",
+                "DELETE",
+                f"challenges/{eq_challenge_id}",
+                200,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+            
+            self.run_test(
+                "Cleanup Final Challenge",
+                "DELETE",
+                f"challenges/{final_challenge_id}",
+                200,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+            
+            self.run_test(
+                "Cleanup SEGUACI Challenge",
+                "DELETE",
+                f"challenges/{challenge_id}",
+                200,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+            
+            self.run_test(
+                "Cleanup Equipment Item",
+                "DELETE",
+                f"resources/{equipment_id}",
+                200,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+        except:
+            pass
+        
+        return True
+
     def run_all_tests(self):
         """Run all tests"""
         print("🔍 Starting L'Archivio Maledetto API Tests...")
