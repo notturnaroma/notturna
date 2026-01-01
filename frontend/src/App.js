@@ -11,6 +11,7 @@ import Archive from "@/pages/Archive";
 import AdminPanel from "@/pages/AdminPanel";
 import EmbedChat from "@/pages/EmbedChat";
 import Background from "@/pages/Background";
+import EquipmentPage from "@/pages/EquipmentPage";
 
 function App() {
   const [user, setUser] = useState(null);
