@@ -1248,6 +1248,243 @@ class ArchivioMaledettoAPITester:
         
         return success
 
+    def test_larp_review_features(self):
+        """Test the specific LARP features from the review request"""
+        print("\n🎭 Testing LARP Review Features...")
+        
+        # Test credentials from review request
+        admin_creds = {"email": "narrazione@test.com", "password": "test123"}
+        player_creds = {"email": "giocatore@test.com", "password": "test123"}
+        
+        # Login as admin
+        success, admin_response = self.run_test(
+            "Login as Admin (narrazione@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=admin_creds
+        )
+        
+        if not success or 'access_token' not in admin_response:
+            self.log_test("LARP Review Features", False, "Failed to login as admin")
+            return False
+        
+        admin_token = admin_response['access_token']
+        
+        # Login as player
+        success, player_response = self.run_test(
+            "Login as Player (giocatore@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=player_creds
+        )
+        
+        if not success or 'access_token' not in player_response:
+            self.log_test("LARP Review Features", False, "Failed to login as player")
+            return False
+        
+        player_token = player_response['access_token']
+        player_id = player_response['user']['id']
+        
+        # Test 1: Admin Background Modification
+        print("  📝 Testing Admin Background Modification...")
+        
+        # GET /api/admin/background/{user_id} for player
+        success, bg_response = self.run_test(
+            "GET Admin Background for Player",
+            "GET",
+            f"admin/background/{player_id}",
+            200,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success:
+            return False
+        
+        # PUT /api/admin/background/{user_id} with new values
+        new_background = {
+            "user_id": player_id,
+            "risorse": 15,
+            "seguaci": 4,
+            "rifugio": 3,
+            "mentor": 2,
+            "notoriety": 1,
+            "contacts": [{"name": "Mafia", "value": 3}],
+            "locked_for_player": True
+        }
+        
+        success, update_response = self.run_test(
+            "PUT Admin Background Update",
+            "PUT",
+            f"admin/background/{player_id}",
+            200,
+            data=new_background,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success:
+            # Verify values were saved
+            if update_response.get('risorse') != 15:
+                self.log_test("Background Update Verification", False, f"Expected risorse=15, got {update_response.get('risorse')}")
+                return False
+            if update_response.get('seguaci') != 4:
+                self.log_test("Background Update Verification", False, f"Expected seguaci=4, got {update_response.get('seguaci')}")
+                return False
+            if update_response.get('rifugio') != 3:
+                self.log_test("Background Update Verification", False, f"Expected rifugio=3, got {update_response.get('rifugio')}")
+                return False
+            if update_response.get('mentor') != 2:
+                self.log_test("Background Update Verification", False, f"Expected mentor=2, got {update_response.get('mentor')}")
+                return False
+            if update_response.get('notoriety') != 1:
+                self.log_test("Background Update Verification", False, f"Expected notoriety=1, got {update_response.get('notoriety')}")
+                return False
+            
+            contacts = update_response.get('contacts', [])
+            if len(contacts) != 1 or contacts[0].get('name') != 'Mafia' or contacts[0].get('value') != 3:
+                self.log_test("Background Update Verification", False, f"Expected contacts=[{{'name': 'Mafia', 'value': 3}}], got {contacts}")
+                return False
+            
+            self.log_test("Background Update Verification", True, "All background values saved correctly")
+        
+        # Test 2: Resource System with Visibility
+        print("  👁️ Testing Resource System with Visibility...")
+        
+        # Create hidden resource with keywords
+        hidden_resource = {
+            "name": "Pistola Arrugginita",
+            "description": "Una vecchia pistola trovata nel magazzino del porto",
+            "cost_resources": 0,
+            "is_public": False,
+            "location_keywords": "magazzino, portuense, porto"
+        }
+        
+        success, resource_response = self.run_test(
+            "Create Hidden Resource",
+            "POST",
+            "resources",
+            200,
+            data=hidden_resource,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success or 'id' not in resource_response:
+            self.log_test("LARP Review Features", False, "Failed to create hidden resource")
+            return False
+        
+        hidden_item_id = resource_response['id']
+        
+        # GET /api/resources (admin) - should see hidden item
+        success, admin_resources = self.run_test(
+            "GET Resources (Admin) - Should See Hidden Item",
+            "GET",
+            "resources",
+            200,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success:
+            hidden_found = any(item.get('name') == 'Pistola Arrugginita' for item in admin_resources)
+            if not hidden_found:
+                self.log_test("Admin Resources Visibility", False, "Hidden item not found in admin resources list")
+                return False
+            else:
+                self.log_test("Admin Resources Visibility", True, "Hidden item visible to admin")
+        
+        # GET /api/resources/available (player) - should NOT see hidden item
+        success, player_resources = self.run_test(
+            "GET Available Resources (Player) - Should NOT See Hidden Item",
+            "GET",
+            "resources/available",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            hidden_found = any(item.get('name') == 'Pistola Arrugginita' for item in player_resources.get('items', []))
+            if hidden_found:
+                self.log_test("Player Resources Visibility", False, "Hidden item found in player resources list (should be hidden)")
+                return False
+            else:
+                self.log_test("Player Resources Visibility", True, "Hidden item correctly hidden from player")
+        
+        # Test 3: Chat with Object Matching
+        print("  💬 Testing Chat with Object Matching...")
+        
+        # POST /api/chat with keyword "magazzino"
+        chat_data = {
+            "question": "Cosa posso trovare nel magazzino del portuense?"
+        }
+        
+        success, chat_response = self.run_test(
+            "Chat with Keyword Matching",
+            "POST",
+            "chat",
+            200,
+            data=chat_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Verify found_items contains the hidden resource
+            found_items = chat_response.get('found_items', [])
+            pistola_found = any(item.get('name') == 'Pistola Arrugginita' for item in found_items)
+            
+            if not pistola_found:
+                self.log_test("Chat Object Matching", False, "Pistola Arrugginita not found in chat found_items")
+                return False
+            else:
+                # Verify the found item has correct properties
+                pistola_item = next(item for item in found_items if item.get('name') == 'Pistola Arrugginita')
+                if pistola_item.get('cost_resources') != 0:
+                    self.log_test("Chat Object Properties", False, f"Expected cost_resources=0, got {pistola_item.get('cost_resources')}")
+                    return False
+                
+                self.log_test("Chat Object Matching", True, "Pistola Arrugginita found in chat with correct properties")
+        
+        # Test 4: Purchase Object from Chat
+        print("  🛒 Testing Object Purchase from Chat...")
+        
+        # POST /api/resources/purchase with the hidden item
+        purchase_data = {"item_id": hidden_item_id}
+        
+        success, purchase_response = self.run_test(
+            "Purchase Hidden Object (Cost=0)",
+            "POST",
+            "resources/purchase",
+            200,
+            data=purchase_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Verify purchase succeeded even with cost=0
+            self.log_test("Free Object Purchase", True, "Successfully purchased object with cost=0")
+            
+            # Verify player's available resources were updated
+            if 'available_resources' in purchase_response:
+                # Should still have 15 resources since cost was 0
+                if purchase_response.get('available_resources') != 15:
+                    self.log_test("Purchase Resource Calculation", False, 
+                                f"Expected 15 available resources after free purchase, got {purchase_response.get('available_resources')}")
+                else:
+                    self.log_test("Purchase Resource Calculation", True, "Resources correctly maintained after free purchase")
+        
+        # Cleanup: delete the test resource
+        try:
+            self.run_test(
+                "Cleanup Hidden Resource",
+                "DELETE",
+                f"resources/{hidden_item_id}",
+                200,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+        except:
+            pass
+        
+        return True
+
     def run_all_tests(self):
         """Run all tests"""
         print("🔍 Starting L'Archivio Maledetto API Tests...")
@@ -1264,6 +1501,9 @@ class ArchivioMaledettoAPITester:
 
         # Try to make admin user actually admin
         self.make_user_admin_via_script()
+
+        # PRIORITY: Test the specific LARP review features first
+        self.test_larp_review_features()
 
         # Test core functionality
         self.test_chat_functionality()
