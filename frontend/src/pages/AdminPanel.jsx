@@ -49,6 +49,7 @@ export default function AdminPanel({ user, token, onLogout }) {
   const [users, setUsers] = useState([]);
   const [knowledge, setKnowledge] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingBackgroundUser, setEditingBackgroundUser] = useState(null);
   
   // Knowledge form
   const [kbTitle, setKbTitle] = useState("");
