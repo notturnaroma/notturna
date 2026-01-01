@@ -879,6 +879,13 @@ async def create_or_update_my_background(data: Background, user: dict = Depends(
     return Background(**doc)
 
 @api_router.get("/admin/background/{user_id}", response_model=Background)
+async def get_user_background_admin(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Get user background (admin only)"""
+    doc = await db.backgrounds.find_one({"user_id": user_id}, {"_id": 0})
+    if not doc:
+        return Background(user_id=user_id)
+    return Background(**doc)
+
 @api_router.post("/resources", response_model=ResourceItemResponse)
 async def create_resource_item(data: ResourceItemCreate, admin: dict = Depends(get_admin_user)):
     if data.cost_resources < 0:
