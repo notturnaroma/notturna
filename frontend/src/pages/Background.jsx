@@ -193,6 +193,21 @@ export default function Background({ user, token, onLogout }) {
 
           <ScrollArea className="max-h-[70vh] pr-2">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Clan di appartenenza */}
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">CLAN DI APPARTENENZA</Label>
+                <Input
+                  value={background.clan || ""}
+                  onChange={(e) => handleChange("clan", e.target.value)}
+                  placeholder="es. Brujah, Ventrue, Nosferatu..."
+                  className="input-gothic rounded-sm"
+                  disabled={isLocked}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  L'Oracolo terrà conto del tuo Clan nelle risposte.
+                </p>
+              </div>
+
               {/* Valori principali */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
