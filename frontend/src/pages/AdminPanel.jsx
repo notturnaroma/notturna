@@ -774,6 +774,16 @@ export default function AdminPanel({ user, token, onLogout }) {
           onSaved={fetchData}
         />
       )}
+
+      {/* View Equipment Modal */}
+      {viewingEquipmentUser && (
+        <ViewEquipmentModal
+          userId={viewingEquipmentUser.id}
+          username={viewingEquipmentUser.username}
+          token={token}
+          onClose={() => setViewingEquipmentUser(null)}
+        />
+      )}
     </div>
   );
 }
