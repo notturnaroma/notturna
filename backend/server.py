@@ -113,6 +113,13 @@ class KnowledgeBaseResponse(BaseModel):
 class ChatRequest(BaseModel):
     question: str
 
+class FoundResourceItem(BaseModel):
+    """Oggetto RISORSE trovato durante la chat"""
+    id: str
+    name: str
+    description: Optional[str] = None
+    cost_resources: int
+
 class ChatResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
@@ -121,6 +128,7 @@ class ChatResponse(BaseModel):
     created_at: str
     type: Optional[str] = "chat"
     challenge_data: Optional[dict] = None
+    found_items: Optional[List[FoundResourceItem]] = None  # Oggetti trovabili/acquistabili
 
 class UpdateUserActions(BaseModel):
     max_actions: int
