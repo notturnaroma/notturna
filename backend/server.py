@@ -309,6 +309,10 @@ class ResourceItemCreate(BaseModel):
     max_per_player: Optional[int] = None  # Null = illimitato
     is_public: bool = True  # Se False, non appare nel catalogo ma può essere trovato tramite IA
     location_keywords: Optional[str] = None  # Keywords per matching con KB (es. "magazzino, portuense")
+    uses: Optional[int] = None  # Numero di utilizzi (Null = illimitato)
+    bonus: Optional[int] = None  # Bonus al valore del PG nelle prove
+    malus: Optional[int] = None  # Malus al valore del PG nelle prove
+    bonus_attribute: Optional[str] = None  # Attributo per cui vale il bonus/malus (es. "DESTREZZA + ARMI DA FUOCO")
 
 class ResourceItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -319,6 +323,10 @@ class ResourceItemUpdate(BaseModel):
     max_per_player: Optional[int] = None
     is_public: Optional[bool] = None
     location_keywords: Optional[str] = None
+    uses: Optional[int] = None
+    bonus: Optional[int] = None
+    malus: Optional[int] = None
+    bonus_attribute: Optional[str] = None
 
 class ResourceItemResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -332,6 +340,10 @@ class ResourceItemResponse(BaseModel):
     max_per_player: Optional[int] = None
     is_public: bool = True
     location_keywords: Optional[str] = None
+    uses: Optional[int] = None
+    bonus: Optional[int] = None
+    malus: Optional[int] = None
+    bonus_attribute: Optional[str] = None
 
 class ResourceAvailableResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
