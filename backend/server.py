@@ -1429,13 +1429,50 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     if followers_to_use > 0:
         followers_used = followers_to_use
 
-
+    # Gestione uso oggetto dall'equipaggiamento
+    equipment_bonus = 0
+    equipment_malus = 0
+    equipment_name = None
+    
+    if data.equipment_id:
+        # Trova l'oggetto nell'equipaggiamento del giocatore
+        equipment_lock = await db.resource_locks.find_one({
+            "id": data.equipment_id,
+            "user_id": user["id"]
+        }, {"_id": 0})
+        
+        if equipment_lock:
+            # Verifica utilizzi rimanenti
+            remaining_uses = equipment_lock.get("remaining_uses")
+            if remaining_uses is not None and remaining_uses <= 0:
+                raise HTTPException(status_code=400, detail="L'oggetto ha esaurito gli utilizzi")
+            
+            # Recupera info oggetto
+            equip_item = await db.resource_items.find_one({"id": equipment_lock["item_id"]}, {"_id": 0})
+            if equip_item:
+                # Verifica che l'oggetto abbia bonus/malus configurati
+                if equip_item.get("bonus") is not None or equip_item.get("malus") is not None:
+                    equipment_name = equip_item["name"]
+                    equipment_bonus = equip_item.get("bonus") or 0
+                    equipment_malus = equip_item.get("malus") or 0
+                    
+                    # Decrementa utilizzi se limitati
+                    if remaining_uses is not None:
+                        new_remaining = remaining_uses - 1
+                        await db.resource_locks.update_one(
+                            {"id": data.equipment_id},
+                            {"$set": {"remaining_uses": new_remaining}}
+                        )
     
     # Calcolo con fattori random
     player_roll = random.randint(1, 5)
     difficulty_roll = random.randint(1, 5)
     
-    player_result = data.player_value * player_roll
+    # Applica bonus/malus oggetto al valore del giocatore
+    effective_player_value = data.player_value + equipment_bonus - equipment_malus
+    effective_player_value = max(0, effective_player_value)  # Non può essere negativo
+    
+    player_result = effective_player_value * player_roll
     # Applica bonus difensivo del rifugio e contributo dei SEGUACI riducendo la difficoltà effettiva
     effective_difficulty = max(0, test["difficulty"] - refuge_bonus - followers_used)
     difficulty_result = effective_difficulty * difficulty_roll
