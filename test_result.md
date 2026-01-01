@@ -156,6 +156,39 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Fixed purchase system to allow cost=0 items. Previously rejected items with cost_resources=0 as invalid. Now allows free items (cost >= 0 instead of cost > 0). Free items don't create resource locks but still decrement quantity if limited. Purchase of 'Pistola Arrugginita' (cost=0) successful, player resources remain at 15 as expected."
+  - task: "SEGUACI nelle Prove LARP"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: SEGUACI system in challenges working correctly. POST /api/challenges/attempt accepts followers_to_use parameter. SEGUACI reduce challenge difficulty (each point = -1 difficulty). Tested with 2 SEGUACI reducing difficulty from 8 to 6. System correctly tracks SEGUACI usage and prevents overuse."
+  - task: "Oggetti con Bonus/Malus nelle Prove"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Equipment with bonus/malus system fully functional. Created 'Spada Magica' with uses=2, bonus=3, bonus_attribute='FORZA'. Player can acquire object via purchase. GET /api/equipment/me correctly shows remaining_uses=2 and bonus properties. Equipment bonus (+3) correctly applied to player_value in challenge calculations. Usage decrements remaining_uses from 2→1→0. Exhausted equipment disappears from inventory and cannot be used (400 error protection)."
+  - task: "Endpoints Equipaggiamento"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Equipment endpoints working perfectly. GET /api/equipment/me returns player's acquired items with correct fields (id, item_id, item_name, cost_resources, acquired_at, uses, remaining_uses, bonus, malus, bonus_attribute). GET /api/admin/equipment/{user_id} allows admin to view any player's equipment. Items with exhausted uses (remaining_uses=0) are correctly hidden from player view but visible to admin for debugging."
 frontend:
   - task: "UI modifica Background nella sezione UTENTI"
     implemented: true
