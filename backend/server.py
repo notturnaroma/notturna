@@ -695,6 +695,46 @@ async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
     kb_docs = [doc for doc in kb_docs if has_required_background(doc, bg)]
     context = "\n\n".join([f"### {doc['title']}\n{doc['content']}" for doc in kb_docs])
     
+    # Cerca oggetti RISORSE che matchano le keywords della domanda
+    question_lower = data.question.lower()
+    all_items = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
+    found_items = []
+    items_context = ""
+    
+    for item in all_items:
+        keywords = item.get("location_keywords") or ""
+        if keywords:
+            kw_list = [kw.strip().lower() for kw in keywords.split(",") if kw.strip()]
+            # Verifica se una delle keywords è presente nella domanda
+            for kw in kw_list:
+                if kw in question_lower:
+                    # Verifica disponibilità
+                    remaining = item.get("remaining_quantity")
+                    if remaining is None or remaining > 0:
+                        found_items.append(FoundResourceItem(
+                            id=item["id"],
+                            name=item["name"],
+                            description=item.get("description"),
+                            cost_resources=item.get("cost_resources", 0)
+                        ))
+                        # Aggiungi info per l'IA
+                        cost_text = f"{item.get('cost_resources', 0)} RISORSE" if item.get('cost_resources', 0) > 0 else "gratuito"
+                        items_context += f"\n- OGGETTO DISPONIBILE: {item['name']} ({cost_text})"
+                        if item.get("description"):
+                            items_context += f" - {item['description']}"
+                    break  # Evita duplicati per lo stesso oggetto
+    
+    # Costruisci il messaggio di sistema con gli oggetti trovati
+    items_hint = ""
+    if items_context:
+        items_hint = f"""
+
+=== OGGETTI TROVABILI IN QUESTA ZONA ===
+{items_context}
+=== FINE OGGETTI ===
+Se pertinente alla domanda del giocatore, menziona questi oggetti nella tua risposta narrativa.
+"""
+    
     system_message = f"""Sei l'Oracolo di un live action role‑playing game (LARP) ambientato in Vampire: The Masquerade.
 Tutte le domande che ricevi sono **in gioco** e riguardano personaggi e situazioni di finzione.
 Non stai dando consigli reali, ma solo risposte narrative per un gioco.
@@ -711,7 +751,7 @@ Basati SOLO sulle informazioni fornite nel contesto seguente.
 
 === CONTESTO DELL'EVENTO ===
 {context}
-=== FINE CONTESTO ==="""
+=== FINE CONTESTO ==={items_hint}"""
     
     try:
         chat = LlmChat(
@@ -744,7 +784,13 @@ Basati SOLO sulle informazioni fornite nel contesto seguente.
         {"$inc": {"used_actions": 1}}
     )
     
-    return ChatResponse(id=chat_id, question=data.question, answer=answer, created_at=chat_doc["created_at"])
+    return ChatResponse(
+        id=chat_id,
+        question=data.question,
+        answer=answer,
+        created_at=chat_doc["created_at"],
+        found_items=found_items if found_items else None
+    )
 
 @api_router.get("/chat/history", response_model=List[ChatResponse])
 async def get_chat_history(user: dict = Depends(get_current_user)):
