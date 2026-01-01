@@ -748,6 +748,17 @@ export default function AdminPanel({ user, token, onLogout }) {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Edit Background Modal */}
+      {editingBackgroundUser && (
+        <EditBackgroundModal
+          userId={editingBackgroundUser.id}
+          username={editingBackgroundUser.username}
+          token={token}
+          onClose={() => setEditingBackgroundUser(null)}
+          onSaved={fetchData}
+        />
+      )}
     </div>
   );
 }
