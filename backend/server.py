@@ -989,6 +989,63 @@ async def get_available_resources(user: dict = Depends(get_current_user)):
         items=items
     )
 
+# Modello per oggetto nell'equipaggiamento
+class EquipmentItem(BaseModel):
+    id: str
+    item_id: str
+    item_name: str
+    item_description: Optional[str] = None
+    cost_resources: int
+    acquired_at: str
+    unlock_at: Optional[str] = None
+
+class EquipmentResponse(BaseModel):
+    items: List[EquipmentItem]
+
+@api_router.get("/equipment/me", response_model=EquipmentResponse)
+async def get_my_equipment(user: dict = Depends(get_current_user)):
+    """Ottieni l'equipaggiamento del giocatore (oggetti acquistati/presi)"""
+    # Trova tutti i lock (acquisti) dell'utente
+    locks = await db.resource_locks.find({"user_id": user["id"]}, {"_id": 0}).to_list(1000)
+    
+    # Recupera info sugli oggetti
+    equipment = []
+    for lock in locks:
+        item = await db.resource_items.find_one({"id": lock["item_id"]}, {"_id": 0})
+        if item:
+            equipment.append(EquipmentItem(
+                id=lock["id"],
+                item_id=item["id"],
+                item_name=item["name"],
+                item_description=item.get("description"),
+                cost_resources=lock.get("amount", 0),
+                acquired_at=lock["locked_at"],
+                unlock_at=lock.get("unlock_at")
+            ))
+    
+    return EquipmentResponse(items=equipment)
+
+@api_router.get("/admin/equipment/{user_id}", response_model=EquipmentResponse)
+async def get_user_equipment_admin(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Ottieni l'equipaggiamento di un utente (admin only)"""
+    locks = await db.resource_locks.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    
+    equipment = []
+    for lock in locks:
+        item = await db.resource_items.find_one({"id": lock["item_id"]}, {"_id": 0})
+        if item:
+            equipment.append(EquipmentItem(
+                id=lock["id"],
+                item_id=item["id"],
+                item_name=item["name"],
+                item_description=item.get("description"),
+                cost_resources=lock.get("amount", 0),
+                acquired_at=lock["locked_at"],
+                unlock_at=lock.get("unlock_at")
+            ))
+    
+    return EquipmentResponse(items=equipment)
+
 @api_router.post("/resources/purchase", response_model=ResourceAvailableResponse)
 async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc)
