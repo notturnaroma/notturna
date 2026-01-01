@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, RefreshCw, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, RefreshCw, Pencil, Trash2, X, Check, Eye, EyeOff } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -12,10 +13,12 @@ export default function ResourcesPanel({ token }) {
   const [items, setItems] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [cost, setCost] = useState(1);
+  const [cost, setCost] = useState(0);
   const [blockUntil, setBlockUntil] = useState("");
   const [totalQuantity, setTotalQuantity] = useState("");
   const [maxPerPlayer, setMaxPerPlayer] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [locationKeywords, setLocationKeywords] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -45,8 +48,8 @@ export default function ResourcesPanel({ token }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || cost <= 0) {
-      toast.error("Inserisci un nome e un costo valido (>=1)");
+    if (!name.trim()) {
+      toast.error("Inserisci un nome");
       return;
     }
 
@@ -55,10 +58,12 @@ export default function ResourcesPanel({ token }) {
       const payload = {
         name: name.trim(),
         description: description.trim() || null,
-        cost_resources: parseInt(cost) || 1,
+        cost_resources: parseInt(cost) || 0,
         block_until: blockUntil || null,
         total_quantity: totalQuantity ? parseInt(totalQuantity) : null,
-        max_per_player: maxPerPlayer ? parseInt(maxPerPlayer) : null
+        max_per_player: maxPerPlayer ? parseInt(maxPerPlayer) : null,
+        is_public: isPublic,
+        location_keywords: locationKeywords.trim() || null
       };
       const response = await fetch(`${API}/resources`, {
         method: "POST",
@@ -73,10 +78,12 @@ export default function ResourcesPanel({ token }) {
         toast.success("Oggetto creato");
         setName("");
         setDescription("");
-        setCost(1);
+        setCost(0);
         setBlockUntil("");
         setTotalQuantity("");
         setMaxPerPlayer("");
+        setIsPublic(true);
+        setLocationKeywords("");
         setItems(prev => [...prev, data]);
       } else {
         toast.error(data.detail || "Errore nella creazione oggetto");
@@ -96,7 +103,9 @@ export default function ResourcesPanel({ token }) {
       cost_resources: item.cost_resources,
       block_until: item.block_until || "",
       total_quantity: item.total_quantity ?? "",
-      max_per_player: item.max_per_player ?? ""
+      max_per_player: item.max_per_player ?? "",
+      is_public: item.is_public !== false,
+      location_keywords: item.location_keywords || ""
     });
   };
 
@@ -110,10 +119,12 @@ export default function ResourcesPanel({ token }) {
       const payload = {
         name: editForm.name,
         description: editForm.description || null,
-        cost_resources: parseInt(editForm.cost_resources) || 1,
+        cost_resources: parseInt(editForm.cost_resources) || 0,
         block_until: editForm.block_until || null,
         total_quantity: editForm.total_quantity ? parseInt(editForm.total_quantity) : null,
-        max_per_player: editForm.max_per_player ? parseInt(editForm.max_per_player) : null
+        max_per_player: editForm.max_per_player ? parseInt(editForm.max_per_player) : null,
+        is_public: editForm.is_public,
+        location_keywords: editForm.location_keywords || null
       };
       const response = await fetch(`${API}/resources/${itemId}`, {
         method: "PUT",
@@ -179,19 +190,20 @@ export default function ResourcesPanel({ token }) {
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="es. Servizio legale, Arma nascosta..."
+              placeholder="es. Pistola, Servizio legale..."
               className="input-gothic rounded-sm"
             />
           </div>
           <div className="space-y-2">
-            <Label className="font-cinzel text-gold text-xs uppercase">Costo in RISORSE *</Label>
+            <Label className="font-cinzel text-gold text-xs uppercase">Costo in RISORSE</Label>
             <Input
               type="number"
-              min="1"
+              min="0"
               value={cost}
-              onChange={(e) => setCost(parseInt(e.target.value) || 1)}
+              onChange={(e) => setCost(parseInt(e.target.value) || 0)}
               className="input-gothic rounded-sm"
             />
+            <p className="text-[10px] text-muted-foreground">0 = gratuito (oggetto trovato)</p>
           </div>
         </div>
 
@@ -238,9 +250,38 @@ export default function ResourcesPanel({ token }) {
             />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Se lasci vuoti "Quantità" e "Max per Giocatore", non ci saranno limiti. Il blocco default è fino al primo del mese successivo.
-        </p>
+
+        {/* Visibilità e Keywords */}
+        <div className="border border-border/30 rounded-sm p-4 space-y-4">
+          <p className="font-cinzel text-gold text-xs uppercase tracking-widest">Visibilità</p>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_public"
+              checked={isPublic}
+              onCheckedChange={(checked) => setIsPublic(checked)}
+            />
+            <label htmlFor="is_public" className="font-body text-sm text-parchment cursor-pointer">
+              Visibile nel catalogo pubblico
+            </label>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Se deselezionato, l'oggetto sarà trovabile solo tramite l'IA quando il PG esplora i luoghi giusti.
+          </p>
+
+          <div className="space-y-2">
+            <Label className="font-cinzel text-gold text-xs uppercase">Keywords luogo (per matching IA)</Label>
+            <Input
+              value={locationKeywords}
+              onChange={(e) => setLocationKeywords(e.target.value)}
+              placeholder="es. magazzino, portuense, porto"
+              className="input-gothic rounded-sm"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Separa le keywords con virgola. L'IA mostrerà l'oggetto quando il PG menziona questi luoghi.
+            </p>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <Button
@@ -256,7 +297,7 @@ export default function ResourcesPanel({ token }) {
 
       {/* Lista oggetti */}
       <div className="border-t border-border/40 pt-4">
-        <h3 className="font-cinzel text-gold text-xs uppercase tracking-widest mb-2">Catalogo</h3>
+        <h3 className="font-cinzel text-gold text-xs uppercase tracking-widest mb-2">Catalogo ({items.length} oggetti)</h3>
         <ScrollArea className="h-80 pr-2">
           {loading ? (
             <p className="font-body text-muted-foreground text-sm">Caricamento...</p>
@@ -278,7 +319,7 @@ export default function ResourcesPanel({ token }) {
                         />
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
                           value={editForm.cost_resources}
                           onChange={(e) => setEditForm({...editForm, cost_resources: e.target.value})}
                           placeholder="Costo"
@@ -315,13 +356,28 @@ export default function ResourcesPanel({ token }) {
                           className="input-gothic rounded-sm text-sm"
                         />
                       </div>
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" onClick={cancelEdit} className="text-muted-foreground hover:text-white">
-                          <X className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => saveEdit(item.id)} className="text-green-500 hover:text-green-400">
-                          <Check className="w-4 h-4" />
-                        </Button>
+                      <Input
+                        value={editForm.location_keywords}
+                        onChange={(e) => setEditForm({...editForm, location_keywords: e.target.value})}
+                        placeholder="Keywords luogo (es. magazzino, portuense)"
+                        className="input-gothic rounded-sm text-sm"
+                      />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={editForm.is_public}
+                            onCheckedChange={(checked) => setEditForm({...editForm, is_public: checked})}
+                          />
+                          <span className="text-xs text-parchment">Pubblico</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={cancelEdit} className="text-muted-foreground hover:text-white">
+                            <X className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => saveEdit(item.id)} className="text-green-500 hover:text-green-400">
+                            <Check className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -329,8 +385,17 @@ export default function ResourcesPanel({ token }) {
                     <>
                       <div className="flex items-start justify-between mb-1">
                         <div className="flex-1">
-                          <span className="font-cinzel text-parchment text-sm">{item.name}</span>
-                          <span className="font-body text-xs text-gold ml-2">({item.cost_resources} RISORSE)</span>
+                          <div className="flex items-center gap-2">
+                            {item.is_public === false ? (
+                              <EyeOff className="w-3.5 h-3.5 text-muted-foreground" title="Nascosto" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5 text-gold" title="Pubblico" />
+                            )}
+                            <span className="font-cinzel text-parchment text-sm">{item.name}</span>
+                            <span className="font-body text-xs text-gold">
+                              ({item.cost_resources === 0 ? "Gratis" : `${item.cost_resources} RISORSE`})
+                            </span>
+                          </div>
                         </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="sm" onClick={() => startEdit(item)} className="text-gold hover:text-yellow-300 p-1 h-auto">
@@ -345,6 +410,9 @@ export default function ResourcesPanel({ token }) {
                         <p className="font-body text-muted-foreground text-xs mb-1">{item.description}</p>
                       )}
                       <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                        {item.location_keywords && (
+                          <span className="bg-gold/10 px-1.5 py-0.5 rounded text-gold">📍 {item.location_keywords}</span>
+                        )}
                         {item.block_until && (
                           <span>Blocco: {new Date(item.block_until).toLocaleDateString()}</span>
                         )}
