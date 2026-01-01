@@ -916,7 +916,8 @@ async def get_available_resources(user: dict = Depends(get_current_user)):
     locked = sum(int(lock.get("amount", 0)) for lock in locks)
     available = max(0, total - locked)
 
-    items_docs = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
+    # Solo oggetti pubblici nel catalogo
+    items_docs = await db.resource_items.find({"$or": [{"is_public": True}, {"is_public": {"$exists": False}}]}, {"_id": 0}).to_list(1000)
     items = [ResourceItemResponse(**d) for d in items_docs]
 
     return ResourceAvailableResponse(
