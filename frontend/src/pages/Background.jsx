@@ -100,6 +100,7 @@ export default function Background({ user, token, onLogout }) {
     try {
       const payload = {
         user_id: background.user_id,
+        clan: background.clan?.trim() || null,
         risorse: parseInt(background.risorse) || 0,
         seguaci: parseInt(background.seguaci) || 0,
         rifugio: parseInt(background.rifugio) || 1,
