@@ -1167,6 +1167,10 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
         # Per oggetti gratuiti, unlock immediato
         unlock_at = now.isoformat()
 
+    # Inizializza remaining_uses se l'oggetto ha utilizzi limitati
+    item_uses = item.get("uses")
+    remaining_uses = item_uses if item_uses is not None else None
+
     # Crea sempre un record per tracciare l'equipaggiamento
     lock_doc = {
         "id": str(uuid.uuid4()),
@@ -1174,7 +1178,8 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
         "item_id": item["id"],
         "amount": cost,
         "locked_at": now.isoformat(),
-        "unlock_at": unlock_at
+        "unlock_at": unlock_at,
+        "remaining_uses": remaining_uses
     }
     await db.resource_locks.insert_one(lock_doc)
 
