@@ -1557,7 +1557,7 @@ class ArchivioMaledettoAPITester:
             else:
                 self.log_test("Player Resources Visibility", True, "Hidden item correctly hidden from player")
         
-        # Test 3: Chat with Object Matching
+        # Test 5: Chat with Object Matching (keeping existing test)
         print("  💬 Testing Chat with Object Matching...")
         
         # POST /api/chat with keyword "magazzino"
