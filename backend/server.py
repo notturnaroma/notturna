@@ -997,7 +997,7 @@ async def purchase_resource(req: ResourcePurchaseRequest, user: dict = Depends(g
         raise HTTPException(status_code=404, detail="Oggetto non trovato")
 
     cost = int(item.get("cost_resources", 0))
-    if cost <= 0:
+    if cost < 0:
         raise HTTPException(status_code=400, detail="Costo RISORSE non valido")
 
     # Controllo quantità rimanente globale
