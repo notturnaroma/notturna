@@ -81,6 +81,7 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
     try {
       const payload = {
         user_id: userId,
+        clan: background.clan?.trim() || null,
         risorse: parseInt(background.risorse) || 0,
         seguaci: parseInt(background.seguaci) || 0,
         rifugio: parseInt(background.rifugio) || 1,
