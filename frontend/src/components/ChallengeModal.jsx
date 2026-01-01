@@ -1,20 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Swords, Loader2, Dices } from "lucide-react";
+import { Swords, Loader2, Dices, Package } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ChallengeModal({ challenge, token, onClose, onResult }) {
-  const [step, setStep] = useState("choose"); // choose, input, result
+  const [step, setStep] = useState("choose");
   const [selectedTest, setSelectedTest] = useState(null);
   const [playerValue, setPlayerValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [useRefuge, setUseRefuge] = useState(false);
   const [followersToUse, setFollowersToUse] = useState(0);
+  const [equipment, setEquipment] = useState([]);
+  const [selectedEquipment, setSelectedEquipment] = useState(null);
+  const [loadingEquipment, setLoadingEquipment] = useState(false);
 
+  // Carica equipaggiamento quando si seleziona una prova
+  useEffect(() => {
+    if (step === "input" && selectedTest !== null) {
+      fetchEquipment();
+    }
+  }, [step, selectedTest]);
+
+  const fetchEquipment = async () => {
+    setLoadingEquipment(true);
+    try {
+      const response = await fetch(`${API}/equipment/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Filtra solo oggetti con bonus/malus
+        const usableItems = (data.items || []).filter(item => 
+          (item.bonus || item.malus) && (item.remaining_uses === null || item.remaining_uses > 0)
+        );
+        setEquipment(usableItems);
+      }
+    } catch (error) {
+      console.error("Error fetching equipment:", error);
+    } finally {
+      setLoadingEquipment(false);
+    }
+  };
 
   const handleSelectTest = (index) => {
     setSelectedTest(index);
@@ -29,19 +59,22 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
 
     setLoading(true);
     try {
+      const payload = {
+        challenge_id: challenge.id,
+        test_index: selectedTest,
+        player_value: parseInt(playerValue),
+        use_refuge: useRefuge,
+        followers_to_use: parseInt(followersToUse) || 0,
+        equipment_id: selectedEquipment || null
+      };
+
       const response = await fetch(`${API}/challenges/attempt`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          challenge_id: challenge.id,
-          test_index: selectedTest,
-          player_value: parseInt(playerValue),
-          use_refuge: useRefuge,
-          followers_to_use: parseInt(followersToUse) || 0
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -78,6 +111,10 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
     }
   };
 
+  const getSelectedEquipmentItem = () => {
+    return equipment.find(e => e.id === selectedEquipment);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" data-testid="challenge-modal">
       <div className="bg-card border border-gold/30 rounded-sm max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -98,7 +135,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
         {step === "choose" && (
           <div className="p-4 space-y-4">
             <p className="font-cinzel text-gold text-sm uppercase tracking-widest">
-              Scegli una Prova (max 2 tentativi per sessione)
+              Scegli una Prova
             </p>
             
             <div className="space-y-3">
@@ -160,6 +197,15 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                 autoFocus
                 data-testid="player-value-input"
               />
+              
+              {/* Mostra bonus dell'oggetto selezionato */}
+              {selectedEquipment && (
+                <p className="text-xs text-green-400 text-center">
+                  + {getSelectedEquipmentItem()?.bonus || 0} bonus da {getSelectedEquipmentItem()?.item_name}
+                </p>
+              )}
+
+              {/* Rifugio */}
               {challenge.allow_refuge_defense && (
                 <div className="flex items-center gap-2 mb-2 mt-2">
                   <input
@@ -170,15 +216,15 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                     className="w-4 h-4 border border-gold/50 bg-black/50 rounded-sm"
                   />
                   <label htmlFor="use_refuge" className="font-body text-xs text-muted-foreground">
-                    Usa il tuo RIFUGIO per ridurre la difficoltà secondo la tabella (1→0, 2-3→-1, 4→-2, 5→-3)
+                    Usa RIFUGIO per ridurre difficoltà
                   </label>
                 </div>
               )}
 
-              {/* SEGUACI: input opzionale numerico per ridurre la difficoltà e consumare consultazioni */}
+              {/* SEGUACI */}
               <div className="space-y-1">
                 <label className="font-cinzel text-gold text-xs uppercase tracking-widest block">
-                  Punti SEGUACI da usare (opzionale)
+                  Punti SEGUACI da usare
                 </label>
                 <Input
                   type="number"
@@ -189,20 +235,63 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
                   className="input-gothic rounded-sm text-center h-9"
                   data-testid="followers-to-use-input"
                 />
-                <p className="text-[11px] text-muted-foreground text-center">
-                  Ogni punto SEGUACI abbassa la difficoltà di 1 e consuma una consultazione mensile.
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Ogni punto SEGUACI abbassa la difficoltà di 1
                 </p>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center">
-                Somma dei tuoi due attributi
-              </p>
+              {/* Equipaggiamento */}
+              {equipment.length > 0 && (
+                <div className="border border-gold/30 rounded-sm p-3 mt-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="w-4 h-4 text-gold" />
+                    <span className="font-cinzel text-gold text-xs uppercase">Usa un oggetto</span>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    <button
+                      onClick={() => setSelectedEquipment(null)}
+                      className={`w-full p-2 text-left rounded-sm text-xs transition-all ${
+                        !selectedEquipment ? "bg-gold/20 border-gold/50" : "bg-black/30 border-border/30"
+                      } border`}
+                    >
+                      <span className="text-muted-foreground">Nessun oggetto</span>
+                    </button>
+                    {equipment.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => setSelectedEquipment(item.id)}
+                        className={`w-full p-2 text-left rounded-sm text-xs transition-all ${
+                          selectedEquipment === item.id ? "bg-gold/20 border-gold/50" : "bg-black/30 border-border/30"
+                        } border`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-parchment font-cinzel">{item.item_name}</span>
+                          <span className="text-green-400">
+                            {item.bonus ? `+${item.bonus}` : ""}
+                            {item.malus ? `-${item.malus}` : ""}
+                          </span>
+                        </div>
+                        {item.bonus_attribute && (
+                          <p className="text-[10px] text-muted-foreground">{item.bonus_attribute}</p>
+                        )}
+                        {item.remaining_uses != null && (
+                          <p className="text-[10px] text-blue-300">{item.remaining_uses} utilizzi rimasti</p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {loadingEquipment && (
+                <p className="text-xs text-muted-foreground text-center">Caricamento equipaggiamento...</p>
+              )}
             </div>
 
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => { setStep("choose"); setSelectedTest(null); }}
+                onClick={() => { setStep("choose"); setSelectedTest(null); setSelectedEquipment(null); }}
                 className="flex-1 border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
               >
                 INDIETRO
@@ -227,7 +316,6 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
         {/* Step: Risultato */}
         {step === "result" && result && (
           <div className="p-4 space-y-4">
-            {/* Calcolo */}
             <div className="text-center py-4">
               <p className="font-body text-muted-foreground text-sm mb-3">Risultato del lancio</p>
               <div className="flex items-center justify-center gap-4 text-xl">
@@ -247,7 +335,6 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
               </div>
             </div>
 
-            {/* Esito */}
             <div className={`p-4 rounded-sm border-2 ${getOutcomeStyle(result.outcome)}`}>
               <p className={`font-gothic text-2xl text-center mb-3 ${
                 result.outcome === "success" ? "text-green-400" :
