@@ -214,6 +214,37 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     setMessages(prev => [...prev, aidMessage]);
   };
 
+  // Acquista oggetto trovato nella chat
+  const handlePurchaseItem = async (item) => {
+    try {
+      const response = await fetch(`${API}/resources/purchase`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ item_id: item.id })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        const costText = item.cost_resources > 0 ? ` per ${item.cost_resources} RISORSE` : "";
+        toast.success(`Hai ottenuto: ${item.name}${costText}`);
+        // Aggiungi messaggio nella chat
+        const purchaseMsg = {
+          type: "purchase-result",
+          item: item,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, purchaseMsg]);
+        refreshUser();
+      } else {
+        toast.error(data.detail || "Impossibile ottenere l'oggetto");
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-void stone-texture flex flex-col">
       {/* Navigation */}
