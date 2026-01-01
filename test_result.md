@@ -109,33 +109,53 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Endpoint PUT /api/admin/background/{user_id} già esistente. Permette alla Narrazione di modificare tutti i campi del background senza limiti."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Fixed missing GET /api/admin/background/{user_id} endpoint. Both GET and PUT endpoints working correctly. Admin can retrieve and modify player backgrounds with all fields (risorse: 15, seguaci: 4, rifugio: 3, mentor: 2, notoriety: 1, contacts: [{'name': 'Mafia', 'value': 3}]). All values saved and verified correctly."
   - task: "Sistema RISORSE con is_public e location_keywords"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Aggiunti campi is_public e location_keywords ai modelli ResourceItemCreate/Update/Response. Endpoint /resources/available filtra solo oggetti pubblici. Creato oggetto test nascosto con keywords 'magazzino, portuense, porto'."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Resource visibility system working perfectly. Created hidden resource 'Pistola Arrugginita' with is_public=false and location_keywords='magazzino, portuense, porto'. Admin can see hidden items via GET /api/resources. Players cannot see hidden items via GET /api/resources/available (correctly filtered out). Visibility controls functioning as designed."
   - task: "Chat con matching oggetti RISORSE"
     implemented: true
     working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Endpoint POST /chat modificato per cercare oggetti con location_keywords matching. Gli oggetti trovati vengono passati all'IA nel contesto e restituiti in found_items nella risposta. Aggiunto modello FoundResourceItem."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Chat object matching working correctly. When player asks about 'magazzino del portuense', the hidden 'Pistola Arrugginita' is found and returned in found_items array. Object properties correctly include id, name, description, and cost_resources=0. Keyword matching algorithm functioning properly."
+  - task: "Acquisto oggetti gratuiti dalla chat"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Fixed purchase system to allow cost=0 items. Previously rejected items with cost_resources=0 as invalid. Now allows free items (cost >= 0 instead of cost > 0). Free items don't create resource locks but still decrement quantity if limited. Purchase of 'Pistola Arrugginita' (cost=0) successful, player resources remain at 15 as expected."
 frontend:
   - task: "UI modifica Background nella sezione UTENTI"
     implemented: true
@@ -173,7 +193,7 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 4
+  test_sequence: 5
   run_ui: false
 
 test_plan:
@@ -181,8 +201,6 @@ test_plan:
     - "UI modifica Background nella sezione UTENTI"
     - "UI RISORSE con visibilità e keywords"
     - "Chat con oggetti acquistabili"
-    - "Sistema RISORSE con is_public e location_keywords"
-    - "Chat con matching oggetti RISORSE"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -190,5 +208,7 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Ho implementato nuove funzionalità: 1) Modifica Background utenti dalla Narrazione (EditBackgroundModal.jsx con form completo). 2) Sistema RISORSE con visibilità controllata (is_public, location_keywords). 3) Chat con matching IA per oggetti nascosti. 4) UI per gestire visibilità e keywords oggetti. 5) Acquisto oggetti dalla chat. Per favore testa: a) Login admin, vai UTENTI, modifica background. b) Crea oggetto nascosto con keywords. c) Chat giocatore con keywords matching. d) Acquisto oggetti dalla chat."
+  - agent: "testing"
+    message: "✅ BACKEND TESTING COMPLETE: All LARP review features tested successfully! Fixed 2 critical issues: 1) Missing GET /api/admin/background/{user_id} endpoint function - added implementation. 2) Purchase system rejecting cost=0 items - modified to allow free items. All backend APIs working: admin background modification (GET/PUT), resource visibility system (is_public filtering), chat object matching (location_keywords), and free object purchases. Test credentials (narrazione@test.com/giocatore@test.com) working correctly. Ready for frontend testing."
 
 #====================================================================================================
