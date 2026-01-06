@@ -835,6 +835,22 @@ async def get_chat_history(user: dict = Depends(get_current_user)):
 
 # ==================== ADMIN ROUTES ====================
 
+@api_router.get("/admin/chat-history/{user_id}", response_model=List[ChatResponse])
+async def get_user_chat_history_admin(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Ottieni l'archivio delle consultazioni di un utente (admin only)"""
+    history = await db.chat_history.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    return [ChatResponse(
+        id=h["id"],
+        question=h["question"],
+        answer=h["answer"],
+        created_at=h["created_at"],
+        type=h.get("type", "chat"),
+        challenge_data=h.get("challenge_data")
+    ) for h in history]
+
 @api_router.get("/admin/users", response_model=List[UserResponse])
 async def get_all_users(user: dict = Depends(get_admin_user)):
     users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
