@@ -36,7 +36,8 @@ import {
   Sparkles,
   Coins,
   UserCog,
-  Package
+  Package,
+  Archive
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
