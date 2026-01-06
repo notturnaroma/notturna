@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import PlayerResources from "@/components/PlayerResources";
-import Equipment from "@/components/Equipment";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
