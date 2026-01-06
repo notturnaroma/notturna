@@ -44,6 +44,7 @@ import AidsPanel from "@/components/AidsPanel";
 import ResourcesPanel from "@/components/ResourcesPanel";
 import EditBackgroundModal from "@/components/EditBackgroundModal";
 import ViewEquipmentModal from "@/components/ViewEquipmentModal";
+import ViewArchiveModal from "@/components/ViewArchiveModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
