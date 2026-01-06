@@ -70,7 +70,7 @@ export default function PlayerResources({ token }) {
         </span>
       </div>
 
-      <ScrollArea className="h-56 pr-2">
+      <ScrollArea className="h-80 pr-2">
         {loading ? (
           <p className="font-body text-muted-foreground text-sm">Caricamento...</p>
         ) : state.items.length === 0 ? (
