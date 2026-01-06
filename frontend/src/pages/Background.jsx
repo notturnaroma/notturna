@@ -352,13 +352,8 @@ export default function Background({ user, token, onLogout }) {
               )}
             </form>
           {/* Sezione RISORSE / Acquisti */}
-          <div className="mt-8">
+          <div className="mt-8 card-gothic rounded-sm p-4">
             <PlayerResources token={token} />
-          </div>
-
-          {/* Sezione Equipaggiamento */}
-          <div className="mt-6">
-            <Equipment token={token} />
           </div>
 
           </ScrollArea>
