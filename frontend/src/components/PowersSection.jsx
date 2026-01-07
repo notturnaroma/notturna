@@ -33,10 +33,11 @@ const VIE_TAUMATURGICHE = [
   "Via della Lusinga delle Fiamme",
   "Via del Patto della Vitae",
   "Via del Movimento della Mente",
+  "Contro-Magia Taumaturgica",
+  "Tecnomanzia",
   "Via della Corruzione",
   "Via del Sangue Maledetto",
-  "Mani della Distruzione",
-  "La Via della Duat"
+  "Mani della Distruzione"
 ];
 
 // Vie Necromantiche (da I Doni del Sangue)
