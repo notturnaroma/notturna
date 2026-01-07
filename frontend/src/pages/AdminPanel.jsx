@@ -346,6 +346,14 @@ export default function AdminPanel({ user, token, onLogout }) {
               <Coins className="w-4 h-4 mr-2" />
               RISORSE
             </TabsTrigger>
+            <TabsTrigger 
+              value="world-events" 
+              className="font-cinzel data-[state=active]:bg-gold/20 data-[state=active]:text-gold rounded-sm"
+              data-testid="world-events-tab"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              MONDO
+            </TabsTrigger>
           </TabsList>
 
           {/* Knowledge Base Tab */}
