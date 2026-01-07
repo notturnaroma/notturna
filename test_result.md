@@ -222,6 +222,50 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: get_admin_user function correctly accepts 'Narrazione' role. Admin user admin@test.com has role 'Narrazione' and can access all admin endpoints: GET /api/admin/users, GET /api/admin/chat-history/{user_id}, POST/PUT /api/challenges. Role-based access control working correctly."
+  - task: "Sistema Sessioni di Consultazione"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Complete consultation session system working correctly. POST /api/session/chat first message creates new session and consumes 1 action. Subsequent messages in same session do NOT consume actions. GET /api/session/active verifies active session. POST /api/session/end terminates session properly. Context change keywords ('vado via', 'cambio zona') correctly trigger new session creation."
+  - task: "Sistema Poteri nel Background (Discipline, Vie, Rituali)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Background system with disciplines, vie, and rituals fully functional. GET /api/background/me returns all required fields (disciplines, vie, rituals). POST /api/background/me saves complex power structures correctly. Disciplines with powers, Vie Taumaturgiche/Necromantiche, and Rituali all stored and retrieved properly."
+  - task: "Pannello Admin Mondo (World Events)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: World events system working correctly. POST /api/world/event registers events (object_taken, location_visited) with proper parameters. GET /api/admin/world-events lists all world events for admin review. Events include user_name, location, object_name, and timestamps for tracking game world state."
+  - task: "Verifica Conteggio Azioni nelle Sessioni"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Action counting system working perfectly. GET /api/followers/status shows remaining_actions_before correctly. Actions decrement ONLY for new consultation sessions, not for additional messages within the same session. Session-based action consumption prevents action waste during extended conversations."
 frontend:
   - task: "UI modifica Background nella sezione UTENTI"
     implemented: true
