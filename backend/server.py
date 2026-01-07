@@ -1162,6 +1162,11 @@ Continua la narrazione in modo coerente con quanto detto sopra.
     import re
     search_words = {re.sub(r'[^\w]', '', w) for w in search_words if len(re.sub(r'[^\w]', '', w)) >= 3}
     
+    # Rimuovi parole comuni aggiuntive
+    extra_stop = {'del', 'della', 'dello', 'dei', 'degli', 'delle', 'sul', 'sulla', 'nel', 'nella', 
+                  'parlami', 'dimmi', 'raccontami', 'spiegami', 'descrivi', 'sai', 'conosci'}
+    search_words = search_words - extra_stop
+    
     logger.info(f"Search words: {search_words}")
     
     # Carica tutti i documenti della KB
@@ -1175,15 +1180,22 @@ Continua la narrazione in modo coerente con quanto detto sopra.
         
         # Punteggio basato su match di parole chiave
         score = 0
+        title_matches = 0
         for word in search_words:
             if word in title_lower:
-                score += 10  # Peso maggiore per match nel titolo
+                score += 100  # Peso MOLTO maggiore per match nel titolo
+                title_matches += 1
             if word in content_lower:
-                score += content_lower.count(word)
+                # Limita il contributo del contenuto per evitare che documenti lunghi dominino
+                score += min(content_lower.count(word), 10)
+        
+        # Bonus per documenti con match multipli nel titolo
+        if title_matches > 1:
+            score *= title_matches
         
         if score > 0:
             scored_docs.append((score, doc))
-            logger.info(f"Doc '{doc.get('title')}' score: {score}")
+            logger.info(f"Doc '{doc.get('title')}' score: {score} (title_matches: {title_matches})")
     
     # Ordina per rilevanza e prendi i top documenti
     scored_docs.sort(key=lambda x: x[0], reverse=True)
