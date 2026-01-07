@@ -915,6 +915,386 @@ async def get_chat_history(user: dict = Depends(get_current_user)):
         challenge_data=h.get("challenge_data")
     ) for h in history]
 
+# ==================== SESSIONI DI CONSULTAZIONE ROUTES ====================
+
+# Keywords che indicano cambio di contesto/fine sessione
+CONTEXT_CHANGE_KEYWORDS = [
+    "vado via", "me ne vado", "lascio", "cambio zona", "altro quartiere",
+    "torno a casa", "finisco", "termino", "chiudo", "basta così",
+    "grazie, è tutto", "non ho altre domande"
+]
+
+async def detect_context_change(message: str) -> bool:
+    """Rileva se il messaggio indica un cambio di contesto"""
+    message_lower = message.lower()
+    for keyword in CONTEXT_CHANGE_KEYWORDS:
+        if keyword in message_lower:
+            return True
+    return False
+
+async def get_active_session(user_id: str) -> Optional[dict]:
+    """Ottiene la sessione attiva per l'utente"""
+    session = await db.consultation_sessions.find_one(
+        {"user_id": user_id, "is_active": True},
+        {"_id": 0}
+    )
+    return session
+
+async def get_session_messages(session_id: str) -> List[dict]:
+    """Ottiene tutti i messaggi di una sessione"""
+    messages = await db.consultation_messages.find(
+        {"session_id": session_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
+    return messages
+
+async def get_world_events_for_location(location: str, days: int = 7) -> List[dict]:
+    """Ottiene gli eventi del mondo per un luogo negli ultimi N giorni"""
+    from datetime import timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    events = await db.world_events.find(
+        {
+            "location": {"$regex": location, "$options": "i"},
+            "created_at": {"$gte": cutoff.isoformat()}
+        },
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return events
+
+@api_router.post("/session/start")
+async def start_consultation_session(data: StartSessionRequest, user: dict = Depends(get_current_user)):
+    """Inizia una nuova sessione di consultazione"""
+    # Chiudi eventuali sessioni attive
+    await db.consultation_sessions.update_many(
+        {"user_id": user["id"], "is_active": True},
+        {"$set": {"is_active": False, "ended_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    session_id = str(uuid.uuid4())
+    session_doc = {
+        "id": session_id,
+        "user_id": user["id"],
+        "context": data.context or "generale",
+        "is_active": True,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "ended_at": None,
+        "messages_count": 0
+    }
+    await db.consultation_sessions.insert_one(session_doc)
+    
+    return {"session_id": session_id, "context": session_doc["context"]}
+
+@api_router.post("/session/end")
+async def end_consultation_session(data: EndSessionRequest, user: dict = Depends(get_current_user)):
+    """Termina una sessione di consultazione"""
+    result = await db.consultation_sessions.update_one(
+        {"id": data.session_id, "user_id": user["id"]},
+        {"$set": {"is_active": False, "ended_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    return {"message": "Sessione terminata"}
+
+@api_router.get("/session/active")
+async def get_active_consultation_session(user: dict = Depends(get_current_user)):
+    """Ottiene la sessione attiva dell'utente"""
+    session = await get_active_session(user["id"])
+    if not session:
+        return {"session": None}
+    
+    messages = await get_session_messages(session["id"])
+    return {
+        "session": session,
+        "messages": messages
+    }
+
+@api_router.post("/session/chat", response_model=SessionChatResponse)
+async def session_chat(data: SessionChatRequest, user: dict = Depends(get_current_user)):
+    """Invia un messaggio in una sessione di consultazione"""
+    
+    # Verifica se è un cambio di contesto
+    is_context_change = await detect_context_change(data.message)
+    
+    # Ottieni o crea sessione
+    session = None
+    is_new_session = False
+    
+    if data.session_id:
+        session = await db.consultation_sessions.find_one(
+            {"id": data.session_id, "user_id": user["id"], "is_active": True},
+            {"_id": 0}
+        )
+    
+    if not session:
+        session = await get_active_session(user["id"])
+    
+    # Se è un cambio di contesto, chiudi la sessione attuale e creane una nuova
+    if is_context_change and session:
+        await db.consultation_sessions.update_one(
+            {"id": session["id"]},
+            {"$set": {"is_active": False, "ended_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        session = None
+    
+    # Se non c'è sessione attiva, verifica limite azioni e crea nuova sessione
+    if not session:
+        # Check action limit solo per nuove sessioni
+        effective_max = await get_effective_max_actions(user)
+        if user["used_actions"] >= effective_max:
+            raise HTTPException(status_code=403, detail="Hai esaurito le tue consultazioni disponibili")
+        
+        # Crea nuova sessione
+        session_id = str(uuid.uuid4())
+        session = {
+            "id": session_id,
+            "user_id": user["id"],
+            "context": "esplorazione",
+            "is_active": True,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "ended_at": None,
+            "messages_count": 0
+        }
+        await db.consultation_sessions.insert_one(session)
+        is_new_session = True
+        
+        # Incrementa azioni usate solo per nuova sessione
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$inc": {"used_actions": 1}}
+        )
+    
+    # Salva messaggio utente
+    user_msg_id = str(uuid.uuid4())
+    user_msg_doc = {
+        "id": user_msg_id,
+        "session_id": session["id"],
+        "user_id": user["id"],
+        "role": "user",
+        "content": data.message,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.consultation_messages.insert_one(user_msg_doc)
+    
+    # Recupera background del PG
+    bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0}) or {}
+    
+    # Costruisci contesto con poteri del PG
+    powers_context = ""
+    if bg.get("disciplines"):
+        powers_list = []
+        for disc in bg["disciplines"]:
+            disc_powers = ", ".join([f"{p['name']} (Lv.{p['level']})" for p in disc.get("powers", [])])
+            powers_list.append(f"{disc['name']}: {disc_powers}" if disc_powers else disc['name'])
+        powers_context += f"\nDiscipline del PG: {'; '.join(powers_list)}"
+    
+    if bg.get("vie"):
+        vie_list = []
+        for via in bg["vie"]:
+            via_powers = ", ".join([f"{p['name']} (Lv.{p['level']})" for p in via.get("powers", [])])
+            vie_list.append(f"{via['name']} ({via['type']}): {via_powers}" if via_powers else f"{via['name']} ({via['type']})")
+        powers_context += f"\nVie del PG: {'; '.join(vie_list)}"
+    
+    if bg.get("rituals"):
+        rituals_list = [f"{r['name']} (Lv.{r['level']}, {r['type']})" for r in bg["rituals"]]
+        powers_context += f"\nRituali del PG: {', '.join(rituals_list)}"
+    
+    # Recupera eventi del mondo per il contesto
+    world_events_context = ""
+    # Estrai possibile luogo dal messaggio per cercare eventi
+    location_keywords = ["ostiense", "trastevere", "testaccio", "esquilino", "prati", "magazzino", "stazione", "università"]
+    current_location = None
+    message_lower = data.message.lower()
+    for loc in location_keywords:
+        if loc in message_lower:
+            current_location = loc
+            break
+    
+    if current_location:
+        recent_events = await get_world_events_for_location(current_location, days=7)
+        if recent_events:
+            events_text = []
+            for event in recent_events[:5]:  # Max 5 eventi recenti
+                if event["type"] == "object_taken":
+                    events_text.append(f"- {event['user_name']} ha preso {event.get('object_name', 'un oggetto')} da {event['location']} ({event['created_at'][:10]})")
+                elif event["type"] == "location_visited":
+                    events_text.append(f"- {event['user_name']} ha visitato {event['location']} ({event['created_at'][:10]})")
+            if events_text:
+                world_events_context = f"""
+
+=== EVENTI RECENTI IN QUESTA ZONA (ultimi 7 giorni) ===
+{chr(10).join(events_text)}
+=== FINE EVENTI ===
+Se il PG possiede il potere "Tocco degli Spiriti" (Auspex 4) o simili, puoi rivelare chi ha visitato questo luogo di recente.
+"""
+    
+    # Recupera messaggi precedenti della sessione per contesto conversazione
+    previous_messages = await get_session_messages(session["id"])
+    conversation_context = ""
+    if previous_messages:
+        conv_lines = []
+        for msg in previous_messages[-10:]:  # Ultimi 10 messaggi
+            role_label = "GIOCATORE" if msg["role"] == "user" else "ORACOLO"
+            conv_lines.append(f"{role_label}: {msg['content']}")
+        conversation_context = f"""
+
+=== CONVERSAZIONE PRECEDENTE IN QUESTA SESSIONE ===
+{chr(10).join(conv_lines)}
+=== FINE CONVERSAZIONE ===
+Continua la narrazione in modo coerente con quanto detto sopra.
+"""
+
+    # Get knowledge base context
+    kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
+    context = "\n\n".join([f"### {doc['title']}\n{doc['content']}" for doc in kb_docs])
+    
+    # Cerca oggetti
+    question_lower = data.message.lower()
+    all_items = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
+    found_items = []
+    items_context = ""
+    
+    for item in all_items:
+        keywords = item.get("location_keywords") or ""
+        if keywords:
+            kw_list = [kw.strip().lower() for kw in keywords.split(",") if kw.strip()]
+            for kw in kw_list:
+                if kw in question_lower:
+                    remaining = item.get("remaining_quantity")
+                    if remaining is None or remaining > 0:
+                        found_items.append(FoundResourceItem(
+                            id=item["id"],
+                            name=item["name"],
+                            description=item.get("description"),
+                            cost_resources=item.get("cost_resources", 0)
+                        ))
+                        cost_text = f"{item.get('cost_resources', 0)} RISORSE" if item.get('cost_resources', 0) > 0 else "gratuito"
+                        items_context += f"\n- OGGETTO DISPONIBILE: {item['name']} ({cost_text})"
+                        if item.get("description"):
+                            items_context += f" - {item['description']}"
+                    break
+    
+    items_hint = ""
+    if items_context:
+        items_hint = f"""
+
+=== OGGETTI TROVABILI IN QUESTA ZONA ===
+{items_context}
+=== FINE OGGETTI ===
+"""
+    
+    clan_hint = ""
+    player_clan = bg.get("clan")
+    if player_clan:
+        clan_hint = f"""
+
+=== INFORMAZIONI SUL GIOCATORE ===
+Clan: {player_clan}
+{powers_context}
+=== FINE INFO GIOCATORE ===
+"""
+    
+    system_message = f"""Sei l'Oracolo di un LARP Vampire: The Masquerade. Questa è una SESSIONE DI ESPLORAZIONE INTERATTIVA.
+
+REGOLE DELLA SESSIONE:
+1. Il giocatore sta esplorando un luogo o situazione. Puoi fare domande, offrire scelte, suggerire direzioni.
+2. Se serve una PROVA (es. Percezione, Forza, etc.), indica chiaramente: "Effettua una prova contrapposta su [ATTRIBUTO] a difficoltà [X]"
+3. Puoi chiedere al giocatore se possiede determinati poteri quando è rilevante (es. "Possiedi Auspex o poteri simili?")
+4. Se il giocatore trova un oggetto, descrivilo narrativamente. L'oggetto può essere preso gratuitamente se non ha costo.
+5. La sessione continua finché il giocatore non cambia zona o dice di voler terminare.
+
+TONO: Oscuro, gotico, atmosferico. Rispondi SEMPRE in italiano.
+
+=== CONTESTO DELL'EVENTO ===
+{context}
+=== FINE CONTESTO ==={clan_hint}{items_hint}{world_events_context}{conversation_context}"""
+    
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"session-{session['id']}",
+            system_message=system_message
+        )
+        chat.with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=data.message)
+        answer = await chat.send_message(user_message)
+    except Exception as e:
+        logger.error(f"OpenAI error: {e}")
+        answer = "L'Oracolo è momentaneamente avvolto dalle tenebre. Riprova tra poco."
+    
+    # Salva risposta
+    assistant_msg_id = str(uuid.uuid4())
+    assistant_msg_doc = {
+        "id": assistant_msg_id,
+        "session_id": session["id"],
+        "user_id": user["id"],
+        "role": "assistant",
+        "content": answer,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.consultation_messages.insert_one(assistant_msg_doc)
+    
+    # Aggiorna contatore messaggi sessione
+    await db.consultation_sessions.update_one(
+        {"id": session["id"]},
+        {"$inc": {"messages_count": 2}}
+    )
+    
+    # Salva anche nella chat_history per l'archivio
+    chat_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "session_id": session["id"],
+        "question": data.message,
+        "answer": answer,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.chat_history.insert_one(chat_doc)
+    
+    return SessionChatResponse(
+        session_id=session["id"],
+        is_new_session=is_new_session,
+        response=answer,
+        context=session["context"],
+        found_items=found_items,
+        suggested_challenge=None,
+        session_ended=False
+    )
+
+@api_router.post("/world/event")
+async def record_world_event(
+    event_type: str,
+    location: str,
+    object_name: Optional[str] = None,
+    description: Optional[str] = None,
+    user: dict = Depends(get_current_user)
+):
+    """Registra un evento nel mondo di gioco"""
+    event_id = str(uuid.uuid4())
+    
+    # Ottieni nome utente
+    user_doc = await db.users.find_one({"id": user["id"]}, {"_id": 0, "username": 1})
+    user_name = user_doc.get("username", "Sconosciuto") if user_doc else "Sconosciuto"
+    
+    event_doc = {
+        "id": event_id,
+        "type": event_type,
+        "user_id": user["id"],
+        "user_name": user_name,
+        "location": location,
+        "object_name": object_name,
+        "description": description,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.world_events.insert_one(event_doc)
+    return {"event_id": event_id}
+
+@api_router.get("/admin/world-events")
+async def get_world_events_admin(admin: dict = Depends(get_admin_user)):
+    """Ottieni tutti gli eventi del mondo (admin only)"""
+    events = await db.world_events.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return events
+
 # ==================== ADMIN ROUTES ====================
 
 @api_router.get("/admin/chat-history/{user_id}", response_model=List[ChatResponse])
