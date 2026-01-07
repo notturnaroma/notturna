@@ -1143,12 +1143,67 @@ Se il PG possiede il potere "Tocco degli Spiriti" (Auspex 4) o simili, puoi rive
 Continua la narrazione in modo coerente con quanto detto sopra.
 """
 
-    # Get knowledge base context
+    # Get knowledge base context - RICERCA INTELLIGENTE
+    # Estrae parole chiave dalla domanda per trovare documenti rilevanti
+    question_lower = data.message.lower()
+    question_words = set(question_lower.split())
+    
+    # Parole chiave comuni da ignorare
+    stop_words = {'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una', 'di', 'da', 'in', 'su', 'per', 'con', 'tra', 'fra', 
+                  'che', 'chi', 'cosa', 'come', 'dove', 'quando', 'perché', 'se', 'non', 'mi', 'ti', 'ci', 'vi', 'si',
+                  'a', 'e', 'è', 'o', 'ma', 'però', 'anche', 'già', 'poi', 'ora', 'qui', 'là', 'questo', 'quello',
+                  'mio', 'tuo', 'suo', 'nostro', 'vostro', 'loro', 'molto', 'poco', 'tutto', 'niente', 'qualcosa',
+                  'voglio', 'vorrei', 'posso', 'devo', 'sono', 'sei', 'siamo', 'essere', 'avere', 'fare', 'dire',
+                  'decido', 'cerco', 'vado', 'esploro', 'chiedo', 'parlo', 'uso', 'attivo', 'provo'}
+    
+    search_words = question_words - stop_words
+    
+    # Carica tutti i documenti della KB
     kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
-    context = "\n\n".join([f"### {doc['title']}\n{doc['content']}" for doc in kb_docs])
+    
+    # Calcola rilevanza per ogni documento
+    scored_docs = []
+    for doc in kb_docs:
+        title_lower = doc.get('title', '').lower()
+        content_lower = doc.get('content', '').lower()
+        
+        # Punteggio basato su match di parole chiave
+        score = 0
+        for word in search_words:
+            if len(word) >= 3:  # Ignora parole troppo corte
+                if word in title_lower:
+                    score += 10  # Peso maggiore per match nel titolo
+                if word in content_lower:
+                    score += content_lower.count(word)
+        
+        if score > 0:
+            scored_docs.append((score, doc))
+    
+    # Ordina per rilevanza e prendi i top documenti
+    scored_docs.sort(key=lambda x: x[0], reverse=True)
+    
+    # Limita il contesto a ~50000 caratteri (circa 12500 token)
+    MAX_CONTEXT_CHARS = 50000
+    context = ""
+    context_chars = 0
+    
+    for score, doc in scored_docs:
+        doc_text = f"### {doc['title']}\n{doc['content']}\n\n"
+        if context_chars + len(doc_text) > MAX_CONTEXT_CHARS:
+            # Tronca il documento se necessario
+            remaining = MAX_CONTEXT_CHARS - context_chars
+            if remaining > 1000:  # Aggiungi solo se c'è spazio significativo
+                doc_text = doc_text[:remaining] + "\n[...contenuto troncato...]\n"
+                context += doc_text
+            break
+        context += doc_text
+        context_chars += len(doc_text)
+    
+    # Se nessun documento rilevante trovato, usa un contesto generico
+    if not context:
+        context = "Nessun documento specifico trovato per questa richiesta. Rispondi in base alle tue conoscenze del mondo di Vampire: The Masquerade."
     
     # Cerca oggetti
-    question_lower = data.message.lower()
     all_items = await db.resource_items.find({}, {"_id": 0}).to_list(1000)
     found_items = []
     items_context = ""
