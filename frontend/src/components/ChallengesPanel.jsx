@@ -86,6 +86,7 @@ export default function ChallengesPanel({ token }) {
       description: challenge.description,
       keywords: challenge.keywords.join(", "),
       allow_refuge_defense: challenge.allow_refuge_defense || false,
+      allow_followers_help: challenge.allow_followers_help !== false,
       tests: challenge.tests
     });
     setEditingId(challenge.id);
