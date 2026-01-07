@@ -1182,6 +1182,26 @@ Continua la narrazione in modo coerente con quanto detto sopra.
 === FINE OGGETTI ===
 """
     
+    # Recupera prove LARP disponibili per suggerirle
+    challenges = await db.challenges.find({}, {"_id": 0}).to_list(50)
+    challenges_hint = ""
+    if challenges:
+        ch_list = []
+        for ch in challenges:
+            keywords = ", ".join(ch.get("keywords", []))
+            tests_desc = []
+            for t in ch.get("tests", []):
+                tests_desc.append(f"{t.get('attribute', 'Attributo')} diff.{t.get('difficulty', 7)}")
+            ch_list.append(f"- {ch['name']} (keywords: {keywords}): {'; '.join(tests_desc)}")
+        challenges_hint = f"""
+
+=== PROVE LARP DISPONIBILI ===
+Se la situazione lo richiede, puoi suggerire al giocatore di affrontare una di queste prove:
+{chr(10).join(ch_list)}
+Quando suggerisci una prova, usa il formato: "Effettua una prova contrapposta su [ATTRIBUTO] a difficoltà [X]"
+=== FINE PROVE ===
+"""
+    
     clan_hint = ""
     player_clan = bg.get("clan")
     if player_clan:
