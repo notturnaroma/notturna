@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -70,67 +69,66 @@ export default function PlayerResources({ token }) {
         </span>
       </div>
 
-      <ScrollArea className="h-[480px] pr-2">
-        {loading ? (
-          <p className="font-body text-muted-foreground text-sm">Caricamento...</p>
-        ) : state.items.length === 0 ? (
-          <p className="font-body text-muted-foreground text-sm">
-            Nessun oggetto definito dalla Narrazione.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {state.items.map(item => {
-              const canAfford = state.available_resources >= item.cost_resources;
-              const outOfStock = item.remaining_quantity != null && item.remaining_quantity <= 0;
-              const canBuy = canAfford && !outOfStock;
-              return (
-                <div key={item.id} className="p-3 bg-black/40 border border-border/40 rounded-sm flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <p className="font-cinzel text-parchment text-sm">{item.name}</p>
-                    {item.description && (
-                      <p className="font-body text-xs text-muted-foreground mt-1">{item.description}</p>
+      {/* Oggetti nel flusso normale della pagina - niente scroll interno */}
+      {loading ? (
+        <p className="font-body text-muted-foreground text-sm">Caricamento...</p>
+      ) : state.items.length === 0 ? (
+        <p className="font-body text-muted-foreground text-sm">
+          Nessun oggetto definito dalla Narrazione.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {state.items.map(item => {
+            const canAfford = state.available_resources >= item.cost_resources;
+            const outOfStock = item.remaining_quantity != null && item.remaining_quantity <= 0;
+            const canBuy = canAfford && !outOfStock;
+            return (
+              <div key={item.id} className="p-3 bg-black/40 border border-border/40 rounded-sm flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="font-cinzel text-parchment text-sm">{item.name}</p>
+                  {item.description && (
+                    <p className="font-body text-xs text-muted-foreground mt-1">{item.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3 mt-1">
+                    {item.block_until && (
+                      <span className="font-body text-[11px] text-muted-foreground">
+                        Blocco fino al: {new Date(item.block_until).toLocaleDateString()}
+                      </span>
                     )}
-                    <div className="flex flex-wrap gap-3 mt-1">
-                      {item.block_until && (
-                        <span className="font-body text-[11px] text-muted-foreground">
-                          Blocco fino al: {new Date(item.block_until).toLocaleDateString()}
-                        </span>
-                      )}
-                      {item.total_quantity != null && (
-                        <span className={`font-body text-[11px] ${outOfStock ? "text-red-400" : "text-muted-foreground"}`}>
-                          Disponibili: {item.remaining_quantity}/{item.total_quantity}
-                        </span>
-                      )}
-                      {item.max_per_player != null && (
-                        <span className="font-body text-[11px] text-muted-foreground">
-                          Max per te: {item.max_per_player}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="font-body text-xs text-gold">
-                      {item.cost_resources} RISORSE
-                    </span>
-                    {outOfStock ? (
-                      <span className="font-cinzel text-xs text-red-400 mt-1">Esaurito</span>
-                    ) : (
-                      <Button
-                        size="xs"
-                        disabled={!canBuy || purchasingId === item.id}
-                        onClick={() => handlePurchase(item.id)}
-                        className="mt-1 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm font-cinzel text-xs"
-                      >
-                        {purchasingId === item.id ? "Acquisto..." : "Acquista"}
-                      </Button>
+                    {item.total_quantity != null && (
+                      <span className={`font-body text-[11px] ${outOfStock ? "text-red-400" : "text-muted-foreground"}`}>
+                        Disponibili: {item.remaining_quantity}/{item.total_quantity}
+                      </span>
+                    )}
+                    {item.max_per_player != null && (
+                      <span className="font-body text-[11px] text-muted-foreground">
+                        Max per te: {item.max_per_player}
+                      </span>
                     )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </ScrollArea>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="font-body text-xs text-gold">
+                    {item.cost_resources} RISORSE
+                  </span>
+                  {outOfStock ? (
+                    <span className="font-cinzel text-xs text-red-400 mt-1">Esaurito</span>
+                  ) : (
+                    <Button
+                      size="xs"
+                      disabled={!canBuy || purchasingId === item.id}
+                      onClick={() => handlePurchase(item.id)}
+                      className="mt-1 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm font-cinzel text-xs"
+                    >
+                      {purchasingId === item.id ? "Acquisto..." : "Acquista"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
