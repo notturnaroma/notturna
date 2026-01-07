@@ -37,12 +37,14 @@ import {
   Coins,
   UserCog,
   Package,
-  Archive
+  Archive,
+  MapPin
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
 import AidsPanel from "@/components/AidsPanel";
 import ResourcesPanel from "@/components/ResourcesPanel";
+import WorldEventsPanel from "@/components/WorldEventsPanel";
 import EditBackgroundModal from "@/components/EditBackgroundModal";
 import ViewEquipmentModal from "@/components/ViewEquipmentModal";
 import ViewArchiveModal from "@/components/ViewArchiveModal";
