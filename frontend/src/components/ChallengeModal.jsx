@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Swords, Loader2, Dices, Package } from "lucide-react";
+import { Swords, Loader2, Dices, Package, Users } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -17,6 +17,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
   const [equipment, setEquipment] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [loadingEquipment, setLoadingEquipment] = useState(false);
+  const [followerStatus, setFollowerStatus] = useState(null);
 
   // Carica equipaggiamento quando si seleziona una prova
   useEffect(() => {
