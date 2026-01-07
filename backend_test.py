@@ -2504,7 +2504,10 @@ class ArchivioMaledettoAPITester:
         # Try to make admin user actually admin
         self.make_user_admin_via_script()
 
-        # PRIORITY: Test the specific LARP review features first
+        # PRIORITY: Test the specific LARP fork fixes first
+        self.test_larp_fork_fixes()
+
+        # PRIORITY: Test the specific LARP review features
         self.test_larp_review_features()
         
         # PRIORITY: Test EQUIPAGGIAMENTO functionality from review request
