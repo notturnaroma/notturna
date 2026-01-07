@@ -288,6 +288,29 @@ class BackgroundContact(BaseModel):
     name: str
     value: int
 
+# Modelli per Discipline e Poteri
+class DisciplinePower(BaseModel):
+    """Un singolo potere all'interno di una disciplina"""
+    name: str
+    level: int  # Livello del potere (1-5)
+
+class Discipline(BaseModel):
+    """Una disciplina del PG con i suoi poteri"""
+    name: str  # Es. "Auspex", "Dominazione", "Potenza"
+    powers: List[DisciplinePower] = []  # Lista dei poteri posseduti
+
+class Via(BaseModel):
+    """Una Via Taumaturgica o Necromantica"""
+    name: str  # Es. "Via del Sangue", "Via dei Sepolcri"
+    type: str  # "taumaturgica" o "necromantica"
+    powers: List[DisciplinePower] = []
+
+class Ritual(BaseModel):
+    """Un rituale Taumaturgico o Necromantico"""
+    name: str
+    level: int  # Livello del rituale (1-6 per Taumaturgia, 1-5 per Necromanzia)
+    type: str  # "taumaturgico" o "necromantico"
+
 class Background(BaseModel):
     model_config = ConfigDict(extra="ignore")
     user_id: str
@@ -298,6 +321,10 @@ class Background(BaseModel):
     mentor: int = 0
     notoriety: int = 0
     contacts: List[BackgroundContact] = []
+    # Nuovi campi per Discipline e Poteri
+    disciplines: List[Discipline] = []  # Discipline possedute (Auspex, Dominazione, etc.)
+    vie: List[Via] = []  # Vie Taumaturgiche o Necromantiche
+    rituals: List[Ritual] = []  # Rituali conosciuti
     locked_for_player: bool = False
 
 # ==================== AIUTI ATTRIBUTO MODELS ====================
