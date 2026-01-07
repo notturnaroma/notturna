@@ -28,6 +28,7 @@ const emptyTest = {
 };
 
 const defaultAllowRefuge = false;
+const defaultAllowFollowers = true;
 
 export default function ChallengesPanel({ token }) {
   const [challenges, setChallenges] = useState([]);
@@ -43,6 +44,7 @@ export default function ChallengesPanel({ token }) {
     description: "",
     keywords: "",
     allow_refuge_defense: defaultAllowRefuge,
+    allow_followers_help: defaultAllowFollowers,
     tests: [{ ...emptyTest }]
   });
 
