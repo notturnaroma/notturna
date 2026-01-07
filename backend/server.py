@@ -262,6 +262,7 @@ class ChallengeCreate(BaseModel):
     tests: List[ContrastingTest]  # Array di prove contrapposte
     keywords: List[str] = []  # parole chiave per attivare
     allow_refuge_defense: bool = False  # se true, il rifugio può ridurre la difficoltà
+    allow_followers_help: bool = True  # se true, i seguaci possono aiutare in questa prova
 
 class ChallengeResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -271,6 +272,7 @@ class ChallengeResponse(BaseModel):
     tests: List[dict]
     keywords: List[str]
     allow_refuge_defense: bool = False
+    allow_followers_help: bool = True
     created_at: str
     created_by: str
 
