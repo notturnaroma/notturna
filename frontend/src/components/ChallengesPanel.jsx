@@ -141,6 +141,7 @@ export default function ChallengesPanel({ token }) {
       description: formData.description,
       keywords: formData.keywords.split(",").map(k => k.trim()).filter(k => k),
       allow_refuge_defense: !!formData.allow_refuge_defense,
+      allow_followers_help: formData.allow_followers_help !== false,
       tests: formData.tests.map(t => ({
         ...t,
         difficulty: parseInt(t.difficulty) || 7
