@@ -73,6 +73,7 @@ export default function ChallengesPanel({ token }) {
       description: "",
       keywords: "",
       allow_refuge_defense: defaultAllowRefuge,
+      allow_followers_help: defaultAllowFollowers,
       tests: [{ ...emptyTest }]
     });
     setEditingId(null);
