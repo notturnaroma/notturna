@@ -4,22 +4,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, ChevronDown, ChevronUp, Sparkles, BookOpen, Scroll } from "lucide-react";
 
-// Lista delle discipline disponibili
+// Lista delle discipline disponibili (da I Doni del Sangue)
 const DISCIPLINE_LIST = [
-  "Alchimia dei Sangue Debole", "Animalità", "Ascendente", "Auspex", "Chimerismo",
-  "Cinetica", "Daimonion", "Demenza", "Dominazione", "Necromanzia", "Potenza",
-  "Proteide", "Quietus", "Robustezza", "Serpentis", "Taumaturgia", "Vicissitudine"
+  "Alchimia dei Sangue Debole",
+  "Animalità",
+  "Ascendente",
+  "Auspex",
+  "Chimerismo",
+  "Cinetica",
+  "Daimonion",
+  "Demenza",
+  "Dominazione",
+  "Necromanzia",
+  "Potenza",
+  "Proteide",
+  "Quietus",
+  "Robustezza",
+  "Serpentis",
+  "Taumaturgia",
+  "Tecnomanzia",
+  "Velocità",
+  "Vicissitudine"
 ];
 
-// Vie Taumaturgiche
+// Vie Taumaturgiche (da I Doni del Sangue)
 const VIE_TAUMATURGICHE = [
-  "Via del Sangue", "Via della Manipolazione degli Elementi", "Via del Controllo Meteorologico",
-  "Via della Corruzione", "Via della Taumaturgia Tecnomante", "Via della Verde Sentiero"
+  "Via della Lusinga delle Fiamme",
+  "Via del Patto della Vitae",
+  "Via del Movimento della Mente",
+  "Via della Corruzione",
+  "Via del Sangue Maledetto",
+  "Mani della Distruzione",
+  "La Via della Duat",
+  "La Via del Cenotafio"
 ];
 
-// Vie Necromantiche
+// Vie Necromantiche (da I Doni del Sangue)
 const VIE_NECROMANTICHE = [
-  "Via dei Sepolcri", "Via delle Ceneri", "Via delle Ossa", "Via del Sudario"
+  "La Via dei Sepolcri",
+  "La Via delle Ceneri"
 ];
 
 const emptyDiscipline = { name: "", powers: [] };
