@@ -19,12 +19,27 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
   const [loadingEquipment, setLoadingEquipment] = useState(false);
   const [followerStatus, setFollowerStatus] = useState(null);
 
-  // Carica equipaggiamento quando si seleziona una prova
+  // Carica equipaggiamento e stato SEGUACI quando si seleziona una prova
   useEffect(() => {
     if (step === "input" && selectedTest !== null) {
       fetchEquipment();
+      fetchFollowerStatus();
     }
   }, [step, selectedTest]);
+
+  const fetchFollowerStatus = async () => {
+    try {
+      const response = await fetch(`${API}/followers/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFollowerStatus(data);
+      }
+    } catch (error) {
+      console.error("Error fetching follower status:", error);
+    }
+  };
 
   const fetchEquipment = async () => {
     setLoadingEquipment(true);
