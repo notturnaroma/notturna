@@ -111,6 +111,23 @@ export default function Background({ user, token, onLogout }) {
         contacts: (background.contacts || [])
           .filter(c => c.name.trim())
           .map(c => ({ name: c.name.trim(), value: parseInt(c.value) || 1 })),
+        // Nuovi campi per Discipline, Vie e Rituali
+        disciplines: (background.disciplines || [])
+          .filter(d => d.name)
+          .map(d => ({
+            name: d.name,
+            powers: (d.powers || []).filter(p => p.name).map(p => ({ name: p.name, level: p.level }))
+          })),
+        vie: (background.vie || [])
+          .filter(v => v.name)
+          .map(v => ({
+            name: v.name,
+            type: v.type,
+            powers: (v.powers || []).filter(p => p.name).map(p => ({ name: p.name, level: p.level }))
+          })),
+        rituals: (background.rituals || [])
+          .filter(r => r.name)
+          .map(r => ({ name: r.name, level: r.level, type: r.type })),
         locked_for_player: true
       };
 
