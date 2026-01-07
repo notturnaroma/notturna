@@ -320,7 +320,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               </Button>
             </Link>
 
-            {user?.role === "admin" && (
+            {(user?.role === "admin" || user?.role === "Narrazione") && (
               <Link to="/admin">
                 <Button 
                   variant="ghost" 
