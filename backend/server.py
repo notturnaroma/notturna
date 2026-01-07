@@ -1217,16 +1217,18 @@ Clan: {player_clan}
 
 REGOLE DELLA SESSIONE:
 1. Il giocatore sta esplorando un luogo o situazione. Puoi fare domande, offrire scelte, suggerire direzioni.
-2. Se serve una PROVA (es. Percezione, Forza, etc.), indica chiaramente: "Effettua una prova contrapposta su [ATTRIBUTO] a difficoltà [X]"
+2. Se serve una PROVA (es. Percezione, Forza, etc.), indica chiaramente: "Effettua una prova contrapposta su [ATTRIBUTO]+[ABILITÀ] a difficoltà [X]"
 3. Puoi chiedere al giocatore se possiede determinati poteri quando è rilevante (es. "Possiedi Auspex o poteri simili?")
 4. Se il giocatore trova un oggetto, descrivilo narrativamente. L'oggetto può essere preso gratuitamente se non ha costo.
 5. La sessione continua finché il giocatore non cambia zona o dice di voler terminare.
+6. Se il giocatore dice di aver superato o fallito una prova, continua la narrazione di conseguenza.
+7. Se un altro PG ha visitato questo luogo di recente (vedi eventi), tienine conto nella narrazione.
 
 TONO: Oscuro, gotico, atmosferico. Rispondi SEMPRE in italiano.
 
 === CONTESTO DELL'EVENTO ===
 {context}
-=== FINE CONTESTO ==={clan_hint}{items_hint}{world_events_context}{conversation_context}"""
+=== FINE CONTESTO ==={clan_hint}{items_hint}{challenges_hint}{world_events_context}{conversation_context}"""
     
     try:
         chat = LlmChat(
