@@ -698,6 +698,18 @@ export default function AdminPanel({ user, token, onLogout }) {
                               Equip
                             </Button>
 
+                            {/* View Archive Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setViewingArchiveUser(u)}
+                              className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                              data-testid={`view-archive-${u.id}`}
+                            >
+                              <Archive className="w-3 h-3 mr-1" />
+                              Archivio
+                            </Button>
+
                             {/* Role Select */}
                             <Select
                               value={u.role}
