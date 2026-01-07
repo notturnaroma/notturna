@@ -1158,6 +1158,12 @@ Continua la narrazione in modo coerente con quanto detto sopra.
     
     search_words = question_words - stop_words
     
+    # Pulisci le parole dalla punteggiatura
+    import re
+    search_words = {re.sub(r'[^\w]', '', w) for w in search_words if len(re.sub(r'[^\w]', '', w)) >= 3}
+    
+    logger.info(f"Search words: {search_words}")
+    
     # Carica tutti i documenti della KB
     kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
     
@@ -1170,14 +1176,14 @@ Continua la narrazione in modo coerente con quanto detto sopra.
         # Punteggio basato su match di parole chiave
         score = 0
         for word in search_words:
-            if len(word) >= 3:  # Ignora parole troppo corte
-                if word in title_lower:
-                    score += 10  # Peso maggiore per match nel titolo
-                if word in content_lower:
-                    score += content_lower.count(word)
+            if word in title_lower:
+                score += 10  # Peso maggiore per match nel titolo
+            if word in content_lower:
+                score += content_lower.count(word)
         
         if score > 0:
             scored_docs.append((score, doc))
+            logger.info(f"Doc '{doc.get('title')}' score: {score}")
     
     # Ordina per rilevanza e prendi i top documenti
     scored_docs.sort(key=lambda x: x[0], reverse=True)
