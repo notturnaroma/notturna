@@ -94,7 +94,7 @@ function App() {
             <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/background" element={token ? <Background user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/equipment" element={token ? <EquipmentPage user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-            <Route path="/admin" element={token && user?.role === "admin" ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin" element={token && (user?.role === "admin" || user?.role === "Narrazione") ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
             <Route path="/embed" element={<EmbedChat />} />
           </Routes>
         </BrowserRouter>
