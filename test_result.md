@@ -316,13 +316,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "UI modifica Background nella sezione UTENTI"
-    - "UI RISORSE con visibilità e keywords"
-    - "Chat con oggetti acquistabili"
+  current_focus: []
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "completed"
 
 agent_communication:
   - agent: "main"
