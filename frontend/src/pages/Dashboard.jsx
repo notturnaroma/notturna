@@ -152,8 +152,9 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     e.preventDefault();
     if (!question.trim() || loading) return;
 
-    if (remainingActions <= 0) {
-      toast.error(settings.actions_exhausted || "Hai esaurito le tue azioni disponibili");
+    // Se non c'è sessione attiva e le azioni sono esaurite, blocca
+    if (!activeSession && remainingActions <= 0) {
+      toast.error(settings.actions_exhausted || "Hai esaurito le tue consultazioni disponibili");
       return;
     }
 
@@ -180,27 +181,41 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API}/chat`, {
+      // Usa il nuovo endpoint sessione
+      const response = await fetch(`${API}/session/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ question: userMessage.text })
+        body: JSON.stringify({ 
+          session_id: activeSession?.id || null,
+          message: userMessage.text 
+        })
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        // Aggiorna sessione attiva
+        if (data.is_new_session) {
+          setActiveSession({ id: data.session_id, context: data.context });
+          toast.success("Nuova consultazione iniziata");
+        }
+        
         const aiMessage = { 
           type: "ai", 
-          text: data.answer, 
-          timestamp: data.created_at,
-          foundItems: data.found_items || []  // Oggetti trovabili
+          text: data.response, 
+          timestamp: new Date().toISOString(),
+          foundItems: data.found_items || []
         };
         setMessages(prev => [...prev, aiMessage]);
-        refreshUser();
-        refreshActionsCount();
+        
+        // Aggiorna conteggio solo se nuova sessione
+        if (data.is_new_session) {
+          refreshUser();
+          refreshActionsCount();
+        }
       } else {
         toast.error("Errore", { description: data.detail || "Errore nella richiesta" });
         setMessages(prev => prev.slice(0, -1));
@@ -210,6 +225,30 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Funzione per terminare la sessione manualmente
+  const handleEndSession = async () => {
+    if (!activeSession) return;
+    
+    try {
+      const response = await fetch(`${API}/session/end`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ session_id: activeSession.id })
+      });
+      
+      if (response.ok) {
+        setActiveSession(null);
+        setMessages([]);
+        toast.success("Consultazione terminata");
+      }
+    } catch (error) {
+      toast.error("Errore nel terminare la consultazione");
     }
   };
 
