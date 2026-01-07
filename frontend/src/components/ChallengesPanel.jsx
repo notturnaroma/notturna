@@ -269,6 +269,22 @@ export default function ChallengesPanel({ token }) {
             </div>
 
             <div className="space-y-2">
+              <Label className="font-cinzel text-gold text-xs uppercase">Permetti aiuto dei SEGUACI</Label>
+              <div className="flex items-center gap-2 text-sm text-parchment">
+                <input
+                  id="allow_followers_help"
+                  type="checkbox"
+                  checked={formData.allow_followers_help}
+                  onChange={(e) => setFormData(prev => ({ ...prev, allow_followers_help: e.target.checked }))}
+                  className="w-4 h-4 border border-gold/50 bg-black/50 rounded-sm"
+                />
+                <span className="font-body text-muted-foreground">
+                  Se attivo, il PG potrà usare i propri SEGUACI per ridurre la difficoltà.
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label className="font-cinzel text-gold text-xs uppercase">Descrizione Situazione *</Label>
               <Textarea
                 value={formData.description}
