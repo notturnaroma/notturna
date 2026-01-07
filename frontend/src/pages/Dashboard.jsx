@@ -36,6 +36,10 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [remainingActions, setRemainingActions] = useState(user ? user.max_actions - user.used_actions : 0);
   const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
   const scrollRef = useRef(null);
+  
+  // Stato per le sessioni di consultazione
+  const [activeSession, setActiveSession] = useState(null);
+  const [sessionMessages, setSessionMessages] = useState([]);
 
   // Funzione per aggiornare il conteggio azioni
   const refreshActionsCount = async () => {
@@ -53,9 +57,35 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     }
   };
 
+  // Carica sessione attiva all'avvio
+  const fetchActiveSession = async () => {
+    try {
+      const response = await fetch(`${API}/session/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.session) {
+          setActiveSession(data.session);
+          // Converti messaggi sessione in formato messaggi UI
+          const uiMessages = (data.messages || []).map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content
+          }));
+          setSessionMessages(uiMessages);
+          setMessages(uiMessages);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching active session:", error);
+    }
+  };
+
   useEffect(() => {
     fetchChallenges();
     fetchAttemptedChallenges();
+    fetchActiveSession();
   }, []);
 
   // Aggiorna il conteggio azioni tenendo conto dei SEGUACI
