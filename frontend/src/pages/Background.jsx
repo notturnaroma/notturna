@@ -278,6 +278,13 @@ export default function Background({ user, token, onLogout }) {
                 </div>
               </div>
 
+              {/* Sezione Discipline, Vie e Rituali */}
+              <PowersSection 
+                background={background} 
+                setBackground={setBackground} 
+                isLocked={isLocked} 
+              />
+
               {/* Contatti */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
