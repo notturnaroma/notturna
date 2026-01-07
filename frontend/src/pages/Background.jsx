@@ -33,10 +33,13 @@ export default function Background({ user, token, onLogout }) {
       });
       if (response.ok) {
         const data = await response.json();
-        // Garantiamo almeno un contatto vuoto per facilità d'uso
+        // Garantiamo valori di default per tutti i campi
         setBackground({
           ...data,
-          contacts: data.contacts && data.contacts.length > 0 ? data.contacts : []
+          contacts: data.contacts && data.contacts.length > 0 ? data.contacts : [],
+          disciplines: data.disciplines || [],
+          vie: data.vie || [],
+          rituals: data.rituals || []
         });
       } else {
         toast.error("Errore nel caricamento del background");
