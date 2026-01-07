@@ -799,6 +799,16 @@ export default function AdminPanel({ user, token, onLogout }) {
           onClose={() => setViewingEquipmentUser(null)}
         />
       )}
+
+      {/* View Archive Modal */}
+      {viewingArchiveUser && (
+        <ViewArchiveModal
+          userId={viewingArchiveUser.id}
+          username={viewingArchiveUser.username}
+          token={token}
+          onClose={() => setViewingArchiveUser(null)}
+        />
+      )}
     </div>
   );
 }
