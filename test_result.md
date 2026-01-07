@@ -178,7 +178,7 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Equipment with bonus/malus system fully functional. Created 'Spada Magica' with uses=2, bonus=3, bonus_attribute='FORZA'. Player can acquire object via purchase. GET /api/equipment/me correctly shows remaining_uses=2 and bonus properties. Equipment bonus (+3) correctly applied to player_value in challenge calculations. Usage decrements remaining_uses from 2→1→0. Exhausted equipment disappears from inventory and cannot be used (400 error protection)."
-  - task: "Endpoints Equipaggiamento"
+  - task: "Fix Scroll Archivio Chat Admin - Backend Support"
     implemented: true
     working: true
     file: "backend/server.py"
@@ -188,7 +188,40 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ TESTED SUCCESSFULLY: Equipment endpoints working perfectly. GET /api/equipment/me returns player's acquired items with correct fields (id, item_id, item_name, cost_resources, acquired_at, uses, remaining_uses, bonus, malus, bonus_attribute). GET /api/admin/equipment/{user_id} allows admin to view any player's equipment. Items with exhausted uses (remaining_uses=0) are correctly hidden from player view but visible to admin for debugging."
+        comment: "✅ TESTED SUCCESSFULLY: GET /api/admin/chat-history/{user_id} endpoint working correctly. Admin with 'Narrazione' role can access player chat history. Returns proper list structure with required fields (id, question, answer, created_at). Test message successfully retrieved from player chat history."
+  - task: "Toggle SEGUACI nelle Prove - Backend Implementation"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: allow_followers_help field implemented in challenges. POST /api/challenges correctly saves allow_followers_help=true/false. PUT /api/challenges/{id} correctly updates the field. Challenge attempts with followers_to_use parameter working correctly. SEGUACI system fully functional in backend."
+  - task: "Info SEGUACI contestuale - Backend Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: GET /api/followers/status endpoint working perfectly. Returns all required fields: total_followers, spent_followers, available_followers, remaining_actions_before, effective_max_actions. Correctly calculates effective_max_actions = 20 + SEGUACI (tested with 3 SEGUACI = 23 total actions). Backend logic for SEGUACI status is fully functional."
+  - task: "Admin Role 'Narrazione' Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: get_admin_user function correctly accepts 'Narrazione' role. Admin user admin@test.com has role 'Narrazione' and can access all admin endpoints: GET /api/admin/users, GET /api/admin/chat-history/{user_id}, POST/PUT /api/challenges. Role-based access control working correctly."
 frontend:
   - task: "UI modifica Background nella sezione UTENTI"
     implemented: true
