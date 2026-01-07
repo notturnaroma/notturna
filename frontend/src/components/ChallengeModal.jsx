@@ -238,23 +238,39 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
               )}
 
               {/* SEGUACI */}
-              <div className="space-y-1">
-                <label className="font-cinzel text-gold text-xs uppercase tracking-widest block">
-                  Punti SEGUACI da usare
-                </label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="20"
-                  value={followersToUse}
-                  onChange={(e) => setFollowersToUse(e.target.value)}
-                  className="input-gothic rounded-sm text-center h-9"
-                  data-testid="followers-to-use-input"
-                />
-                <p className="text-[10px] text-muted-foreground text-center">
-                  Ogni punto SEGUACI abbassa la difficoltà di 1
-                </p>
-              </div>
+              {(challenge.allow_followers_help !== false) && (
+                <div className="border border-gold/30 rounded-sm p-3 mt-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-gold" />
+                      <span className="font-cinzel text-gold text-xs uppercase">Usa SEGUACI</span>
+                    </div>
+                    {followerStatus && (
+                      <span className="text-[10px] text-muted-foreground">
+                        Disponibili: <span className="text-gold">{followerStatus.available_followers}</span>/{followerStatus.total_followers}
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    type="number"
+                    min="0"
+                    max={followerStatus?.available_followers || 20}
+                    value={followersToUse}
+                    onChange={(e) => setFollowersToUse(Math.min(parseInt(e.target.value) || 0, followerStatus?.available_followers || 20))}
+                    className="input-gothic rounded-sm text-center h-9"
+                    data-testid="followers-to-use-input"
+                    disabled={!followerStatus || followerStatus.available_followers === 0}
+                  />
+                  <p className="text-[10px] text-muted-foreground text-center mt-1">
+                    Ogni punto SEGUACI abbassa la difficoltà di 1
+                  </p>
+                  {followerStatus && followerStatus.available_followers === 0 && (
+                    <p className="text-[10px] text-yellow-400 text-center mt-1">
+                      Nessun SEGUACE disponibile questo mese
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Equipaggiamento */}
               {equipment.length > 0 && (
