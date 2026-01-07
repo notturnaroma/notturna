@@ -102,9 +102,9 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
-        <div className="mt-4 pt-4 border-t border-border/30 text-center">
+        <div className="mt-4 pt-4 border-t border-border/30 text-center flex-shrink-0">
           <p className="font-body text-xs text-muted-foreground">
             Totale: {history.length} consultazion{history.length === 1 ? "e" : "i"}
           </p>
