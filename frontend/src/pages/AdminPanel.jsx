@@ -786,6 +786,10 @@ export default function AdminPanel({ user, token, onLogout }) {
           <TabsContent value="resources">
             <ResourcesPanel token={token} />
           </TabsContent>
+
+          <TabsContent value="world-events">
+            <WorldEventsPanel token={token} />
+          </TabsContent>
         </Tabs>
       </main>
 
