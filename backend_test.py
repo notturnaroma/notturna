@@ -2858,19 +2858,22 @@ class ArchivioMaledettoAPITester:
         print("  🌍 Testing Pannello Admin Mondo...")
         
         # Test POST /api/world/event - register an event
-        world_event_data = {
+        world_event_params = {
             "event_type": "object_taken",
             "location": "Magazzino del Porto",
             "object_name": "Antico Grimorio",
             "description": "Un libro di magia trovato tra le casse"
         }
         
+        # Build URL with query parameters
+        import urllib.parse
+        query_string = urllib.parse.urlencode(world_event_params)
+        
         success, event_response = self.run_test(
             "Register World Event (object_taken)",
             "POST",
-            "world/event",
+            f"world/event?{query_string}",
             200,
-            data=world_event_data,
             headers={'Authorization': f'Bearer {player_token}'}
         )
         
@@ -2883,18 +2886,19 @@ class ArchivioMaledettoAPITester:
                 self.log_test("World Event Registration", True, f"World event registered: {event_id}")
         
         # Test another event type
-        location_event_data = {
+        location_event_params = {
             "event_type": "location_visited",
             "location": "Università La Sapienza",
             "description": "Visita alla biblioteca di antichi testi"
         }
         
+        location_query_string = urllib.parse.urlencode(location_event_params)
+        
         success, location_event_response = self.run_test(
             "Register World Event (location_visited)",
             "POST",
-            "world/event",
+            f"world/event?{location_query_string}",
             200,
-            data=location_event_data,
             headers={'Authorization': f'Bearer {player_token}'}
         )
         
