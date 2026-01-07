@@ -22,6 +22,7 @@ const DISCIPLINE_LIST = [
   "Robustezza",
   "Serpentis",
   "Taumaturgia",
+  "Taumaturgia Setita",
   "Tecnomanzia",
   "Velocità",
   "Vicissitudine"
@@ -35,14 +36,16 @@ const VIE_TAUMATURGICHE = [
   "Via della Corruzione",
   "Via del Sangue Maledetto",
   "Mani della Distruzione",
-  "La Via della Duat",
-  "La Via del Cenotafio"
+  "La Via della Duat"
 ];
 
 // Vie Necromantiche (da I Doni del Sangue)
 const VIE_NECROMANTICHE = [
-  "La Via dei Sepolcri",
-  "La Via delle Ceneri"
+  "Via dei Sepolcri",
+  "Via delle Ceneri",
+  "Via del Cenotafio",
+  "Il Marciume della Tomba",
+  "Via dei Quattro Umori"
 ];
 
 const emptyDiscipline = { name: "", powers: [] };
