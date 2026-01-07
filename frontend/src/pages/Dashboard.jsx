@@ -333,6 +333,23 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           </Link>
 
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Session Indicator */}
+            {activeSession && (
+              <div className="stat-card px-3 py-2 rounded-sm flex items-center gap-2 border border-green-500/30 bg-green-500/10">
+                <MessageSquare className="w-4 h-4 text-green-400" />
+                <span className="font-cinzel text-xs text-green-400 hidden sm:inline">SESSIONE ATTIVA</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEndSession}
+                  className="text-red-400 hover:bg-red-400/10 h-6 px-2 text-xs"
+                  title="Termina consultazione"
+                >
+                  ✕
+                </Button>
+              </div>
+            )}
+
             {/* Actions Counter */}
             <div className="stat-card px-3 py-2 rounded-sm flex items-center gap-2" data-testid="actions-counter">
               <Shield className="w-4 h-4 text-gold" />
