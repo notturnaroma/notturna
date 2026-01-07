@@ -46,8 +46,8 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="card-gothic rounded-sm p-6 max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between mb-4">
+      <div className="card-gothic rounded-sm p-6 max-w-2xl w-full max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Archive className="w-5 h-5 text-gold" />
             <h2 className="font-cinzel text-gold text-lg uppercase tracking-widest">
@@ -59,7 +59,7 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 max-h-[65vh] pr-2">
+        <div className="flex-1 overflow-y-auto min-h-0 pr-2">
           {loading ? (
             <p className="text-muted-foreground text-center py-8">Caricamento...</p>
           ) : history.length === 0 ? (
