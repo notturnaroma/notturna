@@ -2487,6 +2487,448 @@ class ArchivioMaledettoAPITester:
         
         return True
 
+    def test_larp_consultation_system(self):
+        """Test the complete LARP consultation system as requested in review"""
+        print("\n🎭 Testing LARP Consultation System (L'Archivio Maledetto)...")
+        
+        # Test credentials from review request
+        admin_creds = {"email": "downtime@notturnaroma.com", "password": "N@rraz1on3"}
+        
+        # Login as admin
+        success, admin_response = self.run_test(
+            "Login as Admin (downtime@notturnaroma.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=admin_creds
+        )
+        
+        if not success or 'access_token' not in admin_response:
+            self.log_test("LARP Consultation System", False, "Failed to login with provided admin credentials")
+            return False
+        
+        admin_token = admin_response['access_token']
+        admin_id = admin_response['user']['id']
+        
+        # Create a test player for consultation testing
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_player = {
+            "username": f"testplayer_{timestamp}",
+            "email": f"testplayer_{timestamp}@test.com",
+            "password": "test123"
+        }
+        
+        success, player_response = self.run_test(
+            "Create Test Player for Consultation",
+            "POST",
+            "auth/register",
+            200,
+            data=test_player
+        )
+        
+        if not success or 'access_token' not in player_response:
+            self.log_test("LARP Consultation System", False, "Failed to create test player")
+            return False
+        
+        player_token = player_response['access_token']
+        player_id = player_response['user']['id']
+        
+        # Set up player background with disciplines, vie, rituals
+        print("  📝 Testing Sistema Poteri nel Background...")
+        
+        background_data = {
+            "user_id": player_id,
+            "clan": "Nosferatu",
+            "risorse": 10,
+            "seguaci": 2,
+            "rifugio": 3,
+            "mentor": 1,
+            "notoriety": 0,
+            "contacts": [{"name": "Informatore", "value": 2}],
+            "disciplines": [
+                {
+                    "name": "Auspex",
+                    "powers": [
+                        {"name": "Sensi Acuti", "level": 1},
+                        {"name": "Percezione dell'Aura", "level": 2}
+                    ]
+                },
+                {
+                    "name": "Oscurazione",
+                    "powers": [
+                        {"name": "Mantello delle Ombre", "level": 1}
+                    ]
+                }
+            ],
+            "vie": [
+                {
+                    "name": "Via del Sangue",
+                    "type": "taumaturgica",
+                    "powers": [
+                        {"name": "Gusto del Sangue", "level": 1}
+                    ]
+                }
+            ],
+            "rituals": [
+                {
+                    "name": "Protezione dal Ghoul",
+                    "level": 1,
+                    "type": "taumaturgico"
+                }
+            ],
+            "locked_for_player": True
+        }
+        
+        success, bg_response = self.run_test(
+            "Set Player Background with Disciplines/Vie/Rituals",
+            "PUT",
+            f"admin/background/{player_id}",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if not success:
+            self.log_test("Background Setup", False, "Failed to set player background")
+            return False
+        
+        # Test GET /api/background/me - verify contains disciplines, vie, rituals
+        success, bg_get_response = self.run_test(
+            "GET Background with Disciplines/Vie/Rituals",
+            "GET",
+            "background/me",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Verify required fields are present
+            required_fields = ['disciplines', 'vie', 'rituals']
+            for field in required_fields:
+                if field not in bg_get_response:
+                    self.log_test("Background Fields Verification", False, f"Missing field: {field}")
+                    return False
+            
+            # Verify disciplines structure
+            disciplines = bg_get_response.get('disciplines', [])
+            if len(disciplines) != 2:
+                self.log_test("Disciplines Verification", False, f"Expected 2 disciplines, got {len(disciplines)}")
+                return False
+            
+            auspex_found = any(d.get('name') == 'Auspex' for d in disciplines)
+            if not auspex_found:
+                self.log_test("Disciplines Verification", False, "Auspex discipline not found")
+                return False
+            
+            # Verify vie structure
+            vie = bg_get_response.get('vie', [])
+            if len(vie) != 1:
+                self.log_test("Vie Verification", False, f"Expected 1 via, got {len(vie)}")
+                return False
+            
+            # Verify rituals structure
+            rituals = bg_get_response.get('rituals', [])
+            if len(rituals) != 1:
+                self.log_test("Rituals Verification", False, f"Expected 1 ritual, got {len(rituals)}")
+                return False
+            
+            self.log_test("Background Powers Verification", True, "All disciplines, vie, and rituals correctly saved and retrieved")
+        
+        # Test Sistema Sessioni di Consultazione
+        print("  💬 Testing Sistema Sessioni di Consultazione...")
+        
+        # Get initial action count
+        success, initial_status = self.run_test(
+            "Get Initial Followers Status",
+            "GET",
+            "followers/status",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Initial Status Check", False, "Failed to get initial followers status")
+            return False
+        
+        initial_remaining = initial_status.get('remaining_actions_before', 0)
+        
+        # Test 1: POST /api/session/chat - first message (should create new session and consume 1 action)
+        first_message_data = {
+            "message": "Salve, Oracolo. Cosa puoi dirmi sui segreti di Roma?"
+        }
+        
+        success, first_chat_response = self.run_test(
+            "First Session Chat Message (Should Create Session + Consume Action)",
+            "POST",
+            "session/chat",
+            200,
+            data=first_message_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Session Chat System", False, "Failed to send first session chat message")
+            return False
+        
+        # Verify response structure
+        if not first_chat_response.get('is_new_session'):
+            self.log_test("New Session Creation", False, "First message should create new session")
+            return False
+        
+        session_id = first_chat_response.get('session_id')
+        if not session_id:
+            self.log_test("Session ID Generation", False, "No session_id returned")
+            return False
+        
+        self.log_test("New Session Creation", True, f"New session created: {session_id}")
+        
+        # Verify action was consumed
+        success, after_first_status = self.run_test(
+            "Get Status After First Message",
+            "GET",
+            "followers/status",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            after_first_remaining = after_first_status.get('remaining_actions_before', 0)
+            if after_first_remaining != initial_remaining - 1:
+                self.log_test("Action Consumption Verification", False, 
+                            f"Expected {initial_remaining - 1} remaining actions, got {after_first_remaining}")
+                return False
+            else:
+                self.log_test("Action Consumption Verification", True, "First session message correctly consumed 1 action")
+        
+        # Test 2: POST /api/session/chat - second message in same session (should NOT consume actions)
+        second_message_data = {
+            "session_id": session_id,
+            "message": "Dimmi di più sui Nosferatu di Roma."
+        }
+        
+        success, second_chat_response = self.run_test(
+            "Second Session Chat Message (Should NOT Consume Action)",
+            "POST",
+            "session/chat",
+            200,
+            data=second_message_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if not success:
+            self.log_test("Session Chat System", False, "Failed to send second session chat message")
+            return False
+        
+        # Verify it's not a new session
+        if second_chat_response.get('is_new_session'):
+            self.log_test("Session Continuation", False, "Second message should not create new session")
+            return False
+        
+        # Verify same session ID
+        if second_chat_response.get('session_id') != session_id:
+            self.log_test("Session Continuation", False, "Session ID changed unexpectedly")
+            return False
+        
+        self.log_test("Session Continuation", True, "Second message continued existing session")
+        
+        # Verify action was NOT consumed
+        success, after_second_status = self.run_test(
+            "Get Status After Second Message",
+            "GET",
+            "followers/status",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            after_second_remaining = after_second_status.get('remaining_actions_before', 0)
+            if after_second_remaining != after_first_remaining:
+                self.log_test("Action Conservation Verification", False, 
+                            f"Expected {after_first_remaining} remaining actions, got {after_second_remaining}")
+                return False
+            else:
+                self.log_test("Action Conservation Verification", True, "Second session message correctly did NOT consume action")
+        
+        # Test 3: GET /api/session/active - verify active session
+        success, active_session_response = self.run_test(
+            "Get Active Session",
+            "GET",
+            "session/active",
+            200,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            session_info = active_session_response.get('session')
+            if not session_info:
+                self.log_test("Active Session Verification", False, "No active session found")
+                return False
+            
+            if session_info.get('id') != session_id:
+                self.log_test("Active Session Verification", False, "Active session ID doesn't match")
+                return False
+            
+            if not session_info.get('is_active'):
+                self.log_test("Active Session Verification", False, "Session is not marked as active")
+                return False
+            
+            self.log_test("Active Session Verification", True, "Active session correctly retrieved")
+        
+        # Test 4: POST /api/session/end - terminate session
+        end_session_data = {
+            "session_id": session_id
+        }
+        
+        success, end_session_response = self.run_test(
+            "End Session",
+            "POST",
+            "session/end",
+            200,
+            data=end_session_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Verify session is ended
+            success, no_active_session = self.run_test(
+                "Verify No Active Session After End",
+                "GET",
+                "session/active",
+                200,
+                headers={'Authorization': f'Bearer {player_token}'}
+            )
+            
+            if success:
+                session_info = no_active_session.get('session')
+                if session_info is not None:
+                    self.log_test("Session End Verification", False, "Session still active after end")
+                    return False
+                else:
+                    self.log_test("Session End Verification", True, "Session correctly ended")
+        
+        # Test 5: Test session with context change
+        print("  🔄 Testing Session with Context Change...")
+        
+        # Start new session
+        context_change_data = {
+            "message": "Esploro il quartiere Ostiense."
+        }
+        
+        success, new_session_response = self.run_test(
+            "Start New Session for Context Change Test",
+            "POST",
+            "session/chat",
+            200,
+            data=context_change_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            new_session_id = new_session_response.get('session_id')
+            
+            # Send message with context change keyword
+            context_change_message = {
+                "session_id": new_session_id,
+                "message": "Vado via da qui, cambio zona e mi dirigo verso Trastevere."
+            }
+            
+            success, context_change_response = self.run_test(
+                "Send Context Change Message",
+                "POST",
+                "session/chat",
+                200,
+                data=context_change_message,
+                headers={'Authorization': f'Bearer {player_token}'}
+            )
+            
+            if success:
+                # This should create a new session due to context change
+                if not context_change_response.get('is_new_session'):
+                    self.log_test("Context Change Detection", False, "Context change should create new session")
+                    return False
+                
+                new_context_session_id = context_change_response.get('session_id')
+                if new_context_session_id == new_session_id:
+                    self.log_test("Context Change Detection", False, "Session ID should change with context change")
+                    return False
+                
+                self.log_test("Context Change Detection", True, "Context change correctly created new session")
+        
+        # Test Pannello Admin Mondo
+        print("  🌍 Testing Pannello Admin Mondo...")
+        
+        # Test POST /api/world/event - register an event
+        world_event_data = {
+            "event_type": "object_taken",
+            "location": "Magazzino del Porto",
+            "object_name": "Antico Grimorio",
+            "description": "Un libro di magia trovato tra le casse"
+        }
+        
+        success, event_response = self.run_test(
+            "Register World Event (object_taken)",
+            "POST",
+            "world/event",
+            200,
+            data=world_event_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            event_id = event_response.get('event_id')
+            if not event_id:
+                self.log_test("World Event Registration", False, "No event_id returned")
+                return False
+            else:
+                self.log_test("World Event Registration", True, f"World event registered: {event_id}")
+        
+        # Test another event type
+        location_event_data = {
+            "event_type": "location_visited",
+            "location": "Università La Sapienza",
+            "description": "Visita alla biblioteca di antichi testi"
+        }
+        
+        success, location_event_response = self.run_test(
+            "Register World Event (location_visited)",
+            "POST",
+            "world/event",
+            200,
+            data=location_event_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            self.log_test("Location Event Registration", True, "Location visit event registered")
+        
+        # Test GET /api/admin/world-events - list world events
+        success, world_events_response = self.run_test(
+            "Get World Events (Admin)",
+            "GET",
+            "admin/world-events",
+            200,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success:
+            if not isinstance(world_events_response, list):
+                self.log_test("World Events List", False, "Response is not a list")
+                return False
+            
+            # Verify our events are in the list
+            event_found = any(event.get('object_name') == 'Antico Grimorio' for event in world_events_response)
+            if not event_found:
+                self.log_test("World Events Verification", False, "Registered event not found in admin list")
+                return False
+            
+            location_event_found = any(event.get('location') == 'Università La Sapienza' for event in world_events_response)
+            if not location_event_found:
+                self.log_test("World Events Verification", False, "Location event not found in admin list")
+                return False
+            
+            self.log_test("World Events Verification", True, f"Found {len(world_events_response)} world events including our test events")
+        
+        return True
     def run_all_tests(self):
         """Run all tests"""
         print("🔍 Starting L'Archivio Maledetto API Tests...")
