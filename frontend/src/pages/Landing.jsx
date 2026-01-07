@@ -45,7 +45,11 @@ export default function Landing() {
         <main className="flex-1 flex items-center justify-center px-6 hero-gradient">
           <div className="max-w-4xl mx-auto text-center fade-in">
             <div className="mb-8">
-              <Sparkles className="w-16 h-16 text-gold mx-auto mb-6 opacity-80" />
+              {settings.event_logo_url ? (
+                <img src={settings.event_logo_url} alt="" className="h-24 md:h-32 mx-auto" />
+              ) : (
+                <Sparkles className="w-16 h-16 text-gold mx-auto opacity-80" />
+              )}
             </div>
             <h2 className="font-gothic text-5xl md:text-7xl lg:text-8xl text-parchment mb-6 leading-tight">
               {settings.hero_title}
