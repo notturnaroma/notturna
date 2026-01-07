@@ -478,7 +478,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Token non valido")
 
 async def get_admin_user(user: dict = Depends(get_current_user)):
-    if user.get("role") != "admin":
+    if user.get("role") not in ["admin", "Narrazione"]:
         raise HTTPException(status_code=403, detail="Accesso negato - Solo admin")
     return user
 
