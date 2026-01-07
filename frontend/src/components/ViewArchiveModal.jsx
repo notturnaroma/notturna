@@ -59,7 +59,7 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 pr-2">
+        <ScrollArea className="flex-1 max-h-[65vh] pr-2">
           {loading ? (
             <p className="text-muted-foreground text-center py-8">Caricamento...</p>
           ) : history.length === 0 ? (
