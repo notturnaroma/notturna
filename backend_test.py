@@ -2954,6 +2954,9 @@ class ArchivioMaledettoAPITester:
         
         # PRIORITY: Test EQUIPAGGIAMENTO functionality from review request
         self.test_equipaggiamento_functionality()
+        
+        # PRIORITY: Test LARP Consultation System (NEW - as requested in review)
+        self.test_larp_consultation_system()
 
         # Test core functionality
         self.test_chat_functionality()
