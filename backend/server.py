@@ -427,6 +427,59 @@ class UseAid(BaseModel):
     level: int  # quale livello sta usando (2, 4 o 5)
     player_attribute_value: int  # valore attributo del giocatore
 
+# ==================== SESSIONI DI CONSULTAZIONE ====================
+
+class ConsultationSession(BaseModel):
+    """Una sessione di consultazione che può contenere più scambi domanda/risposta"""
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    context: str  # Contesto corrente (es. "quartiere:Ostiense", "luogo:magazzino")
+    is_active: bool = True
+    started_at: str
+    ended_at: Optional[str] = None
+    messages_count: int = 0
+
+class ConsultationMessage(BaseModel):
+    """Un singolo messaggio all'interno di una sessione"""
+    id: str
+    session_id: str
+    user_id: str
+    role: str  # "user" o "assistant"
+    content: str
+    created_at: str
+
+class WorldEvent(BaseModel):
+    """Un evento nel mondo di gioco (oggetto preso, luogo visitato, etc.)"""
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    type: str  # "object_taken", "location_visited", "object_placed"
+    user_id: str
+    user_name: str  # Nome del PG per le visioni
+    location: str  # Luogo dell'evento
+    object_name: Optional[str] = None  # Nome oggetto se applicabile
+    description: Optional[str] = None
+    created_at: str
+
+class StartSessionRequest(BaseModel):
+    context: Optional[str] = None  # Contesto iniziale opzionale
+
+class EndSessionRequest(BaseModel):
+    session_id: str
+
+class SessionChatRequest(BaseModel):
+    session_id: Optional[str] = None  # Se None, crea nuova sessione
+    message: str
+
+class SessionChatResponse(BaseModel):
+    session_id: str
+    is_new_session: bool
+    response: str
+    context: str
+    found_items: List[FoundResourceItem] = []
+    suggested_challenge: Optional[dict] = None  # Se l'IA suggerisce una prova
+    session_ended: bool = False  # Se la sessione è stata chiusa
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
