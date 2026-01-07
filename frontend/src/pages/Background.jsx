@@ -191,8 +191,8 @@ export default function Background({ user, token, onLogout }) {
             )}
           </div>
 
-          <ScrollArea className="max-h-[70vh] pr-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Form e contenuto - scroll normale della pagina */}
+          <form onSubmit={handleSubmit} className="space-y-6">
               {/* Clan di appartenenza */}
               <div className="space-y-2">
                 <Label className="font-cinzel text-gold text-xs uppercase">CLAN DI APPARTENENZA</Label>
