@@ -2155,6 +2155,338 @@ class ArchivioMaledettoAPITester:
         
         return True
 
+    def test_larp_fork_fixes(self):
+        """Test the specific fixes from the LARP fork review request"""
+        print("\n🎭 Testing LARP Fork Fixes...")
+        
+        # Test credentials from review request
+        admin_creds = {"email": "admin@test.com", "password": "admin123"}
+        player_creds = {"email": "player@test.com", "password": "player123"}
+        
+        # Login as admin (Narrazione role)
+        success, admin_response = self.run_test(
+            "Login as Admin (admin@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=admin_creds
+        )
+        
+        if not success or 'access_token' not in admin_response:
+            self.log_test("LARP Fork Fixes", False, "Failed to login as admin")
+            return False
+        
+        admin_token = admin_response['access_token']
+        
+        # Verify admin has Narrazione role
+        if admin_response.get('user', {}).get('role') != 'Narrazione':
+            self.log_test("Admin Role Verification", False, f"Expected role 'Narrazione', got '{admin_response.get('user', {}).get('role')}'")
+            return False
+        else:
+            self.log_test("Admin Role Verification", True, "Admin has correct 'Narrazione' role")
+        
+        # Login as player
+        success, player_response = self.run_test(
+            "Login as Player (player@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=player_creds
+        )
+        
+        if not success or 'access_token' not in player_response:
+            self.log_test("LARP Fork Fixes", False, "Failed to login as player")
+            return False
+        
+        player_token = player_response['access_token']
+        player_id = player_response['user']['id']
+        
+        # Test 1: GET /api/admin/users (with Narrazione role)
+        print("  👥 Testing GET /api/admin/users with Narrazione role...")
+        
+        success, users_response = self.run_test(
+            "GET Admin Users (Narrazione Role)",
+            "GET",
+            "admin/users",
+            200,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success:
+            # Verify response is a list of users
+            if not isinstance(users_response, list):
+                self.log_test("Admin Users Response Format", False, "Response is not a list")
+                return False
+            
+            # Verify users have required fields
+            if len(users_response) > 0:
+                user = users_response[0]
+                required_fields = ['id', 'email', 'username', 'role', 'max_actions', 'used_actions']
+                for field in required_fields:
+                    if field not in user:
+                        self.log_test("Admin Users Response Fields", False, f"Missing field: {field}")
+                        return False
+                
+                self.log_test("Admin Users Response Validation", True, f"Retrieved {len(users_response)} users with correct fields")
+        
+        # Test 2: GET /api/admin/chat-history/{user_id}
+        print("  💬 Testing GET /api/admin/chat-history/{user_id}...")
+        
+        # First, create some chat history for the player
+        chat_data = {"question": "Test message for archivio"}
+        
+        success, chat_response = self.run_test(
+            "Create Chat History for Player",
+            "POST",
+            "chat",
+            200,
+            data=chat_data,
+            headers={'Authorization': f'Bearer {player_token}'}
+        )
+        
+        if success:
+            # Now test admin access to chat history
+            success, history_response = self.run_test(
+                "GET Admin Chat History for Player",
+                "GET",
+                f"admin/chat-history/{player_id}",
+                200,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+            
+            if success:
+                # Verify response is a list
+                if not isinstance(history_response, list):
+                    self.log_test("Admin Chat History Response Format", False, "Response is not a list")
+                    return False
+                
+                # Verify at least one message exists (the one we just created)
+                if len(history_response) == 0:
+                    self.log_test("Admin Chat History Content", False, "No chat history found")
+                    return False
+                
+                # Verify message structure
+                message = history_response[0]
+                required_fields = ['id', 'question', 'answer', 'created_at']
+                for field in required_fields:
+                    if field not in message:
+                        self.log_test("Admin Chat History Fields", False, f"Missing field: {field}")
+                        return False
+                
+                # Verify our test message is there
+                test_message_found = any(msg.get('question') == 'Test message for archivio' for msg in history_response)
+                if not test_message_found:
+                    self.log_test("Admin Chat History Content", False, "Test message not found in history")
+                    return False
+                
+                self.log_test("Admin Chat History Validation", True, f"Retrieved {len(history_response)} chat messages with correct structure")
+        
+        # Test 3: GET /api/followers/status
+        print("  👥 Testing GET /api/followers/status...")
+        
+        # Set player background with SEGUACI
+        background_data = {
+            "user_id": player_id,
+            "risorse": 10,
+            "seguaci": 3,  # 3 SEGUACI
+            "rifugio": 2,
+            "mentor": 1,
+            "notoriety": 0,
+            "contacts": [],
+            "locked_for_player": True
+        }
+        
+        success, bg_response = self.run_test(
+            "Set Player Background with SEGUACI",
+            "PUT",
+            f"admin/background/{player_id}",
+            200,
+            data=background_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success:
+            # Test followers status endpoint
+            success, followers_response = self.run_test(
+                "GET Followers Status",
+                "GET",
+                "followers/status",
+                200,
+                headers={'Authorization': f'Bearer {player_token}'}
+            )
+            
+            if success:
+                # Verify response structure
+                required_fields = ['total_followers', 'spent_followers', 'available_followers', 
+                                 'remaining_actions_before', 'effective_max_actions']
+                for field in required_fields:
+                    if field not in followers_response:
+                        self.log_test("Followers Status Fields", False, f"Missing field: {field}")
+                        return False
+                
+                # Verify values
+                if followers_response.get('total_followers') != 3:
+                    self.log_test("Followers Status Values", False, f"Expected total_followers=3, got {followers_response.get('total_followers')}")
+                    return False
+                
+                # effective_max_actions should be 20 + 3 = 23
+                if followers_response.get('effective_max_actions') != 23:
+                    self.log_test("Followers Status Values", False, f"Expected effective_max_actions=23, got {followers_response.get('effective_max_actions')}")
+                    return False
+                
+                self.log_test("Followers Status Validation", True, "Followers status endpoint working correctly")
+        
+        # Test 4: POST /api/challenges (with allow_followers_help)
+        print("  ⚔️ Testing POST /api/challenges with allow_followers_help...")
+        
+        challenge_data = {
+            "name": "Test Challenge with SEGUACI",
+            "description": "Una prova per testare il supporto dei SEGUACI",
+            "tests": [
+                {
+                    "attribute": "Intelligenza + Occulto",
+                    "difficulty": 8,
+                    "success_text": "Riesci a decifrare l'antico testo",
+                    "tie_text": "Comprendi parzialmente il significato",
+                    "failure_text": "Il testo rimane incomprensibile"
+                }
+            ],
+            "keywords": ["test", "seguaci"],
+            "allow_refuge_defense": False,
+            "allow_followers_help": True  # This is the key field to test
+        }
+        
+        success, challenge_response = self.run_test(
+            "Create Challenge with allow_followers_help=True",
+            "POST",
+            "challenges",
+            200,
+            data=challenge_data,
+            headers={'Authorization': f'Bearer {admin_token}'}
+        )
+        
+        if success and 'id' in challenge_response:
+            challenge_id = challenge_response['id']
+            
+            # Verify allow_followers_help was saved correctly
+            if challenge_response.get('allow_followers_help') != True:
+                self.log_test("Challenge allow_followers_help Field", False, f"Expected allow_followers_help=True, got {challenge_response.get('allow_followers_help')}")
+                return False
+            else:
+                self.log_test("Challenge allow_followers_help Field", True, "allow_followers_help field saved correctly")
+            
+            # Test 5: PUT /api/challenges/{id} (with allow_followers_help)
+            print("  ✏️ Testing PUT /api/challenges/{id} with allow_followers_help...")
+            
+            # Update challenge to disable followers help
+            update_data = {
+                "name": "Test Challenge with SEGUACI (Updated)",
+                "description": "Una prova per testare il supporto dei SEGUACI (aggiornata)",
+                "tests": [
+                    {
+                        "attribute": "Intelligenza + Occulto",
+                        "difficulty": 7,  # Changed difficulty
+                        "success_text": "Riesci a decifrare l'antico testo",
+                        "tie_text": "Comprendi parzialmente il significato",
+                        "failure_text": "Il testo rimane incomprensibile"
+                    }
+                ],
+                "keywords": ["test", "seguaci", "updated"],
+                "allow_refuge_defense": False,
+                "allow_followers_help": False  # Changed to False
+            }
+            
+            success, update_response = self.run_test(
+                "Update Challenge with allow_followers_help=False",
+                "PUT",
+                f"challenges/{challenge_id}",
+                200,
+                data=update_data,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+            
+            if success:
+                # Verify the challenge was updated
+                success, get_response = self.run_test(
+                    "GET Updated Challenge",
+                    "GET",
+                    "challenges",
+                    200,
+                    headers={'Authorization': f'Bearer {admin_token}'}
+                )
+                
+                if success:
+                    # Find our updated challenge
+                    updated_challenge = next((c for c in get_response if c.get('id') == challenge_id), None)
+                    
+                    if not updated_challenge:
+                        self.log_test("Challenge Update Verification", False, "Updated challenge not found")
+                        return False
+                    
+                    # Verify allow_followers_help was updated to False
+                    if updated_challenge.get('allow_followers_help') != False:
+                        self.log_test("Challenge Update allow_followers_help", False, f"Expected allow_followers_help=False, got {updated_challenge.get('allow_followers_help')}")
+                        return False
+                    
+                    # Verify other fields were updated
+                    if updated_challenge.get('name') != "Test Challenge with SEGUACI (Updated)":
+                        self.log_test("Challenge Update Name", False, f"Expected updated name, got '{updated_challenge.get('name')}'")
+                        return False
+                    
+                    if len(updated_challenge.get('tests', [])) > 0 and updated_challenge['tests'][0].get('difficulty') != 7:
+                        self.log_test("Challenge Update Difficulty", False, f"Expected difficulty=7, got {updated_challenge['tests'][0].get('difficulty')}")
+                        return False
+                    
+                    self.log_test("Challenge Update Verification", True, "Challenge updated successfully with allow_followers_help=False")
+            
+            # Test 6: Challenge attempt with followers_to_use
+            print("  🎲 Testing Challenge attempt with followers_to_use...")
+            
+            # Attempt the challenge using SEGUACI
+            attempt_data = {
+                "challenge_id": challenge_id,
+                "test_index": 0,
+                "player_value": 4,
+                "use_refuge": False,
+                "followers_to_use": 2  # Use 2 SEGUACI to reduce difficulty
+            }
+            
+            success, attempt_response = self.run_test(
+                "Attempt Challenge with followers_to_use=2",
+                "POST",
+                "challenges/attempt",
+                200,
+                data=attempt_data,
+                headers={'Authorization': f'Bearer {player_token}'}
+            )
+            
+            if success:
+                # Verify the attempt was processed
+                required_fields = ['challenge_name', 'attribute', 'player_value', 'player_roll', 
+                                 'player_result', 'difficulty', 'difficulty_roll', 'difficulty_result', 'outcome']
+                for field in required_fields:
+                    if field not in attempt_response:
+                        self.log_test("Challenge Attempt Response Fields", False, f"Missing field: {field}")
+                        return False
+                
+                # The difficulty should have been reduced by followers (but we can't easily verify the internal calculation)
+                # We can verify that the attempt was processed successfully
+                self.log_test("Challenge Attempt with SEGUACI", True, f"Challenge attempt processed: {attempt_response.get('outcome')}")
+            
+            # Cleanup: delete the test challenge
+            try:
+                self.run_test(
+                    "Cleanup Test Challenge",
+                    "DELETE",
+                    f"challenges/{challenge_id}",
+                    200,
+                    headers={'Authorization': f'Bearer {admin_token}'}
+                )
+            except:
+                pass
+        
+        return True
+
     def run_all_tests(self):
         """Run all tests"""
         print("🔍 Starting L'Archivio Maledetto API Tests...")
