@@ -9,8 +9,8 @@ export const translations = {
     },
     hero: {
       subtitle: 'Ashes to Ashes',
-      description: 'Un esclusivo evento Larp ambientato in Vampire: The Dark Ages. 200 anime. Una notte. Oscurità eterna.',
-      cta: 'Entra nella notte',
+      description: 'Un esclusivo evento nordic Larp tratto da Vampire: The Dark Ages. Una notte eterna.',
+      cta: 'Diventa un immortale',
       scroll: 'Scorri per scoprire'
     },
     story: {
@@ -115,8 +115,8 @@ export const translations = {
     },
     hero: {
       subtitle: 'Ashes to Ashes',
-      description: 'An exclusive Vampire: The Dark Ages Larp event. 200 souls. One night. Eternal darkness.',
-      cta: 'Enter the night',
+      description: 'An exclusive nordic Larp event inspired by Vampire: The Dark Ages. An eternal night.',
+      cta: 'Become an immortal',
       scroll: 'Scroll to discover'
     },
     story: {
