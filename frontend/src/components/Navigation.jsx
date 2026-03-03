@@ -57,7 +57,7 @@ export const Navigation = () => {
               key={link.href}
               href={link.href}
               onClick={(e) => scrollToSection(e, link.href)}
-              className="nav-link font-subheading text-sm uppercase tracking-widest text-white/70 hover:text-gold transition-colors duration-300"
+              className="nav-link font-subheading text-sm tracking-widest text-white/70 hover:text-gold transition-colors duration-300"
               data-testid={`nav-link-${link.href.replace('#', '')}`}
             >
               {link.label}
