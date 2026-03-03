@@ -4,13 +4,13 @@ export const translations = {
       story: 'Ambientazione',
       rules: 'Regolamento',
       gallery: 'Galleria',
-      faq: 'FAQ',
+      faq: 'Faq',
       contact: 'Contatti'
     },
     hero: {
       subtitle: 'Ashes to Ashes',
-      description: 'Un esclusivo evento LARP ambientato in Vampire: The Dark Ages. 200 anime. Una notte. Oscurità eterna.',
-      cta: 'Entra nella Notte',
+      description: 'Un esclusivo evento Larp ambientato in Vampire: The Dark Ages. 200 anime. Una notte. Oscurità eterna.',
+      cta: 'Entra nella notte',
       scroll: 'Scorri per scoprire'
     },
     story: {
@@ -21,11 +21,11 @@ export const translations = {
       paragraph3: 'In questa notte, ogni decisione avrà conseguenze eterne. Chi sarete voi in questo mondo di oscurità? Un nobile Ventrue che governa dalle ombre? Un Toreador ossessionato dalla bellezza mortale? O forse un Nosferatu che raccoglie segreti nelle profondità della terra?',
       location: {
         title: 'Location',
-        value: 'Coming Soon'
+        value: 'Coming soon'
       },
       date: {
         title: 'Data',
-        value: 'To Be Announced'
+        value: 'Da annunciare'
       },
       players: {
         title: 'Giocatori',
@@ -33,21 +33,21 @@ export const translations = {
       }
     },
     rules: {
-      heading: 'Regolamento Nordic LARP',
+      heading: 'Regolamento Nordic Larp',
       subheading: 'Immersione totale, meccaniche minimali',
       items: [
         {
-          title: 'Immersione Prima di Tutto',
+          title: 'Immersione prima di tutto',
           desc: 'Gioca per perdere. La storia è più importante della vittoria. Non siamo qui per vincere, ma per creare insieme un\'esperienza indimenticabile.',
           icon: 'Eye'
         },
         {
-          title: 'What You See Is What You Get',
+          title: 'What you see is what you get',
           desc: 'Meccaniche minimali. Se colpisci, colpisci. Se piangi, piangi. Niente dadi, niente schede - solo interpretazione pura.',
           icon: 'Sword'
         },
         {
-          title: 'Sicurezza e Consenso',
+          title: 'Sicurezza e consenso',
           desc: 'Meccaniche di sicurezza rigorose garantiscono che il coinvolgimento emotivo rimanga controllato. Il tuo benessere viene prima di tutto.',
           icon: 'Shield'
         }
@@ -68,15 +68,15 @@ export const translations = {
     },
     faq: {
       heading: 'Sussurri e Voci',
-      subheading: 'Domande Frequenti',
+      subheading: 'Domande frequenti',
       items: [
         {
           q: 'Quando e dove si svolgerà l\'evento?',
           a: 'La location e la data sono attualmente avvolte nel mistero. Stiamo selezionando il castello perfetto per ospitare questo conclave di ombre. Iscriviti alla pre-registrazione per essere tra i primi a saperlo.'
         },
         {
-          q: 'Cos\'è il Nordic LARP?',
-          a: 'Il Nordic LARP è uno stile di gioco di ruolo dal vivo che enfatizza l\'immersione totale, la collaborazione narrativa e la visione artistica rispetto alle meccaniche di gioco tradizionali. Niente dadi, niente punti - solo interpretazione pura e coinvolgimento emotivo.'
+          q: 'Cos\'è il Nordic Larp?',
+          a: 'Il Nordic Larp è uno stile di gioco di ruolo dal vivo che enfatizza l\'immersione totale, la collaborazione narrativa e la visione artistica rispetto alle meccaniche di gioco tradizionali. Niente dadi, niente punti - solo interpretazione pura e coinvolgimento emotivo.'
         },
         {
           q: 'Il costume è obbligatorio?',
@@ -92,7 +92,7 @@ export const translations = {
         },
         {
           q: 'Posso partecipare da solo?',
-          a: 'Assolutamente sì. Il LARP è un\'ottima occasione per conoscere nuove persone che condividono la tua passione. Molti giocatori vengono da soli e creano legami che durano oltre l\'evento.'
+          a: 'Assolutamente sì. Il Larp è un\'ottima occasione per conoscere nuove persone che condividono la tua passione. Molti giocatori vengono da soli e creano legami che durano oltre l\'evento.'
         }
       ]
     },
@@ -110,13 +110,13 @@ export const translations = {
       story: 'Setting',
       rules: 'Rules',
       gallery: 'Gallery',
-      faq: 'FAQ',
+      faq: 'Faq',
       contact: 'Contact'
     },
     hero: {
       subtitle: 'Ashes to Ashes',
-      description: 'An exclusive Vampire: The Dark Ages LARP event. 200 souls. One night. Eternal darkness.',
-      cta: 'Enter the Night',
+      description: 'An exclusive Vampire: The Dark Ages Larp event. 200 souls. One night. Eternal darkness.',
+      cta: 'Enter the night',
       scroll: 'Scroll to discover'
     },
     story: {
@@ -127,11 +127,11 @@ export const translations = {
       paragraph3: 'On this night, every decision will have eternal consequences. Who will you be in this world of darkness? A noble Ventrue ruling from the shadows? A Toreador obsessed with mortal beauty? Or perhaps a Nosferatu collecting secrets in the depths of the earth?',
       location: {
         title: 'Location',
-        value: 'Coming Soon'
+        value: 'Coming soon'
       },
       date: {
         title: 'Date',
-        value: 'To Be Announced'
+        value: 'To be announced'
       },
       players: {
         title: 'Players',
@@ -139,21 +139,21 @@ export const translations = {
       }
     },
     rules: {
-      heading: 'Nordic LARP Rules',
+      heading: 'Nordic Larp Rules',
       subheading: 'Total immersion, minimal mechanics',
       items: [
         {
-          title: 'Immersion First',
+          title: 'Immersion first',
           desc: 'Play to lose. The story is more important than winning. We are not here to win, but to create an unforgettable experience together.',
           icon: 'Eye'
         },
         {
-          title: 'What You See Is What You Get',
+          title: 'What you see is what you get',
           desc: 'Minimal mechanics. If you strike, you strike. If you weep, you weep. No dice, no character sheets - just pure roleplay.',
           icon: 'Sword'
         },
         {
-          title: 'Safety & Consent',
+          title: 'Safety and consent',
           desc: 'Strict safety mechanics ensure emotional involvement remains controlled. Your wellbeing comes first.',
           icon: 'Shield'
         }
@@ -173,16 +173,16 @@ export const translations = {
       note: 'Pre-registration does not guarantee a spot. You will receive an email with complete instructions.'
     },
     faq: {
-      heading: 'Whispers & Rumors',
-      subheading: 'Frequently Asked Questions',
+      heading: 'Whispers and Rumors',
+      subheading: 'Frequently asked questions',
       items: [
         {
           q: 'When and where will the event take place?',
           a: 'The location and date are currently shrouded in mystery. We are selecting the perfect castle to host this conclave of shadows. Sign up for pre-registration to be among the first to know.'
         },
         {
-          q: 'What is Nordic LARP?',
-          a: 'Nordic LARP is a style of live-action role-playing that emphasizes total immersion, narrative collaboration, and artistic vision over traditional game mechanics. No dice, no points - just pure interpretation and emotional involvement.'
+          q: 'What is Nordic Larp?',
+          a: 'Nordic Larp is a style of live-action role-playing that emphasizes total immersion, narrative collaboration, and artistic vision over traditional game mechanics. No dice, no points - just pure interpretation and emotional involvement.'
         },
         {
           q: 'Is costume mandatory?',
@@ -198,14 +198,14 @@ export const translations = {
         },
         {
           q: 'Can I participate alone?',
-          a: 'Absolutely yes. LARP is a great opportunity to meet new people who share your passion. Many players come alone and create bonds that last beyond the event.'
+          a: 'Absolutely yes. Larp is a great opportunity to meet new people who share your passion. Many players come alone and create bonds that last beyond the event.'
         }
       ]
     },
     footer: {
       tagline: 'Vampire: The Masquerade - Dark Ages live',
       organized: 'Organized by',
-      followUs: 'Follow Us',
+      followUs: 'Follow us',
       contact: 'Contact',
       rights: 'All rights reserved.',
       disclaimer: 'Vampire: The Masquerade and Dark Ages are registered trademarks of Paradox Interactive. This is a fan-made event not affiliated.'
@@ -237,6 +237,3 @@ export const galleryImages = [
     alt: 'Fairy tale castle in foggy night'
   }
 ];
-
-// To add more gallery images, simply add objects to the array above following the same format:
-// { id: 4, src: 'IMAGE_URL', alt: 'Image description' }

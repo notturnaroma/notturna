@@ -67,28 +67,12 @@
   overflow: hidden;
 }
 
-.gallery-image::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-
-.gallery-image:hover::after {
-  opacity: 0;
-}
-
 .gallery-image img {
   transition: transform 0.5s ease;
 }
 
 .gallery-image:hover img {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 /* FAQ Accordion */
