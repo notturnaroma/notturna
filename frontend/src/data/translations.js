@@ -218,22 +218,22 @@ export const translations = {
 export const galleryImages = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1768739538834-a3edb42db797?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwxfHxkYXJrJTIwbWVkaWV2YWwlMjBjYXN0bGUlMjBuaWdodCUyMGZvZyUyMGdvdGhpY3xlbnwwfHx8fDE3NzI1NzQyNDN8MA&ixlib=rb-4.1.0&q=85',
-    alt: 'Gothic building shrouded in fog at night'
+    src: 'https://images.unsplash.com/photo-1572894730326-dd4559af2d19?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMGNhc3RsZSUyMGRhcmslMjBhdG1vc3BoZXJlfGVufDB8fHx8MTc3MjU3NjExOXww&ixlib=rb-4.1.0&q=85',
+    alt: 'Medieval castle in dark atmosphere'
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1768739538833-73a1923a0d0a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwyfHxkYXJrJTIwbWVkaWV2YWwlMjBjYXN0bGUlMjBuaWdodCUyMGZvZyUyMGdvdGhpY3xlbnwwfHx8fDE3NzI1NzQyNDN8MA&ixlib=rb-4.1.0&q=85',
-    alt: 'Two figures walk towards a large cathedral in fog'
+    src: 'https://images.unsplash.com/photo-1762422411587-34429dd7c5be?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHwyfHxtZWRpZXZhbCUyMGNhc3RsZSUyMGRhcmslMjBhdG1vc3BoZXJlfGVufDB8fHx8MTc3MjU3NjExOXww&ixlib=rb-4.1.0&q=85',
+    alt: 'Old stone building with arched windows'
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1729937292383-fec11f29a55c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwzfHxkYXJrJTIwbWVkaWV2YWwlMjBjYXN0bGUlMjBuaWdodCUyMGZvZyUyMGdvdGhpY3xlbnwwfHx8fDE3NzI1NzQyNDN8MA&ixlib=rb-4.1.0&q=85',
-    alt: 'Castle in the fog'
+    src: 'https://images.unsplash.com/photo-1763910288767-f0c5c46b6841?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHw0fHxtZWRpZXZhbCUyMGNhc3RsZSUyMGRhcmslMjBhdG1vc3BoZXJlfGVufDB8fHx8MTc3MjU3NjExOXww&ixlib=rb-4.1.0&q=85',
+    alt: 'Dark spooky attic with wooden stairs'
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1717329808354-a51fd9c39592?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHw0fHxkYXJrJTIwbWVkaWV2YWwlMjBjYXN0bGUlMjBuaWdodCUyMGZvZyUyMGdvdGhpY3xlbnwwfHx8fDE3NzI1NzQyNDN8MA&ixlib=rb-4.1.0&q=85',
-    alt: 'Fairy tale castle in foggy night'
+    src: 'https://images.pexels.com/photos/2416463/pexels-photo-2416463.jpeg',
+    alt: 'Gothic castle silhouette'
   }
 ];
