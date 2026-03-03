@@ -109,7 +109,7 @@ export const Navigation = () => {
               key={link.href}
               href={link.href}
               onClick={(e) => scrollToSection(e, link.href)}
-              className="font-subheading text-sm uppercase tracking-widest text-white/70 hover:text-gold transition-colors duration-300 py-2"
+              className="font-subheading text-sm tracking-widest text-white/70 hover:text-gold transition-colors duration-300 py-2"
               data-testid={`mobile-nav-link-${link.href.replace('#', '')}`}
             >
               {link.label}
