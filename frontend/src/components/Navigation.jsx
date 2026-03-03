@@ -44,10 +44,14 @@ export const Navigation = () => {
         <a
           href="#"
           onClick={(e) => scrollToSection(e, '#hero')}
-          className="font-heading text-2xl md:text-3xl text-white hover:text-gold transition-colors duration-300"
+          className="hover:opacity-80 transition-opacity duration-300"
           data-testid="nav-logo"
         >
-          Nocturnum
+          <img 
+            src="https://customer-assets.emergentagent.com/job_nordic-vampire/artifacts/nua8yh3j_Logo%20Bianco.png" 
+            alt="Lucis" 
+            className="h-8 md:h-10 w-auto"
+          />
         </a>
 
         {/* Desktop Navigation */}
