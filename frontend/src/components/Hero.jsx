@@ -50,7 +50,7 @@ export const Hero = () => {
         {/* CTA Button */}
         <a
           href="#register"
-          className="btn-blood inline-block font-subheading text-sm md:text-base uppercase tracking-widest px-10 py-4 rounded-sm opacity-0 animate-fade-in delay-600"
+          className="btn-blood inline-block font-subheading text-sm md:text-base tracking-widest px-10 py-4 rounded-sm opacity-0 animate-fade-in delay-600"
           data-testid="hero-cta"
         >
           {t.hero.cta}
