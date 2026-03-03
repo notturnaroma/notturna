@@ -18,7 +18,7 @@ export const Hero = () => {
       data-testid="hero-section"
       className="hero-background min-h-screen flex flex-col items-center justify-center text-center relative"
       style={{
-        backgroundImage: `url('https://customer-assets.emergentagent.com/job_741e1a34-add3-4ffc-89bc-3b063f5196fd/artifacts/b610l56l_NOCTURNUM.jpg')`
+        backgroundImage: `url('https://customer-assets.emergentagent.com/job_nordic-vampire/artifacts/os3m4fyr_NOCTURNUM%20sfondo.png')`
       }}
     >
       {/* Content */}
