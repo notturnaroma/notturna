@@ -84,7 +84,7 @@ export const Rules = () => {
         <div className="text-center">
           <a
             href="#"
-            className="inline-flex items-center gap-2 font-subheading text-sm uppercase tracking-widest text-gold/70 hover:text-gold transition-colors duration-300 group"
+            className="inline-flex items-center gap-2 font-subheading text-sm tracking-widest text-gold/70 hover:text-gold transition-colors duration-300 group"
             data-testid="rules-learn-more"
           >
             {t.rules.learnMore}
