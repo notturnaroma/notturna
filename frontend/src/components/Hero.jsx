@@ -33,7 +33,7 @@ export const Hero = () => {
 
         {/* Subtitle */}
         <h2
-          className="font-subheading text-xl md:text-2xl lg:text-3xl text-gold tracking-[0.3em] uppercase mb-8 opacity-0 animate-fade-in delay-200"
+          className="font-subheading text-xl md:text-2xl lg:text-3xl text-gold tracking-[0.2em] mb-8 opacity-0 animate-fade-in delay-200"
           data-testid="hero-subtitle"
         >
           {t.hero.subtitle}

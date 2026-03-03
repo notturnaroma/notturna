@@ -49,7 +49,7 @@ export const Story = () => {
             {t.story.heading}
           </h2>
           <p
-            className="font-subheading text-sm md:text-base text-gold/80 uppercase tracking-[0.3em]"
+            className="font-subheading text-sm md:text-base text-gold/80 tracking-[0.2em]"
             data-testid="story-subheading"
           >
             {t.story.subheading}
