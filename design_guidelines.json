@@ -1,0 +1,215 @@
+{
+  "design_system": {
+    "name": "Nocturnum Gothic",
+    "description": "A dark, immersive, and elegant design system for a Vampire: The Dark Ages LARP event. It prioritizes atmosphere, readability, and a 'medieval manuscript' aesthetic without sacrificing modern usability.",
+    "typography": {
+      "font_imports": [
+        "https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap"
+      ],
+      "family": {
+        "heading": "\"UnifrakturMaguntia\", cursive",
+        "subheading": "\"Cinzel\", serif",
+        "body": "\"Crimson Pro\", serif"
+      },
+      "usage": {
+        "h1": "text-6xl md:text-8xl font-heading text-white tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]",
+        "h2": "text-4xl md:text-5xl font-subheading text-accent-gold tracking-widest uppercase border-b border-white/10 pb-4 mb-8",
+        "h3": "text-2xl font-subheading text-white/90 tracking-wide",
+        "body": "text-lg md:text-xl font-body text-white/80 leading-relaxed",
+        "caption": "text-sm font-subheading text-white/50 uppercase tracking-widest"
+      }
+    },
+    "colors": {
+      "palette": {
+        "background": {
+          "main": "#020204",
+          "secondary": "#0a0a0f",
+          "overlay": "rgba(0, 0, 0, 0.85)"
+        },
+        "text": {
+          "primary": "#e5e5e5",
+          "secondary": "#a3a3a3",
+          "muted": "#525252"
+        },
+        "accent": {
+          "blood": "#7f1d1d",
+          "blood_hover": "#991b1b",
+          "mystic": "#4c1d95",
+          "gold": "#d4af37",
+          "gold_dim": "#8a7e57"
+        },
+        "border": {
+          "subtle": "rgba(255, 255, 255, 0.1)",
+          "strong": "rgba(212, 175, 55, 0.3)"
+        }
+      },
+      "tailwind_config_extension": {
+        "colors": {
+          "obsidian": "#020204",
+          "midnight": "#0a0a0f",
+          "blood": "#7f1d1d",
+          "gold": "#d4af37"
+        },
+        "fontFamily": {
+          "heading": ["UnifrakturMaguntia", "cursive"],
+          "subheading": ["Cinzel", "serif"],
+          "body": ["Crimson Pro", "serif"]
+        },
+        "backgroundImage": {
+          "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+          "vignette": "radial-gradient(circle, transparent 20%, #020204 120%)"
+        }
+      }
+    },
+    "layout": {
+      "spacing": {
+        "section_padding": "py-24 md:py-32",
+        "container_padding": "px-6 md:px-12",
+        "element_gap": "gap-8 md:gap-12"
+      },
+      "grid": {
+        "gallery": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
+        "features": "grid grid-cols-1 md:grid-cols-3 gap-8"
+      },
+      "container": "max-w-7xl mx-auto"
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-blood hover:bg-blood_hover text-white font-subheading uppercase tracking-widest px-8 py-4 rounded-sm transition-all duration-300 border border-white/10 hover:border-white/30 shadow-[0_0_15px_rgba(127,29,29,0.3)] hover:shadow-[0_0_25px_rgba(127,29,29,0.6)]",
+        "secondary": "bg-transparent border border-white/20 hover:border-gold/50 text-white hover:text-gold font-subheading uppercase tracking-widest px-8 py-4 rounded-sm transition-all duration-300 backdrop-blur-sm",
+        "ghost": "text-white/60 hover:text-white font-subheading uppercase tracking-widest text-sm hover:underline underline-offset-4 transition-colors"
+      },
+      "cards": {
+        "base": "bg-midnight/50 backdrop-blur-md border border-white/5 p-8 rounded-sm hover:border-white/10 transition-colors duration-500 relative overflow-hidden group",
+        "feature": "flex flex-col items-center text-center space-y-4 p-8 border border-white/5 bg-gradient-to-b from-white/5 to-transparent hover:from-white/10 transition-all duration-500"
+      },
+      "navigation": {
+        "wrapper": "fixed top-0 left-0 right-0 z-50 bg-obsidian/80 backdrop-blur-md border-b border-white/5 transition-all duration-300",
+        "link": "text-white/70 hover:text-gold font-subheading uppercase tracking-widest text-sm transition-colors duration-300"
+      }
+    },
+    "visual_enhancers": {
+      "textures": {
+        "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")",
+        "fog": "linear-gradient(to bottom, transparent, #020204)"
+      },
+      "effects": {
+        "glow": "drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]",
+        "text_shadow": "text-shadow-sm",
+        "glass": "backdrop-blur-xl bg-black/40 border border-white/10"
+      }
+    },
+    "animations": {
+      "fade_in": "animate-in fade-in duration-1000 ease-out",
+      "slide_up": "animate-in slide-in-from-bottom-10 fade-in duration-1000 ease-out",
+      "pulse_slow": "animate-pulse duration-[4000ms]"
+    }
+  },
+  "pages": {
+    "landing": {
+      "sections": [
+        {
+          "id": "hero",
+          "type": "hero",
+          "content": {
+            "title": "Nocturnum",
+            "subtitle": "Ashes to Ashes",
+            "description": "An exclusive Vampire: The Dark Ages LARP event. 200 souls. One night. Eternal darkness.",
+            "cta": "Enter the Night",
+            "background_image": "https://customer-assets.emergentagent.com/job_741e1a34-add3-4ffc-89bc-3b063f5196fd/artifacts/b610l56l_NOCTURNUM.jpg"
+          },
+          "style": "h-screen flex flex-col items-center justify-center text-center relative overflow-hidden"
+        },
+        {
+          "id": "story",
+          "type": "content_split",
+          "content": {
+            "heading": "The Setting",
+            "body": "In the heart of the 12th century, amidst the crusades and the plague, the Cainites rule the night. We invite you to a gathering of the clans, a conclave of shadows where alliances are forged in blood and broken in silence.",
+            "image": "https://images.unsplash.com/photo-1769002047961-e225557c4959?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwxfHxnb3RoaWMlMjBjYXN0bGUlMjBuaWdodCUyMGZvZ3xlbnwwfHx8fDE3NzI1NzM4OTJ8MA&ixlib=rb-4.1.0&q=85"
+          }
+        },
+        {
+          "id": "rules",
+          "type": "features",
+          "content": {
+            "heading": "Nordic LARP Rules",
+            "items": [
+              { "title": "Immersion First", "desc": "Play to lose. The story is more important than winning." },
+              { "title": "What You See Is What You Get", "desc": "Minimal mechanics. If you strike, you strike. If you weep, you weep." },
+              { "title": "Safety & Consent", "desc": "Strict safety mechanics ensure emotional bleeding is controlled." }
+            ],
+            "background_texture": "https://images.unsplash.com/photo-1467688695332-6b486449d78f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwzfHxtZWRpZXZhbCUyMHBhcmNobWVudCUyMHRleHR1cmUlMjBkYXJrfGVufDB8fHx8MTc3MjU3MzkwMnww&ixlib=rb-4.1.0&q=85"
+          }
+        },
+        {
+          "id": "gallery",
+          "type": "gallery",
+          "content": {
+            "heading": "The Archives",
+            "images": [
+              "https://images.unsplash.com/photo-1764267758843-30975c8a7f38?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwbXlzdGVyaW91cyUyMGZvcmVzdCUyMG5pZ2h0fGVufDB8fHx8MTc3MjU3Mzg5Nnww&ixlib=rb-4.1.0&q=85",
+              "https://images.unsplash.com/photo-1770150511192-6e8d78c6c17c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHw0fHxkYXJrJTIwbXlzdGVyaW91cyUyMGZvcmVzdCUyMG5pZ2h0fGVufDB8fHx8MTc3MjU3Mzg5Nnww&ixlib=rb-4.1.0&q=85",
+              "https://images.unsplash.com/photo-1667100059559-e91ea2ac0c3c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwyfHxnb3RoaWMlMjBjYXN0bGUlMjBuaWdodCUyMGZvZ3xlbnwwfHx8fDE3NzI1NzM4OTJ8MA&ixlib=rb-4.1.0&q=85"
+            ]
+          }
+        },
+        {
+          "id": "register",
+          "type": "cta",
+          "content": {
+            "heading": "Join the Bloodline",
+            "subheading": "Only 200 spots available. Pre-register now.",
+            "button_text": "Sign the Book of Nod",
+            "link": "https://docs.google.com/forms/"
+          }
+        },
+        {
+          "id": "faq",
+          "type": "accordion",
+          "content": {
+            "heading": "Whispers & Rumors (FAQ)",
+            "items": [
+              { "q": "When and where?", "a": "The location and date are currently shrouded in mystery (TBA)." },
+              { "q": "What is Nordic LARP?", "a": "It focuses on immersion, collaboration, and artistic vision over gamist mechanics." },
+              { "q": "Is costume mandatory?", "a": "Yes. Strict 12th-century attire is required." }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Install 'lucide-react' for icons. Use 'framer-motion' for animations if available, otherwise standard CSS transitions.",
+    "2. FONTS: Import the Google Fonts specified in typography.font_imports in your index.css or index.html.",
+    "3. TAILWIND: Extend the tailwind.config.js with the colors and font families provided.",
+    "4. COMPONENTS: Build the sections as separate components. Use the 'glass' effect for the navigation bar.",
+    "5. IMAGES: Use the provided Unsplash URLs. For the Hero background, use the user-provided 'customer-assets' URL.",
+    "6. LANGUAGE: Implement a simple state toggle for English/Italian. Just mock the text translation for now (e.g., 'Story' -> 'Storia').",
+    "7. GALLERY: Create a simple grid. The 'easy photo management' requirement means you should store the image list in a constant array so it's easy to edit in code.",
+    "8. SOCIALS: Use Lucide icons for Facebook, Instagram, Mail. Use a generic 'Globe' or 'MessageCircle' for Discord if specific icon is missing.",
+    "9. ACCESSIBILITY: Ensure text contrast is high. The 'blood' red should only be used for large text or buttons, not body text.",
+    "10. DO NOT use gradients for backgrounds unless it's a subtle vignette. Use solid dark colors or texture overlays."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use sonner for toasts",
+    "Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}
