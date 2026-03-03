@@ -49,7 +49,7 @@ export const Register = () => {
           href={googleFormUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn-blood inline-block font-subheading text-sm md:text-base uppercase tracking-widest px-12 py-5 rounded-sm"
+          className="btn-blood inline-block font-subheading text-sm md:text-base tracking-widest px-12 py-5 rounded-sm"
           data-testid="register-cta-button"
         >
           {t.register.button}
