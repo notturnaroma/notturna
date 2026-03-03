@@ -30,7 +30,7 @@ export const Register = () => {
 
         {/* Subheading */}
         <p
-          className="font-subheading text-sm md:text-base text-gold/80 uppercase tracking-[0.3em] mb-8"
+          className="font-subheading text-sm md:text-base text-gold/80 tracking-[0.2em] mb-8"
           data-testid="register-subheading"
         >
           {t.register.subheading}
