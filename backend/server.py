@@ -814,10 +814,13 @@ async def get_uploaded_file(filename: str):
 
 @api_router.post("/chat", response_model=ChatResponse)
 async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
-    # Check action limit (usa limite effettivo 20 + SEGUACI - SEGUACI_spesi)
-    effective_max = await get_effective_max_actions(user)
-    if user["used_actions"] >= effective_max:
-        raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
+    # Admin/Narrazione: nessun limite azioni
+    is_admin = user.get("role") in ["admin", "Narrazione"]
+    if not is_admin:
+        # Check action limit (usa limite effettivo 20 + SEGUACI - SEGUACI_spesi)
+        effective_max = await get_effective_max_actions(user)
+        if user["used_actions"] >= effective_max:
+            raise HTTPException(status_code=403, detail="Hai esaurito le tue azioni disponibili")
     
     # Recupera background del PG per filtrare in base ai requisiti
     bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0}) or {}
@@ -952,11 +955,12 @@ Basati SOLO sulle informazioni fornite nel contesto seguente.
     }
     await db.chat_history.insert_one(chat_doc)
     
-    # Update used actions
-    await db.users.update_one(
-        {"id": user["id"]},
-        {"$inc": {"used_actions": 1}}
-    )
+    # Update used actions (solo per non-admin)
+    if not is_admin:
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$inc": {"used_actions": 1}}
+        )
     
     return ChatResponse(
         id=chat_id,
@@ -1220,11 +1224,13 @@ async def session_chat(data: SessionChatRequest, user: dict = Depends(get_curren
     
     # Se non c'è sessione attiva, verifica limite azioni e crea nuova sessione
     if not session:
-        # Check action limit solo per nuove sessioni
-        effective_max = await get_effective_max_actions(user)
-        if user["used_actions"] >= effective_max:
-            raise HTTPException(status_code=403, detail="Hai esaurito le tue consultazioni disponibili")
-        
+        # Admin/Narrazione: nessun limite, nessun consumo di azioni
+        is_admin = user.get("role") in ["admin", "Narrazione"]
+        if not is_admin:
+            effective_max = await get_effective_max_actions(user)
+            if user["used_actions"] >= effective_max:
+                raise HTTPException(status_code=403, detail="Hai esaurito le tue consultazioni disponibili")
+
         # Crea nuova sessione
         session_id = str(uuid.uuid4())
         session = {
@@ -1238,12 +1244,13 @@ async def session_chat(data: SessionChatRequest, user: dict = Depends(get_curren
         }
         await db.consultation_sessions.insert_one(session)
         is_new_session = True
-        
-        # Incrementa azioni usate solo per nuova sessione
-        await db.users.update_one(
-            {"id": user["id"]},
-            {"$inc": {"used_actions": 1}}
-        )
+
+        # Incrementa azioni usate solo per giocatori (non admin)
+        if not is_admin:
+            await db.users.update_one(
+                {"id": user["id"]},
+                {"$inc": {"used_actions": 1}}
+            )
     
     # Salva messaggio utente
     user_msg_id = str(uuid.uuid4())
