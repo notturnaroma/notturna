@@ -38,13 +38,15 @@ import {
   UserCog,
   Package,
   Archive,
-  MapPin
+  MapPin,
+  UserCircle
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
 import AidsPanel from "@/components/AidsPanel";
 import ResourcesPanel from "@/components/ResourcesPanel";
 import WorldEventsPanel from "@/components/WorldEventsPanel";
+import NPCsPanel from "@/components/NPCsPanel";
 import EditBackgroundModal from "@/components/EditBackgroundModal";
 import ViewEquipmentModal from "@/components/ViewEquipmentModal";
 import ViewArchiveModal from "@/components/ViewArchiveModal";
@@ -353,6 +355,14 @@ export default function AdminPanel({ user, token, onLogout }) {
             >
               <MapPin className="w-4 h-4 mr-2" />
               MONDO
+            </TabsTrigger>
+            <TabsTrigger 
+              value="npcs" 
+              className="font-cinzel data-[state=active]:bg-gold/20 data-[state=active]:text-gold rounded-sm"
+              data-testid="npcs-tab"
+            >
+              <UserCircle className="w-4 h-4 mr-2" />
+              PNG
             </TabsTrigger>
           </TabsList>
 
@@ -789,6 +799,10 @@ export default function AdminPanel({ user, token, onLogout }) {
 
           <TabsContent value="world-events">
             <WorldEventsPanel token={token} />
+          </TabsContent>
+
+          <TabsContent value="npcs">
+            <NPCsPanel token={token} />
           </TabsContent>
         </Tabs>
       </main>

@@ -247,6 +247,72 @@ class AppSettingsResponse(BaseModel):
     event_window_start: Optional[str] = None
     event_window_end: Optional[str] = None
 
+# ==================== PNG (NPC) MODELS ====================
+
+class NPCCreate(BaseModel):
+    """PNG: Personaggio Non Giocante gestito dalla Narrazione"""
+    name: str
+    aliases: Optional[List[str]] = []  # nomi alternativi/soprannomi con cui i PG possono riferirsi al PNG
+    clan: Optional[str] = None
+    location: Optional[str] = None  # dove si trova di solito
+    mood_initial: str = "Neutrale"  # Ostile, Diffidente, Neutrale, Amichevole, Servile
+    personality: str = ""  # tono di voce, tratti caratteriali, stile di parlata
+    knowledge_public: Optional[str] = ""  # info accessibili a tutti con approccio neutro
+    knowledge_conditional: Optional[str] = ""  # info disponibili con fiducia guadagnata / prova superata
+    knowledge_secret: Optional[str] = ""  # info rivelabili SOLO con Discipline efficaci / successo critico
+    triggers_open: Optional[str] = None  # cosa apre il PNG
+    triggers_close: Optional[str] = None  # cosa chiude il PNG
+    never_says: Optional[str] = None  # cose che non dirà mai
+    exclusive: bool = False  # se True, le interazioni non sono visibili ad altri PG
+    exclusive_rules: Optional[str] = None  # regole personalizzate per PNG esclusivi
+
+class NPCUpdate(BaseModel):
+    name: Optional[str] = None
+    aliases: Optional[List[str]] = None
+    clan: Optional[str] = None
+    location: Optional[str] = None
+    mood_initial: Optional[str] = None
+    personality: Optional[str] = None
+    knowledge_public: Optional[str] = None
+    knowledge_conditional: Optional[str] = None
+    knowledge_secret: Optional[str] = None
+    triggers_open: Optional[str] = None
+    triggers_close: Optional[str] = None
+    never_says: Optional[str] = None
+    exclusive: Optional[bool] = None
+    exclusive_rules: Optional[str] = None
+
+class NPCResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    aliases: List[str] = []
+    clan: Optional[str] = None
+    location: Optional[str] = None
+    mood_initial: str
+    personality: str
+    knowledge_public: Optional[str] = ""
+    knowledge_conditional: Optional[str] = ""
+    knowledge_secret: Optional[str] = ""
+    triggers_open: Optional[str] = None
+    triggers_close: Optional[str] = None
+    never_says: Optional[str] = None
+    exclusive: bool = False
+    exclusive_rules: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+class NPCInteractionResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    npc_id: str
+    npc_name: str
+    user_id: str
+    user_name: str
+    user_message: str
+    npc_response: str
+    created_at: str
+
 # ==================== PROVE LARP MODELS ====================
 
 class ContrastingTest(BaseModel):
@@ -961,6 +1027,122 @@ async def get_world_events_for_location(location: str, days: int = 7) -> List[di
     ).sort("created_at", -1).to_list(100)
     return events
 
+# ==================== PNG HELPERS ====================
+
+async def detect_npc_in_message(message: str) -> Optional[dict]:
+    """Rileva se il messaggio del giocatore menziona un PNG registrato (per nome o alias).
+    Ritorna la scheda PNG completa oppure None."""
+    npcs = await db.npcs.find({}, {"_id": 0}).to_list(1000)
+    message_lower = message.lower()
+    # Priorità: match più lungo vince (evita che "Marco" prevalga su "Marco Valenti")
+    matched = []
+    for npc in npcs:
+        candidates = [npc.get("name", "")] + (npc.get("aliases", []) or [])
+        for cand in candidates:
+            if not cand or len(cand) < 3:
+                continue
+            if cand.lower() in message_lower:
+                matched.append((len(cand), npc))
+                break
+    if not matched:
+        return None
+    matched.sort(key=lambda x: x[0], reverse=True)
+    return matched[0][1]
+
+async def get_npc_memory(npc_id: str, current_user_id: str, exclusive: bool, limit_others: int = 8, limit_own: int = 5) -> dict:
+    """Recupera la memoria del PNG.
+    - Se exclusive=True: ritorna solo le interazioni del PG corrente.
+    - Altrimenti: ritorna le ultime interazioni con altri PG + con sé stesso."""
+    own = await db.npc_interactions.find(
+        {"npc_id": npc_id, "user_id": current_user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit_own)
+
+    others = []
+    if not exclusive:
+        others = await db.npc_interactions.find(
+            {"npc_id": npc_id, "user_id": {"$ne": current_user_id}},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(limit_others)
+
+    return {"own": list(reversed(own)), "others": list(reversed(others))}
+
+def build_npc_context(npc: dict, memory: dict) -> str:
+    """Costruisce il blocco di contesto per il system prompt con scheda PNG + memoria."""
+    lines = []
+    lines.append("=== SCHEDA PNG ATTIVA ===")
+    lines.append(f"NOME: {npc['name']}")
+    if npc.get("aliases"):
+        lines.append(f"ALIAS: {', '.join(npc['aliases'])}")
+    if npc.get("clan"):
+        lines.append(f"CLAN: {npc['clan']}")
+    if npc.get("location"):
+        lines.append(f"LUOGO: {npc['location']}")
+    lines.append(f"MOOD INIZIALE: {npc.get('mood_initial', 'Neutrale')}")
+    if npc.get("personality"):
+        lines.append(f"PERSONALITÀ / TONO: {npc['personality']}")
+    if npc.get("knowledge_public"):
+        lines.append(f"\nCONOSCENZE PUBBLICHE (Livello 1 - accessibili con approccio neutro):\n{npc['knowledge_public']}")
+    if npc.get("knowledge_conditional"):
+        lines.append(f"\nCONOSCENZE CONDIZIONALI (Livello 2 - fiducia guadagnata o prova superata):\n{npc['knowledge_conditional']}")
+    if npc.get("knowledge_secret"):
+        lines.append(f"\nCONOSCENZE SEGRETE (Livello 3 - SOLO con Discipline efficaci o successo critico):\n{npc['knowledge_secret']}")
+    if npc.get("triggers_open"):
+        lines.append(f"\nCOSA APRE IL PNG: {npc['triggers_open']}")
+    if npc.get("triggers_close"):
+        lines.append(f"COSA CHIUDE IL PNG: {npc['triggers_close']}")
+    if npc.get("never_says"):
+        lines.append(f"COSA NON DIRÀ MAI: {npc['never_says']}")
+
+    # Regole di esclusività
+    if npc.get("exclusive"):
+        lines.append("\n=== PNG ESCLUSIVO ===")
+        lines.append("Questo PNG è ESCLUSIVO. Le sue interazioni con questo PG NON sono condivise con altri PG.")
+        if npc.get("exclusive_rules"):
+            lines.append(f"REGOLE SPECIFICHE DI ESCLUSIVITÀ:\n{npc['exclusive_rules']}")
+        lines.append("=== FINE ESCLUSIVITÀ ===")
+
+    # Memoria interazioni con altri PG
+    if memory.get("others"):
+        lines.append("\n=== MEMORIA DEL PNG: INCONTRI PRECEDENTI CON ALTRI PG ===")
+        lines.append("Il PNG ricorda questi incontri passati. Le informazioni già rivelate sono ora DISPONIBILI anche per il PG attuale se il PNG decide di condividerle (stesso livello di confidenza raggiunto con gli altri).")
+        for i, m in enumerate(memory["others"], 1):
+            lines.append(f"\n[{m.get('created_at', '')[:10]}] Con {m.get('user_name', '?')}:")
+            lines.append(f"  PG ha detto: «{m.get('user_message', '')[:300]}»")
+            lines.append(f"  {npc['name']} ha risposto: «{m.get('npc_response', '')[:400]}»")
+        lines.append("=== FINE MEMORIA ALTRI PG ===")
+        lines.append("IMPORTANTE: Se il PG attuale chiede di altri PG, il PNG può nominarli (ricorda chi è venuto e quando). Il PNG può anche dire 'l'ho già raccontato a qualcun altro' ma le info restano comunque accessibili.")
+
+    # Memoria interazioni con il PG corrente
+    if memory.get("own"):
+        lines.append("\n=== MEMORIA DEL PNG: INCONTRI PRECEDENTI CON QUESTO STESSO PG ===")
+        lines.append("Il PNG ricorda esplicitamente di aver già parlato con questo specifico PG. NON ripetere le stesse informazioni — riprendi da dove avevate lasciato.")
+        for i, m in enumerate(memory["own"], 1):
+            lines.append(f"\n[{m.get('created_at', '')[:10]}]")
+            lines.append(f"  PG: «{m.get('user_message', '')[:300]}»")
+            lines.append(f"  {npc['name']}: «{m.get('npc_response', '')[:400]}»")
+        lines.append("=== FINE MEMORIA CON QUESTO PG ===")
+
+    lines.append("\n=== REGOLA FERREA ===")
+    lines.append(f"NON inventare informazioni, personalità, mood o conoscenze per {npc['name']} che non siano esplicitamente presenti nella scheda sopra. Se manca un'informazione, il PNG deve deviare ('Non so', 'Non è affar tuo', cambia argomento). La coerenza del personaggio è PRIORITÀ ASSOLUTA.")
+    lines.append("=== FINE SCHEDA PNG ===")
+    return "\n".join(lines)
+
+async def save_npc_interaction(npc_id: str, npc_name: str, user_id: str, user_name: str, user_message: str, npc_response: str, session_id: Optional[str] = None):
+    """Salva l'interazione PG-PNG per costruire la memoria del PNG."""
+    doc = {
+        "id": str(uuid.uuid4()),
+        "npc_id": npc_id,
+        "npc_name": npc_name,
+        "user_id": user_id,
+        "user_name": user_name,
+        "user_message": user_message,
+        "npc_response": npc_response,
+        "session_id": session_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.npc_interactions.insert_one(doc)
+
 @api_router.post("/session/start")
 async def start_consultation_session(data: StartSessionRequest, user: dict = Depends(get_current_user)):
     """Inizia una nuova sessione di consultazione"""
@@ -1285,7 +1467,17 @@ Clan: {player_clan}
 {powers_context}
 === FINE INFO GIOCATORE ===
 """
-    
+
+    # Rileva PNG menzionato nel messaggio e costruisci contesto PNG
+    user_doc_for_npc = await db.users.find_one({"id": user["id"]}, {"_id": 0, "username": 1})
+    current_user_name = user_doc_for_npc.get("username", "Sconosciuto") if user_doc_for_npc else "Sconosciuto"
+    detected_npc = await detect_npc_in_message(data.message)
+    npc_block = ""
+    if detected_npc:
+        npc_memory = await get_npc_memory(detected_npc["id"], user["id"], bool(detected_npc.get("exclusive")))
+        npc_block = "\n\n" + build_npc_context(detected_npc, npc_memory)
+        logger.info(f"PNG rilevato: {detected_npc['name']} (esclusivo={detected_npc.get('exclusive')}, memoria_altri={len(npc_memory['others'])}, memoria_sé={len(npc_memory['own'])})")
+
     system_message = f"""Sei l'Oracolo di un LARP Vampire: The Masquerade. Questa è una SESSIONE DI ESPLORAZIONE INTERATTIVA.
 
 === REGOLE ESPLORAZIONE ===
@@ -1331,11 +1523,17 @@ Quando il giocatore incontra un PNG descritto nel contesto:
    - Non ripetere le stesse informazioni
    - Se il PG chiede qualcosa già detto, il PNG può rispondere irritato "Te l'ho già detto!"
 
+7. COERENZA ASSOLUTA CON LA SCHEDA PNG:
+   - Se il contesto contiene una "SCHEDA PNG ATTIVA", DEVI usare ESCLUSIVAMENTE quelle informazioni per mood, personalità, conoscenze e reazioni.
+   - NON inventare tratti, storie o conoscenze non presenti nella scheda.
+   - Se il PG chiede qualcosa non coperto dalla scheda, il PNG devia, cambia argomento o ammette ignoranza.
+   - Se la scheda contiene "MEMORIA del PNG" con incontri precedenti, il PNG RICORDA quegli eventi e può nominare gli altri PG già incontrati (a meno che il PNG sia ESCLUSIVO).
+
 TONO: Oscuro, gotico, atmosferico. Dialoghi realistici e cinici. Rispondi SEMPRE in italiano.
 
 === CONTESTO DELL'EVENTO ===
 {context}
-=== FINE CONTESTO ==={clan_hint}{items_hint}{challenges_hint}{world_events_context}{conversation_context}"""
+=== FINE CONTESTO ==={clan_hint}{items_hint}{challenges_hint}{world_events_context}{conversation_context}{npc_block}"""
     
     try:
         chat = LlmChat(
@@ -1379,7 +1577,22 @@ TONO: Oscuro, gotico, atmosferico. Dialoghi realistici e cinici. Rispondi SEMPRE
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.chat_history.insert_one(chat_doc)
-    
+
+    # Se abbiamo rilevato un PNG, salva l'interazione nella memoria del PNG
+    if detected_npc:
+        try:
+            await save_npc_interaction(
+                npc_id=detected_npc["id"],
+                npc_name=detected_npc["name"],
+                user_id=user["id"],
+                user_name=current_user_name,
+                user_message=data.message,
+                npc_response=answer,
+                session_id=session["id"]
+            )
+        except Exception as e:
+            logger.error(f"Errore salvataggio memoria PNG: {e}")
+
     return SessionChatResponse(
         session_id=session["id"],
         is_new_session=is_new_session,
@@ -2387,6 +2600,63 @@ async def use_aid(data: UseAid, user: dict = Depends(get_current_user)):
         "text": level_data["text"],
         "message": f"Hai ottenuto l'aiuto {level_data['level_name']} di {aid['attribute']}: {level_data['text']}"
     }
+
+# ==================== PNG (NPC) CRUD ROUTES ====================
+
+@api_router.get("/admin/npcs", response_model=List[NPCResponse])
+async def list_npcs(admin: dict = Depends(get_admin_user)):
+    """Lista tutti i PNG (solo admin/Narrazione)."""
+    npcs = await db.npcs.find({}, {"_id": 0}).sort("name", 1).to_list(1000)
+    return [NPCResponse(**n) for n in npcs]
+
+@api_router.post("/admin/npcs", response_model=NPCResponse)
+async def create_npc(data: NPCCreate, admin: dict = Depends(get_admin_user)):
+    """Crea un nuovo PNG."""
+    npc_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    doc = data.dict()
+    doc["id"] = npc_id
+    doc["created_at"] = now
+    doc["updated_at"] = now
+    await db.npcs.insert_one(doc)
+    saved = await db.npcs.find_one({"id": npc_id}, {"_id": 0})
+    return NPCResponse(**saved)
+
+@api_router.put("/admin/npcs/{npc_id}", response_model=NPCResponse)
+async def update_npc(npc_id: str, data: NPCUpdate, admin: dict = Depends(get_admin_user)):
+    """Aggiorna un PNG esistente."""
+    update_data = {k: v for k, v in data.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Nessun campo da aggiornare")
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.npcs.update_one({"id": npc_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="PNG non trovato")
+    saved = await db.npcs.find_one({"id": npc_id}, {"_id": 0})
+    return NPCResponse(**saved)
+
+@api_router.delete("/admin/npcs/{npc_id}")
+async def delete_npc(npc_id: str, admin: dict = Depends(get_admin_user)):
+    """Elimina un PNG e tutte le sue interazioni salvate."""
+    result = await db.npcs.delete_one({"id": npc_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="PNG non trovato")
+    await db.npc_interactions.delete_many({"npc_id": npc_id})
+    return {"message": "PNG eliminato"}
+
+@api_router.get("/admin/npcs/{npc_id}/interactions", response_model=List[NPCInteractionResponse])
+async def get_npc_interactions(npc_id: str, admin: dict = Depends(get_admin_user)):
+    """Ritorna tutte le interazioni registrate con un PNG (admin only)."""
+    interactions = await db.npc_interactions.find(
+        {"npc_id": npc_id}, {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    return [NPCInteractionResponse(**i) for i in interactions]
+
+@api_router.delete("/admin/npcs/{npc_id}/interactions")
+async def clear_npc_memory(npc_id: str, admin: dict = Depends(get_admin_user)):
+    """Azzera la memoria di un PNG (elimina tutte le interazioni)."""
+    result = await db.npc_interactions.delete_many({"npc_id": npc_id})
+    return {"deleted": result.deleted_count}
 
 app.include_router(api_router)
 

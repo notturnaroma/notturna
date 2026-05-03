@@ -66,3 +66,34 @@ Codice da inserire nel sito HTML:
 - [x] Output formato: "Con il risultato di (5×3) 15 contro (8×2) 16: testo..."
 - [x] Log tentativi prove salvato in database
 - [x] Ricerca prove per parole chiave nella chat
+
+## Aggiornamenti (Dec 2025 - v4) - Sistema PNG Coerente con Memoria Condivisa
+- [x] CRUD PNG completo nel pannello admin (tab "PNG")
+- [x] Scheda PNG strutturata: nome, alias, clan, luogo, mood iniziale, personalità, conoscenze a 3 livelli (pubblico/condizionale/segreto), trigger apertura/chiusura, cose mai dette
+- [x] Campo `PNG ESCLUSIVO` (Sì/No) con textarea dedicata per regole di esclusività
+- [x] Riconoscimento automatico PNG dal messaggio del giocatore (match su nome + alias)
+- [x] Iniezione nel system prompt di scheda PNG + memoria interazioni passate con altri PG
+- [x] Se PNG non esclusivo: il PNG ricorda chi ha già incontrato e cosa ha rivelato, disponibile anche ai nuovi PG
+- [x] Se PNG esclusivo: ogni PG ha una relazione isolata, regole personalizzate
+- [x] Salvataggio automatico di ogni interazione PG-PNG in `db.npc_interactions`
+- [x] Admin può visualizzare e azzerare la memoria di un PNG
+- [x] Regola ferrea nel prompt: se scheda PNG presente, NON inventare info/mood/personalità
+- [x] Guida integrata nel pannello PNG con esempi di compilazione
+
+## API Endpoints PNG
+- `GET /api/admin/npcs` - Lista PNG
+- `POST /api/admin/npcs` - Crea PNG
+- `PUT /api/admin/npcs/{id}` - Aggiorna PNG
+- `DELETE /api/admin/npcs/{id}` - Elimina PNG + memoria
+- `GET /api/admin/npcs/{id}/interactions` - Lista interazioni PNG-PG
+- `DELETE /api/admin/npcs/{id}/interactions` - Azzera memoria PNG
+
+## DB Schema (nuove collection)
+- `npcs`: {id, name, aliases, clan, location, mood_initial, personality, knowledge_public, knowledge_conditional, knowledge_secret, triggers_open, triggers_close, never_says, exclusive, exclusive_rules, created_at, updated_at}
+- `npc_interactions`: {id, npc_id, npc_name, user_id, user_name, user_message, npc_response, session_id, created_at}
+
+## Backlog corrente
+- P1: Refactoring `server.py` in moduli separati (>2600 righe)
+- P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice
+- P2: Validazione RAG con PDF categorizzati (LUOGHI/PERSONAGGI/TRAME) - richiede upload utente
+
