@@ -8,7 +8,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 
-BASE_URL = "https://larp-oracle.preview.emergentagent.com/api"
+BASE_URL = "https://larp-oracle-1.preview.emergentagent.com/api"
 
 def test_aids_system():
     """Test the AIDS system according to the review requirements"""

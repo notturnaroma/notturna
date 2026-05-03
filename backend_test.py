@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 
 class ArchivioMaledettoAPITester:
-    def __init__(self, base_url="https://larp-oracle.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://larp-oracle-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.admin_token = None
