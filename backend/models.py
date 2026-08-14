@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    username: str
+    player_name: str
+    character_name: str
     region: Optional[str] = None
 
 REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"]
@@ -28,6 +29,7 @@ class UserResponse(BaseModel):
     region: Optional[str] = None
     sheet_id: Optional[str] = None
     sheet_name: Optional[str] = None
+    player_name: Optional[str] = None
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -296,6 +298,7 @@ class ContrastingTest(BaseModel):
     success_text: str
     tie_text: str
     failure_text: str
+    knowledge_type: Optional[str] = None  # Tipologia di conoscenze per il conteggio trimestrale
 
 class ChallengeCreate(BaseModel):
     name: str  # es. "Antico tomo sulla scrivania"

@@ -24,8 +24,11 @@ const emptyTest = {
   difficulty: 7,
   success_text: "",
   tie_text: "",
-  failure_text: ""
+  failure_text: "",
+  knowledge_type: ""
 };
+
+const KNOWLEDGE_TYPES = ["Accademiche classiche", "Criminalità", "Etichetta", "Militari", "Occulto", "Scienze"];
 
 const defaultAllowRefuge = false;
 const defaultAllowFollowers = true;
@@ -340,6 +343,20 @@ export default function ChallengesPanel({ token }) {
                         className="input-gothic rounded-sm"
                         data-testid={`test-${index}-attribute`}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Tipologia Conoscenze (conteggio trimestrale)</Label>
+                      <select
+                        value={test.knowledge_type || ""}
+                        onChange={(e) => updateTest(index, "knowledge_type", e.target.value)}
+                        className="input-gothic rounded-sm w-full h-10 px-3 bg-transparent text-sm"
+                        data-testid={`test-${index}-knowledge`}
+                      >
+                        <option value="" className="bg-card">Auto (dall'attributo)</option>
+                        {KNOWLEDGE_TYPES.map((k) => (
+                          <option key={k} value={k} className="bg-card">{k}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Difficoltà *</Label>

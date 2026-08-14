@@ -122,6 +122,14 @@ Codice da inserire nel sito HTML:
 - [x] REFACTORING server.py: estratti models.py (tutti i modelli Pydantic + REGIONS) e core.py (db, auth, permessi, visibilità KB, sync schede). server.py 2955→2199 righe. Regressione completa passata
 - Scheda test collegata: player@test.com ↔ idutente 133 (Rodion Raskolnikov)
 
+## Aggiornamenti (Giu 2026 - v8) - Scheda Giocatore, Registrazione Validata, Conteggio Trimestrale
+- [x] "La Mia Scheda" (MySheetModal): il giocatore vede la scheda ufficiale sincronizzata (attributi, fame, discipline, conoscenze, background, contatti) - pulsante SCHEDA nella nav Dashboard, GET /api/sheet/me
+- [x] Sync scheda MENSILE (1° del mese, lazy al login/consultazione) invece che continuo + sync FORZATO al login dopo un pallino (users.force_sheet_sync). Snapshot salvato in users.sheet_data
+- [x] Registrazione con "Nome e Cognome Giocatore" + "Nome Personaggio": almeno uno deve coincidere (case-insensitive) con nomeplayer/nomepg del DB schede; auto-collegamento scheda; blocco se scheda già collegata ad altro account
+- [x] CONTEGGIO TRIMESTRALE INVISIBILE (trimestri da Settembre: Set-Ott-Nov, Dic-Gen-Feb, Mar-Apr-Mag, Giu-Lug-Ago): ogni Prova Contrapposta superata/pareggiata incrementa il contatore della tipologia di conoscenze del test (campo knowledge_type nel form Prove admin, o auto-derivato dall'attributo via KNOWLEDGE_MAP in core.py). A 5 vittorie/pareggi: pop-up "Il Sangue Ricorda - aggiungi un pallino a X" (PallinoModal), contatore azzerato, sync forzato al prossimo login. Collezioni: knowledge_progress, notifications
+- [x] Endpoint admin GET /api/admin/knowledge-progress/{user_id} (conteggi visibili solo alla Narrazione)
+- [x] Testato E2E: registrazione match/no-match/duplicato, 5 prove vinte -> pop-up Occulto -> ack -> sync al login
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

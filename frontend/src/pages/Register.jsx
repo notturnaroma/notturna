@@ -21,6 +21,7 @@ const REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"];
 export default function Register({ onLogin }) {
   const { settings } = useSettings();
   const [username, setUsername] = useState("");
+  const [playerName, setPlayerName] = useState("");
   const [email, setEmail] = useState("");
   const [region, setRegion] = useState("");
   const [password, setPassword] = useState("");
@@ -53,7 +54,7 @@ export default function Register({ onLogin }) {
       const response = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, region })
+        body: JSON.stringify({ player_name: playerName, character_name: username, email, password, region })
       });
 
       const data = await response.json();
@@ -92,19 +93,38 @@ export default function Register({ onLogin }) {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
+              <Label htmlFor="playerName" className="font-cinzel text-gold uppercase tracking-wide text-sm">
+                Nome e Cognome Giocatore
+              </Label>
+              <Input
+                id="playerName"
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="Come indicato sulla tua scheda"
+                required
+                className="input-gothic rounded-sm h-12"
+                data-testid="player-name-input"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="username" className="font-cinzel text-gold uppercase tracking-wide text-sm">
-                Nome Utente
+                Nome Personaggio
               </Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Il tuo nome"
+                placeholder="Il nome del tuo PG"
                 required
                 className="input-gothic rounded-sm h-12"
                 data-testid="username-input"
               />
+              <p className="font-body text-xs text-muted-foreground">
+                Almeno uno dei due deve coincidere con la tua scheda ufficiale.
+              </p>
             </div>
 
             <div className="space-y-2">

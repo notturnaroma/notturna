@@ -32,6 +32,7 @@ from core import (
     get_current_user, get_admin_user, get_target_for_admin_action,
     check_kb_region_rights, has_required_contacts, has_required_background,
     is_doc_visible_to_player, get_oracle_tone_hint, apply_sheet_sync, get_sheet_block,
+    ensure_sheet_synced, derive_knowledge_from_attribute, quarter_key, KNOWLEDGE_TYPES,
 )
 
 app = FastAPI()
@@ -64,28 +65,62 @@ async def register(data: UserCreate):
     existing = await db.users.find_one({"email": data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email già registrata")
-    
+
+    # Verifica corrispondenza con il database schede (case-insensitive)
+    try:
+        sheets_list = await fetch_sheet_list()
+    except Exception:
+        raise HTTPException(status_code=502, detail="Database schede non raggiungibile. Riprova più tardi.")
+    cname = data.character_name.strip().lower()
+    pname = data.player_name.strip().lower()
+    match = next((s for s in sheets_list if str(s.get("nomepg", "")).strip().lower() == cname), None)
+    if not match:
+        match = next((s for s in sheets_list if str(s.get("nomeplayer", "")).strip().lower() == pname), None)
+    if not match:
+        raise HTTPException(
+            status_code=403,
+            detail="Nessuna scheda corrisponde: il Nome e Cognome Giocatore o il Nome Personaggio devono coincidere con quelli della scheda ufficiale."
+        )
+    already_linked = await db.users.find_one({"sheet_id": str(match["idutente"])})
+    if already_linked:
+        raise HTTPException(status_code=403, detail="Questa scheda è già collegata a un altro account. Contatta la Narrazione.")
+
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
     region = data.region if data.region in REGIONS else None
     user_doc = {
         "id": user_id,
         "email": data.email,
-        "username": data.username,
+        "username": data.character_name.strip(),
+        "player_name": data.player_name.strip(),
         "password_hash": hash_password(data.password),
         "role": "player",
         "region": region,
+        "sheet_id": str(match["idutente"]),
+        "sheet_name": match.get("nomepg"),
         "max_actions": 20,
         "used_actions": 0,
         "created_at": now.isoformat(),
         "last_action_reset": now.isoformat()
     }
     await db.users.insert_one(user_doc)
-    
+
+    # Sincronizzazione iniziale della scheda
+    try:
+        sheet_data, _ = await fetch_sheet(str(match["idutente"]), force=True)
+        await apply_sheet_sync(user_id, sheet_data)
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {"sheet_data": sheet_data, "sheet_sync_month": now.strftime("%Y-%m"), "force_sheet_sync": False}}
+        )
+    except Exception as e:
+        logger.warning(f"Sync iniziale scheda fallito per {data.email}: {e}")
+
     token = create_token(user_id, "player")
     user_response = UserResponse(
-        id=user_id, email=data.email, username=data.username,
-        role="player", max_actions=20, used_actions=0, region=region
+        id=user_id, email=data.email, username=data.character_name.strip(),
+        role="player", max_actions=20, used_actions=0, region=region,
+        sheet_id=str(match["idutente"]), sheet_name=match.get("nomepg"), player_name=data.player_name.strip()
     )
     return TokenResponse(access_token=token, user=user_response)
 
@@ -97,12 +132,16 @@ async def login(data: UserLogin):
     if user.get("blocked"):
         raise HTTPException(status_code=403, detail="Account bloccato dalla Narrazione")
 
+    # Sync mensile / forzato della scheda al log-in
+    user, _ = await ensure_sheet_synced(user)
+
     token = create_token(user["id"], user["role"])
     user_response = UserResponse(
         id=user["id"], email=user["email"], username=user["username"],
         role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"],
         is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False),
-        region=user.get("region")
+        region=user.get("region"), sheet_id=user.get("sheet_id"), sheet_name=user.get("sheet_name"),
+        player_name=user.get("player_name")
     )
     return TokenResponse(access_token=token, user=user_response)
 
@@ -112,7 +151,8 @@ async def get_me(user: dict = Depends(get_current_user)):
         id=user["id"], email=user["email"], username=user["username"],
         role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"],
         is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False),
-        region=user.get("region")
+        region=user.get("region"), sheet_id=user.get("sheet_id"), sheet_name=user.get("sheet_name"),
+        player_name=user.get("player_name")
     )
 
 # ==================== KNOWLEDGE BASE ROUTES ====================
@@ -1529,6 +1569,35 @@ async def update_user_region(user_id: str, data: UpdateUserRegion, admin: dict =
     return {"message": "Regione aggiornata"}
 
 
+@api_router.get("/sheet/me")
+async def get_my_sheet(user: dict = Depends(get_current_user)):
+    """Scheda ufficiale del giocatore (snapshot sincronizzato)."""
+    if not user.get("sheet_id"):
+        raise HTTPException(status_code=404, detail="Nessuna scheda collegata al tuo account")
+    user, _ = await ensure_sheet_synced(user)
+    data = user.get("sheet_data")
+    if not data:
+        raise HTTPException(status_code=502, detail="Database schede non raggiungibile")
+    return {"sheet": data, "synced_month": user.get("sheet_sync_month")}
+
+
+@api_router.get("/notifications")
+async def get_my_notifications(user: dict = Depends(get_current_user)):
+    return await db.notifications.find({"user_id": user["id"], "seen": False}, {"_id": 0}).to_list(20)
+
+
+@api_router.post("/notifications/{notif_id}/ack")
+async def ack_notification(notif_id: str, user: dict = Depends(get_current_user)):
+    await db.notifications.update_one({"id": notif_id, "user_id": user["id"]}, {"$set": {"seen": True}})
+    return {"message": "ok"}
+
+
+@api_router.get("/admin/knowledge-progress/{user_id}")
+async def get_knowledge_progress(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Conteggio trimestrale delle Prove Contrapposte superate/pareggiate (solo Narrazione)."""
+    return await db.knowledge_progress.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+
+
 @api_router.get("/admin/sheets")
 async def list_external_sheets(admin: dict = Depends(get_admin_user)):
     """Lista dei PG dal database esterno NOTTURNA."""
@@ -1552,9 +1621,18 @@ async def link_user_sheet(user_id: str, data: LinkSheetRequest, admin: dict = De
     p = (sheet_data or {}).get("personaggio") or {}
     if not p.get("idutente"):
         raise HTTPException(status_code=404, detail="Scheda non trovata nel database")
+    duplicate = await db.users.find_one({"sheet_id": str(data.sheet_id), "id": {"$ne": user_id}})
+    if duplicate:
+        raise HTTPException(status_code=403, detail=f"Questa scheda è già collegata all'account {duplicate.get('email')}")
     await db.users.update_one(
         {"id": user_id},
-        {"$set": {"sheet_id": str(data.sheet_id), "sheet_name": p.get("nomepg")}}
+        {"$set": {
+            "sheet_id": str(data.sheet_id),
+            "sheet_name": p.get("nomepg"),
+            "sheet_data": sheet_data,
+            "sheet_sync_month": datetime.now(timezone.utc).strftime("%Y-%m"),
+            "force_sheet_sync": False
+        }}
     )
     await apply_sheet_sync(user_id, sheet_data)
     return {"message": f"Scheda '{p.get('nomepg')}' collegata e sincronizzata"}
@@ -1884,7 +1962,38 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.chat_history.insert_one(chat_doc)
-    
+
+    # ==== CONTEGGIO TRIMESTRALE CONOSCENZE (invisibile al giocatore) ====
+    if user.get("role") == "player" and outcome in ("success", "tie"):
+        knowledge = test.get("knowledge_type") or derive_knowledge_from_attribute(test.get("attribute", ""))
+        if knowledge:
+            now_q = datetime.now(timezone.utc)
+            qk = quarter_key(now_q)
+            await db.knowledge_progress.update_one(
+                {"user_id": user["id"], "quarter": qk, "knowledge": knowledge},
+                {"$inc": {"wins": 1}},
+                upsert=True
+            )
+            prog = await db.knowledge_progress.find_one(
+                {"user_id": user["id"], "quarter": qk, "knowledge": knowledge}, {"_id": 0}
+            )
+            if prog and prog.get("wins", 0) >= 5:
+                await db.knowledge_progress.update_one(
+                    {"user_id": user["id"], "quarter": qk, "knowledge": knowledge},
+                    {"$set": {"wins": 0}, "$inc": {"pallini": 1}}
+                )
+                await db.notifications.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "user_id": user["id"],
+                    "type": "pallino",
+                    "knowledge": knowledge,
+                    "quarter": qk,
+                    "created_at": now_q.isoformat(),
+                    "seen": False
+                })
+                await db.users.update_one({"id": user["id"]}, {"$set": {"force_sheet_sync": True}})
+                logger.info(f"PALLINO: {user['email']} ha raggiunto 5 prove in {knowledge} ({qk})")
+
     # Update used actions
     await db.users.update_one(
         {"id": user["id"]},

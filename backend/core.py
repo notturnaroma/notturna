@@ -49,6 +49,42 @@ security = HTTPBearer()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("archivio")
 
+# ==================== CONOSCENZE & TRIMESTRI ====================
+
+KNOWLEDGE_MAP = {
+    "Accademiche classiche": ["espressione artistica", "finanza", "legge", "politica", "storia"],
+    "Criminalità": ["bassifondi", "delinquenza", "mercato nero", "sistemi di allarme", "sotterfugio"],
+    "Etichetta": ["alta società", "burocrazia", "consapevolezza", "diplomazia", "galateo"],
+    "Militari": ["esercito", "investigare", "scene del crimine", "sopravvivenza", "stealth"],
+    "Occulto": ["folklore e superstizione", "mondo oscuro", "religioni", "sesto senso", "stregoneria e rituali"],
+    "Scienze": ["hacking", "informatica", "medicina", "smfn", "tecnologia"],
+}
+KNOWLEDGE_TYPES = list(KNOWLEDGE_MAP.keys())
+
+def derive_knowledge_from_attribute(attribute: str) -> str:
+    """Deriva la tipologia di conoscenze dal testo della caratteristica (es. 'Intelligenza + Storia' -> Accademiche classiche)."""
+    text = (attribute or "").lower()
+    for category, subs in KNOWLEDGE_MAP.items():
+        if category.lower() in text:
+            return category
+        for sub in subs:
+            if sub in text:
+                return category
+    return ""
+
+def quarter_key(dt: datetime) -> str:
+    """Trimestri ancorati a Settembre: Set-Ott-Nov, Dic-Gen-Feb, Mar-Apr-Mag, Giu-Lug-Ago."""
+    m, y = dt.month, dt.year
+    if m in (9, 10, 11):
+        return f"{y}-SET"
+    if m == 12:
+        return f"{y}-DIC"
+    if m in (1, 2):
+        return f"{y - 1}-DIC"
+    if m in (3, 4, 5):
+        return f"{y}-MAR"
+    return f"{y}-GIU"
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
@@ -220,15 +256,33 @@ async def apply_sheet_sync(user_id: str, sheet_data: dict):
         upsert=True
     )
 
+async def ensure_sheet_synced(user: dict):
+    """Sync mensile (1 volta al mese) o forzato (dopo un pallino). Ritorna (user_aggiornato, did_sync)."""
+    if not user.get("sheet_id"):
+        return user, False
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if user.get("sheet_sync_month") == month and not user.get("force_sheet_sync") and user.get("sheet_data"):
+        return user, False
+    try:
+        sheet_data, _ = await fetch_sheet(user["sheet_id"], force=True)
+    except Exception as e:
+        logger.warning(f"Sync scheda fallito per {user.get('email')}: {e}")
+        return user, False
+    if not (sheet_data or {}).get("personaggio"):
+        return user, False
+    await apply_sheet_sync(user["id"], sheet_data)
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"sheet_data": sheet_data, "sheet_sync_month": month, "force_sheet_sync": False}}
+    )
+    return {**user, "sheet_data": sheet_data, "sheet_sync_month": month, "force_sheet_sync": False}, True
+
 async def get_sheet_block(user: dict):
-    """Ritorna (contesto_scheda, fresh). Se la scheda è stata riscaricata, il background è già sincronizzato."""
+    """Ritorna (contesto_scheda, did_sync). Usa lo snapshot salvato; sincronizza solo se mese nuovo o sync forzato."""
     if not user.get("sheet_id"):
         return "", False
-    try:
-        sheet_data, fresh = await fetch_sheet(user["sheet_id"])
-        if fresh:
-            await apply_sheet_sync(user["id"], sheet_data)
-        return build_sheet_context(sheet_data), fresh
-    except Exception as e:
-        logger.warning(f"Scheda esterna non disponibile per {user.get('email')}: {e}")
-        return "", False
+    user, did_sync = await ensure_sheet_synced(user)
+    data = user.get("sheet_data")
+    if not data:
+        return "", did_sync
+    return build_sheet_context(data), did_sync

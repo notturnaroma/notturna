@@ -16,10 +16,13 @@ import {
   Swords,
   Sparkles,
   Coins,
-  Package
+  Package,
+  ScrollText
 } from "lucide-react";
 import ChallengeModal from "@/components/ChallengeModal";
 import AidsModal from "@/components/AidsModal";
+import MySheetModal from "@/components/MySheetModal";
+import PallinoModal from "@/components/PallinoModal";
 import { useSettings } from "@/context/SettingsContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -33,6 +36,8 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [attemptedChallenges, setAttemptedChallenges] = useState([]);
   const [activeChallenge, setActiveChallenge] = useState(null);
   const [showAidsModal, setShowAidsModal] = useState(false);
+  const [showSheetModal, setShowSheetModal] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [remainingActions, setRemainingActions] = useState(user ? user.max_actions - user.used_actions : 0);
   const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
   const scrollRef = useRef(null);
@@ -82,10 +87,24 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(`${API}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setNotifications(await response.json());
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
   useEffect(() => {
     fetchChallenges();
     fetchAttemptedChallenges();
     fetchActiveSession();
+    fetchNotifications();
   }, []);
 
   // Aggiorna il conteggio azioni tenendo conto dei SEGUACI
@@ -274,6 +293,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
 
   const handleCloseChallenge = () => {
     setActiveChallenge(null);
+    fetchNotifications();
   };
 
   const handleAidResult = (result) => {
@@ -353,6 +373,20 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                 <span className="text-gold">{remainingActions}</span>/{effectiveMaxActions}
               </span>
             </div>
+
+            {/* Scheda Button */}
+            {user?.sheet_id && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSheetModal(true)}
+                className="text-gold hover:bg-gold/10 font-cinzel"
+                data-testid="my-sheet-nav-btn"
+              >
+                <ScrollText className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">SCHEDA</span>
+              </Button>
+            )}
 
             {/* Aiuti Button */}
             <Button 
@@ -702,6 +736,20 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           onClose={() => setShowAidsModal(false)}
           onResult={handleAidResult}
           refreshUser={refreshUser}
+        />
+      )}
+
+      {/* La Mia Scheda */}
+      {showSheetModal && (
+        <MySheetModal token={token} onClose={() => setShowSheetModal(false)} />
+      )}
+
+      {/* Pop-up Pallino Conoscenze */}
+      {notifications.length > 0 && (
+        <PallinoModal
+          notification={notifications[0]}
+          token={token}
+          onAck={(id) => setNotifications((prev) => prev.filter((n) => n.id !== id))}
         />
       )}
     </div>
