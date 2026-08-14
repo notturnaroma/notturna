@@ -6,7 +6,7 @@ import { Archive, X, MessageSquare, User, Pencil, Check, Loader2 } from "lucide-
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function ViewArchiveModal({ userId, username, token, onClose }) {
+export default function ViewArchiveModal({ userId, username, token, onClose, canEdit = true }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -135,7 +135,7 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
                           </span>
                         )}
                       </div>
-                      {editingId !== item.id && (
+                      {canEdit && editingId !== item.id && (
                         <Button
                           variant="ghost"
                           size="sm"

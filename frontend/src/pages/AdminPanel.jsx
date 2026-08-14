@@ -54,11 +54,13 @@ import ViewEquipmentModal from "@/components/ViewEquipmentModal";
 import ViewArchiveModal from "@/components/ViewArchiveModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"];
 
 export default function AdminPanel({ user, token, onLogout }) {
   const [users, setUsers] = useState([]);
   const [knowledge, setKnowledge] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [regionFilter, setRegionFilter] = useState("all");
   const [editingBackgroundUser, setEditingBackgroundUser] = useState(null);
   const [viewingEquipmentUser, setViewingEquipmentUser] = useState(null);
   const [viewingArchiveUser, setViewingArchiveUser] = useState(null);
@@ -67,6 +69,9 @@ export default function AdminPanel({ user, token, onLogout }) {
   const [kbTitle, setKbTitle] = useState("");
   const [kbContent, setKbContent] = useState("");
   const [kbCategory, setKbCategory] = useState("general");
+  const [kbRegion, setKbRegion] = useState(user?.is_super_admin ? "Nazionale" : (user?.region || "Nazionale"));
+  const [kbFamaVampiri, setKbFamaVampiri] = useState("");
+  const [kbFamaMondo, setKbFamaMondo] = useState("");
   const [kbRequiredContacts, setKbRequiredContacts] = useState([]);
   const [kbRequiredMentor, setKbRequiredMentor] = useState("");
   const [kbRequiredNotoriety, setKbRequiredNotoriety] = useState("");
@@ -109,6 +114,9 @@ export default function AdminPanel({ user, token, onLogout }) {
           title: kbTitle,
           content: kbContent,
           category: kbCategory,
+          region: kbRegion,
+          required_fama_vampiri: kbRegion === "Nazionale" && kbFamaVampiri !== "" ? parseInt(kbFamaVampiri) : null,
+          required_fama_mondo_oscuro: kbRegion === "Nazionale" && kbFamaMondo !== "" ? parseInt(kbFamaMondo) : null,
           file_type: "text",
           file_url: null,
           required_contacts: kbRequiredContacts
@@ -150,6 +158,10 @@ export default function AdminPanel({ user, token, onLogout }) {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("category", kbCategory);
+    formData.append("region", kbRegion);
+    if (kbRegion === "Nazionale" && kbFamaVampiri !== "") formData.append("required_fama_vampiri", kbFamaVampiri);
+    if (kbRegion === "Nazionale" && kbFamaMondo !== "") formData.append("required_fama_mondo_oscuro", kbFamaMondo);
 
     try {
       const response = await fetch(`${API}/knowledge/upload`, {
@@ -269,6 +281,28 @@ export default function AdminPanel({ user, token, onLogout }) {
       const data = await response.json();
       if (response.ok) {
         toast.success(data.message);
+        fetchData();
+      } else {
+        toast.error(data.detail || "Errore");
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    }
+  };
+
+  const handleUpdateRegion = async (userId, region) => {
+    try {
+      const response = await fetch(`${API}/admin/users/${userId}/region`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ region })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Regione aggiornata");
         fetchData();
       } else {
         toast.error(data.detail || "Errore");
@@ -425,6 +459,56 @@ export default function AdminPanel({ user, token, onLogout }) {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-cinzel text-gold text-xs uppercase">Regione / Visibilità</Label>
+                    <Select value={kbRegion} onValueChange={setKbRegion}>
+                      <SelectTrigger className="input-gothic rounded-sm" data-testid="kb-region-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="Nazionale">INFORMAZIONI NAZIONALI</SelectItem>
+                        {REGIONS.filter((r) => user?.is_super_admin || !user?.region || r === user.region).map((r) => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="font-body text-[11px] text-muted-foreground">
+                      Regionale: visibile solo ai PG di quella regione. Nazionale: visibile a tutti (con eventuale FAMA richiesta).
+                    </p>
+                  </div>
+                  {kbRegion === "Nazionale" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="font-cinzel text-gold text-xs uppercase">FAMA TRA I VAMPIRI min. (0-5)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="5"
+                          value={kbFamaVampiri}
+                          onChange={(e) => setKbFamaVampiri(e.target.value)}
+                          placeholder="vuoto = nessun requisito"
+                          className="input-gothic rounded-sm"
+                          data-testid="kb-fama-vampiri-input"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-cinzel text-gold text-xs uppercase">FAMA MONDO OSCURO min. (0-5)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="5"
+                          value={kbFamaMondo}
+                          onChange={(e) => setKbFamaMondo(e.target.value)}
+                          placeholder="vuoto = nessun requisito"
+                          className="input-gothic rounded-sm"
+                          data-testid="kb-fama-mondo-input"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -626,10 +710,18 @@ export default function AdminPanel({ user, token, onLogout }) {
                               </p>
                             )}
                             
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                               <span className="font-cinzel uppercase bg-secondary/50 px-2 py-1 rounded">
                                 {doc.category}
                               </span>
+                              <span className={`font-cinzel uppercase px-2 py-1 rounded border ${(doc.region || "Nazionale") === "Nazionale" ? "text-gold border-gold/40 bg-gold/10" : "text-parchment border-border/50 bg-black/30"}`} data-testid={`kb-region-chip-${doc.id}`}>
+                                {doc.region || "Nazionale"}
+                              </span>
+                              {(doc.required_fama_vampiri != null || doc.required_fama_mondo_oscuro != null) && (
+                                <span className="font-cinzel uppercase text-red-400 border border-red-500/40 bg-red-500/10 px-2 py-1 rounded">
+                                  FAMA{doc.required_fama_vampiri != null ? ` Vampiri ${doc.required_fama_vampiri}+` : ""}{doc.required_fama_mondo_oscuro != null ? ` Mondo Oscuro ${doc.required_fama_mondo_oscuro}+` : ""}
+                                </span>
+                              )}
                               <span className="bg-black/30 px-2 py-1 rounded">
                                 {doc.file_type || "text"}
                               </span>
@@ -646,15 +738,17 @@ export default function AdminPanel({ user, token, onLogout }) {
                               )}
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteKnowledge(doc.id)}
-                            className="text-primary hover:bg-primary/10"
-                            data-testid={`delete-kb-${doc.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {(user?.is_super_admin || !user?.region || (doc.region || "Nazionale") === "Nazionale" || doc.region === user.region) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteKnowledge(doc.id)}
+                              className="text-primary hover:bg-primary/10"
+                              data-testid={`delete-kb-${doc.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -667,18 +761,31 @@ export default function AdminPanel({ user, token, onLogout }) {
           {/* Users Tab */}
           <TabsContent value="users">
             <div className="card-gothic rounded-sm overflow-hidden" data-testid="users-list">
-              <div className="p-4 border-b border-border/50 flex items-center justify-between">
+              <div className="p-4 border-b border-border/50 flex items-center justify-between gap-3 flex-wrap">
                 <h2 className="font-cinzel text-gold uppercase tracking-widest text-sm">
                   Gestione Utenti ({users.length})
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={fetchData}
-                  className="text-gold hover:bg-gold/10"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={regionFilter} onValueChange={setRegionFilter}>
+                    <SelectTrigger className="w-[160px] input-gothic rounded-sm text-sm" data-testid="region-filter-select">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      <SelectItem value="all">Tutte le regioni</SelectItem>
+                      {REGIONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={fetchData}
+                    className="text-gold hover:bg-gold/10"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               <ScrollArea className="h-[600px]">
@@ -688,10 +795,11 @@ export default function AdminPanel({ user, token, onLogout }) {
                   </div>
                 ) : (
                   <div className="divide-y divide-border/30">
-                    {users.map((u) => {
+                    {users.filter((u) => regionFilter === "all" || (u.region || "") === regionFilter).map((u) => {
                       const isSelf = u.id === user?.id;
                       const targetIsAdmin = u.role === "admin" || u.role === "Narrazione";
-                      const canManage = !isSelf && !u.is_super_admin && (!targetIsAdmin || user?.is_super_admin);
+                      const sameRegion = !user?.region || !u.region || u.region === user.region;
+                      const canManage = !isSelf && !u.is_super_admin && (targetIsAdmin ? Boolean(user?.is_super_admin) : Boolean(user?.is_super_admin || sameRegion));
                       return (
                       <div key={u.id} className="p-4 hover:bg-gold/5 transition-colors">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -730,6 +838,11 @@ export default function AdminPanel({ user, token, onLogout }) {
                                     BLOCCATO
                                   </span>
                                 )}
+                                {u.region && (
+                                  <span className="text-[10px] font-cinzel uppercase text-parchment bg-secondary/50 border border-border/50 px-2 py-0.5 rounded-sm" data-testid={`region-badge-${u.id}`}>
+                                    {u.region}
+                                  </span>
+                                )}
                               </div>
                               <p className="font-body text-muted-foreground text-sm">{u.email}</p>
                             </div>
@@ -753,7 +866,7 @@ export default function AdminPanel({ user, token, onLogout }) {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setEditingBackgroundUser(u)}
+                              onClick={() => setEditingBackgroundUser({ ...u, readOnly: !canManage && !isSelf })}
                               className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
                               data-testid={`edit-bg-${u.id}`}
                             >
@@ -777,13 +890,29 @@ export default function AdminPanel({ user, token, onLogout }) {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setViewingArchiveUser(u)}
+                              onClick={() => setViewingArchiveUser({ ...u, canEdit: canManage || isSelf })}
                               className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
                               data-testid={`view-archive-${u.id}`}
                             >
                               <Archive className="w-3 h-3 mr-1" />
                               Archivio
                             </Button>
+
+                            {/* Region Select */}
+                            <Select
+                              value={u.region || ""}
+                              onValueChange={(val) => handleUpdateRegion(u.id, val)}
+                              disabled={!canManage}
+                            >
+                              <SelectTrigger className="w-[130px] input-gothic rounded-sm text-sm" data-testid={`user-region-select-${u.id}`}>
+                                <SelectValue placeholder="Regione" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-card border-border">
+                                {REGIONS.map((r) => (
+                                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
 
                             {/* Role Select */}
                             <Select
@@ -872,6 +1001,7 @@ export default function AdminPanel({ user, token, onLogout }) {
           userId={editingBackgroundUser.id}
           username={editingBackgroundUser.username}
           token={token}
+          readOnly={Boolean(editingBackgroundUser.readOnly)}
           onClose={() => setEditingBackgroundUser(null)}
           onSaved={fetchData}
         />
@@ -893,6 +1023,7 @@ export default function AdminPanel({ user, token, onLogout }) {
           userId={viewingArchiveUser.id}
           username={viewingArchiveUser.username}
           token={token}
+          canEdit={Boolean(viewingArchiveUser.canEdit)}
           onClose={() => setViewingArchiveUser(null)}
         />
       )}

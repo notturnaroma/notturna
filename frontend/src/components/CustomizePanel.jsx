@@ -37,7 +37,8 @@ const DEFAULT_SETTINGS = {
   oracle_name: "L'Oracolo",
   background_image_url: null,
   event_window_start: null,
-  event_window_end: null
+  event_window_end: null,
+  oracle_tone: ""
 };
 
 export default function CustomizePanel({ token }) {
@@ -173,6 +174,19 @@ export default function CustomizePanel({ token }) {
                   className="input-gothic rounded-sm"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="font-cinzel text-gold text-xs uppercase">Tono dell'Oracolo (opzionale)</Label>
+              <Textarea
+                value={formData.oracle_tone || ""}
+                onChange={(e) => handleChange("oracle_tone", e.target.value)}
+                placeholder="Lascia vuoto per usare il tono standard (oscuro, gotico, cinico). Scrivi qui per personalizzarlo: es. 'Parla come un antico senatore romano, solenne e sprezzante, usa massime latine...'"
+                className="input-gothic rounded-sm min-h-[100px]"
+                data-testid="oracle-tone-input"
+              />
+              <p className="font-body text-xs text-muted-foreground">
+                Queste indicazioni hanno priorità sul tono standard dell'Oracolo in tutte le risposte.
+              </p>
             </div>
             <div className="grid md:grid-cols-4 gap-4">
               <div className="space-y-2">

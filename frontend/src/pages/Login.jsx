@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Scroll } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
 
@@ -53,12 +53,7 @@ export default function Login({ onLogin }) {
         {/* Logo */}
         <div className="text-center mb-8 fade-in">
           <Link to="/">
-            {settings.event_logo_url ? (
-              <img src={settings.event_logo_url} alt="" className="h-20 mx-auto mb-4" />
-            ) : (
-              <Scroll className="w-16 h-16 text-gold mx-auto mb-4" />
-            )}
-            <h1 className="font-gothic text-3xl text-gold">{settings.event_name}</h1>
+            <img src="/logo-notturna.png" alt="NOTTURNA Young Blood" className="h-36 mx-auto mb-2" data-testid="login-logo" />
           </Link>
         </div>
 

@@ -67,6 +67,10 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     username: str
+    region: Optional[str] = None
+
+REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"]
+KB_REGIONS = REGIONS + ["Nazionale"]
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -82,6 +86,7 @@ class UserResponse(BaseModel):
     used_actions: int
     is_super_admin: bool = False
     blocked: bool = False
+    region: Optional[str] = None
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -93,6 +98,9 @@ class KnowledgeBaseCreate(BaseModel):
     category: Optional[str] = "general"
     file_type: Optional[str] = "text"
     file_url: Optional[str] = None
+    region: Optional[str] = "Nazionale"
+    required_fama_vampiri: Optional[int] = None
+    required_fama_mondo_oscuro: Optional[int] = None
     # Restrizioni di accesso opzionali
     required_contacts: Optional[List[dict]] = None
     required_mentor: Optional[int] = None
@@ -108,6 +116,9 @@ class KnowledgeBaseResponse(BaseModel):
     file_url: Optional[str]
     created_at: str
     created_by: str
+    region: Optional[str] = "Nazionale"
+    required_fama_vampiri: Optional[int] = None
+    required_fama_mondo_oscuro: Optional[int] = None
     required_contacts: Optional[List[dict]] = None
     required_mentor: Optional[int] = None
     required_notoriety: Optional[int] = None
@@ -143,6 +154,9 @@ class UpdateUserRole(BaseModel):
 
 class BlockUserRequest(BaseModel):
     blocked: bool
+
+class UpdateUserRegion(BaseModel):
+    region: str
 
 class EditAnswerRequest(BaseModel):
     answer: str
@@ -206,6 +220,8 @@ class AppSettings(BaseModel):
     # Finestra temporale macro evento live (opzionale)
     event_window_start: Optional[str] = None
     event_window_end: Optional[str] = None
+    # Tono personalizzato dell'Oracolo (vuoto = standard)
+    oracle_tone: str = ""
 
 class AppSettingsResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -228,6 +244,10 @@ class AppSettingsResponse(BaseModel):
     nav_aids: Optional[str] = "FOCALIZZAZIONI"
     nav_background: Optional[str] = "BACKGROUND"
     nav_background: Optional[str] = "BACKGROUND"
+    background_image_url: Optional[str] = None
+    event_window_start: Optional[str] = None
+    event_window_end: Optional[str] = None
+    oracle_tone: Optional[str] = ""
     aids_title: Optional[str] = "Focalizzazioni degli Attributi"
     aids_subtitle: Optional[str] = "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"
     aids_no_active: Optional[str] = "Nessuna focalizzazione attiva in questo momento"
@@ -397,6 +417,8 @@ class Background(BaseModel):
     rifugio: int = 1
     mentor: int = 0
     notoriety: int = 0
+    fama_vampiri: int = 0
+    fama_mondo_oscuro: int = 0
     contacts: List[BackgroundContact] = []
     # Nuovi campi per Discipline e Poteri
     disciplines: List[Discipline] = []  # Discipline possedute (Auspex, Dominazione, etc.)
@@ -653,7 +675,73 @@ async def get_target_for_admin_action(user_id: str, admin: dict) -> dict:
             raise HTTPException(status_code=403, detail="L'account NARRAZIONE ITALIA non può essere modificato da altri account")
         if target.get("role") in ["admin", "Narrazione"] and not admin.get("is_super_admin"):
             raise HTTPException(status_code=403, detail="Solo NARRAZIONE ITALIA può gestire gli altri account Narrazione")
+        if not admin.get("is_super_admin"):
+            admin_region = admin.get("region")
+            target_region = target.get("region")
+            if admin_region and target_region and target_region != admin_region:
+                raise HTTPException(status_code=403, detail=f"Puoi modificare solo i giocatori della tua regione ({admin_region})")
     return target
+
+def check_kb_region_rights(admin: dict, region: str):
+    """Un admin regionale può gestire solo documenti della propria regione o Nazionali."""
+    if admin.get("is_super_admin"):
+        return
+    allowed = {"Nazionale"}
+    if admin.get("region"):
+        allowed.add(admin["region"])
+    if region not in allowed:
+        raise HTTPException(status_code=403, detail="Puoi gestire solo documenti della tua regione o Nazionali")
+
+def has_required_contacts(doc, background):
+    required = doc.get("required_contacts") or []
+    if not required:
+        return True
+    contacts_map = {c["name"].lower(): c["value"] for c in (background.get("contacts") or [])}
+    for req in required:
+        name = str(req.get("name", "")).lower()
+        min_val = int(req.get("value", 0))
+        if not name:
+            continue
+        if contacts_map.get(name, 0) < min_val:
+            return False
+    return True
+
+def has_required_background(doc, background):
+    req_mentor = doc.get("required_mentor")
+    if req_mentor is not None and (background.get("mentor", 0) < req_mentor):
+        return False
+    req_notoriety = doc.get("required_notoriety")
+    if req_notoriety is not None and (background.get("notoriety", 0) < req_notoriety):
+        return False
+    if not has_required_contacts(doc, background):
+        return False
+    return True
+
+def is_doc_visible_to_player(doc, bg, user):
+    """Visibilità documento KB per un giocatore: regione + FAMA (nazionali) + requisiti background."""
+    doc_region = doc.get("region") or "Nazionale"
+    if doc_region == "Nazionale":
+        rfv = doc.get("required_fama_vampiri")
+        if rfv is not None and int(bg.get("fama_vampiri", 0)) < int(rfv):
+            return False
+        rfm = doc.get("required_fama_mondo_oscuro")
+        if rfm is not None and int(bg.get("fama_mondo_oscuro", 0)) < int(rfm):
+            return False
+    else:
+        if user.get("region") and doc_region != user["region"]:
+            return False
+    return has_required_background(doc, bg)
+
+async def get_oracle_tone_hint() -> str:
+    s = await db.settings.find_one({"id": "app_settings"}, {"_id": 0, "oracle_tone": 1}) or {}
+    tone = (s.get("oracle_tone") or "").strip()
+    if not tone:
+        return ""
+    return f"""
+
+=== TONO DELL'ORACOLO (personalizzato dalla Narrazione, ha PRIORITÀ sulle linee guida di tono standard) ===
+{tone}
+=== FINE TONO ==="""
 
 @api_router.get("/followers/status", response_model=FollowerStatus)
 async def get_follower_status(user: dict = Depends(get_current_user)):
@@ -684,12 +772,14 @@ async def register(data: UserCreate):
     
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
+    region = data.region if data.region in REGIONS else None
     user_doc = {
         "id": user_id,
         "email": data.email,
         "username": data.username,
         "password_hash": hash_password(data.password),
         "role": "player",
+        "region": region,
         "max_actions": 20,
         "used_actions": 0,
         "created_at": now.isoformat(),
@@ -700,7 +790,7 @@ async def register(data: UserCreate):
     token = create_token(user_id, "player")
     user_response = UserResponse(
         id=user_id, email=data.email, username=data.username,
-        role="player", max_actions=20, used_actions=0
+        role="player", max_actions=20, used_actions=0, region=region
     )
     return TokenResponse(access_token=token, user=user_response)
 
@@ -716,7 +806,8 @@ async def login(data: UserLogin):
     user_response = UserResponse(
         id=user["id"], email=user["email"], username=user["username"],
         role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"],
-        is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False)
+        is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False),
+        region=user.get("region")
     )
     return TokenResponse(access_token=token, user=user_response)
 
@@ -725,13 +816,16 @@ async def get_me(user: dict = Depends(get_current_user)):
     return UserResponse(
         id=user["id"], email=user["email"], username=user["username"],
         role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"],
-        is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False)
+        is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False),
+        region=user.get("region")
     )
 
 # ==================== KNOWLEDGE BASE ROUTES ====================
 
 @api_router.post("/knowledge", response_model=KnowledgeBaseResponse)
 async def create_knowledge(data: KnowledgeBaseCreate, user: dict = Depends(get_admin_user)):
+    region = data.region if data.region in KB_REGIONS else "Nazionale"
+    check_kb_region_rights(user, region)
     kb_id = str(uuid.uuid4())
     kb_doc = {
         "id": kb_id,
@@ -740,6 +834,9 @@ async def create_knowledge(data: KnowledgeBaseCreate, user: dict = Depends(get_a
         "category": data.category,
         "file_type": data.file_type or "text",
         "file_url": data.file_url,
+        "region": region,
+        "required_fama_vampiri": data.required_fama_vampiri,
+        "required_fama_mondo_oscuro": data.required_fama_mondo_oscuro,
         "required_contacts": data.required_contacts or [],
         "required_mentor": data.required_mentor,
         "required_notoriety": data.required_notoriety,
@@ -752,10 +849,16 @@ async def create_knowledge(data: KnowledgeBaseCreate, user: dict = Depends(get_a
 @api_router.get("/knowledge", response_model=List[KnowledgeBaseResponse])
 async def get_knowledge(user: dict = Depends(get_current_user)):
     docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(1000)
+    if user.get("role") not in ["admin", "Narrazione"]:
+        bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0}) or {}
+        docs = [d for d in docs if is_doc_visible_to_player(d, bg, user)]
     return [KnowledgeBaseResponse(**{
         **doc,
         "file_type": doc.get("file_type", "text"),
         "file_url": doc.get("file_url"),
+        "region": doc.get("region") or "Nazionale",
+        "required_fama_vampiri": doc.get("required_fama_vampiri"),
+        "required_fama_mondo_oscuro": doc.get("required_fama_mondo_oscuro"),
         "required_contacts": doc.get("required_contacts"),
         "required_mentor": doc.get("required_mentor"),
         "required_notoriety": doc.get("required_notoriety"),
@@ -769,8 +872,18 @@ async def delete_knowledge(kb_id: str, user: dict = Depends(get_admin_user)):
     return {"message": "Documento eliminato"}
 
 @api_router.post("/knowledge/upload")
-async def upload_document(file: UploadFile = File(...), category: str = Form("uploaded"), user: dict = Depends(get_admin_user)):
+async def upload_document(
+    file: UploadFile = File(...),
+    category: str = Form("uploaded"),
+    region: str = Form("Nazionale"),
+    required_fama_vampiri: Optional[int] = Form(None),
+    required_fama_mondo_oscuro: Optional[int] = Form(None),
+    user: dict = Depends(get_admin_user)
+):
     """Upload file: testo, PDF, immagini o video"""
+    if region not in KB_REGIONS:
+        region = "Nazionale"
+    check_kb_region_rights(user, region)
     filename = file.filename or "file"
     file_type = get_file_type(filename)
     
@@ -821,6 +934,9 @@ async def upload_document(file: UploadFile = File(...), category: str = Form("up
         "title": filename,
         "content": text_content,
         "category": category or "uploaded",
+        "region": region,
+        "required_fama_vampiri": required_fama_vampiri,
+        "required_fama_mondo_oscuro": required_fama_mondo_oscuro,
         "file_type": file_type,
         "file_url": file_url,
         "file_path": str(file_path),
@@ -854,39 +970,12 @@ async def send_chat(data: ChatRequest, user: dict = Depends(get_current_user)):
     # Recupera background del PG per filtrare in base ai requisiti
     bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0}) or {}
 
-    def has_required_contacts(doc, background):
-        required = doc.get("required_contacts") or []
-        if not required:
-            return True
-        contacts_map = {c["name"].lower(): c["value"] for c in (background.get("contacts") or [])}
-        for req in required:
-            name = str(req.get("name", "")).lower()
-            min_val = int(req.get("value", 0))
-            if not name:
-                continue
-            if contacts_map.get(name, 0) < min_val:
-                return False
-        return True
-
-    def has_required_background(doc, background):
-        # Mentor
-        req_mentor = doc.get("required_mentor")
-        if req_mentor is not None and (background.get("mentor", 0) < req_mentor):
-            return False
-        # Notoriety
-        req_notoriety = doc.get("required_notoriety")
-        if req_notoriety is not None and (background.get("notoriety", 0) < req_notoriety):
-            return False
-        # Contacts
-        if not has_required_contacts(doc, background):
-            return False
-        return True
-
     # Get knowledge base context
     kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
     
-    # Filtra i documenti KB in base al background del PG
-    kb_docs = [doc for doc in kb_docs if has_required_background(doc, bg)]
+    # Filtra i documenti KB in base a regione, FAMA e background del PG
+    if not is_admin:
+        kb_docs = [doc for doc in kb_docs if is_doc_visible_to_player(doc, bg, user)]
     context = "\n\n".join([f"### {doc['title']}\n{doc['content']}" for doc in kb_docs])
     
     # Cerca oggetti RISORSE che matchano le keywords della domanda
@@ -941,6 +1030,8 @@ Tieni conto di questa appartenenza nelle tue risposte, usando riferimenti approp
 === FINE INFO GIOCATORE ===
 """
     
+    tone_hint = await get_oracle_tone_hint()
+
     system_message = f"""Sei l'Oracolo di un live action role‑playing game (LARP) ambientato in Vampire: The Masquerade.
 Tutte le domande che ricevi sono **in gioco** e riguardano personaggi e situazioni di finzione.
 Non stai dando consigli reali, ma solo risposte narrative per un gioco.
@@ -957,7 +1048,7 @@ Basati SOLO sulle informazioni fornite nel contesto seguente.
 
 === CONTESTO DELL'EVENTO ===
 {context}
-=== FINE CONTESTO ==={clan_hint}{items_hint}"""
+=== FINE CONTESTO ==={clan_hint}{items_hint}{tone_hint}"""
     
     try:
         chat = LlmChat(
@@ -1393,6 +1484,10 @@ Continua la narrazione in modo coerente con quanto detto sopra.
     # Carica tutti i documenti della KB
     kb_docs = await db.knowledge_base.find({}, {"_id": 0}).to_list(100)
     
+    # Filtra per regione, FAMA e requisiti background (solo per giocatori)
+    if user.get("role") not in ["admin", "Narrazione"]:
+        kb_docs = [doc for doc in kb_docs if is_doc_visible_to_player(doc, bg, user)]
+    
     # Calcola rilevanza per ogni documento
     scored_docs = []
     for doc in kb_docs:
@@ -1517,6 +1612,8 @@ Clan: {player_clan}
         npc_block = "\n\n" + build_npc_context(detected_npc, npc_memory)
         logger.info(f"PNG rilevato: {detected_npc['name']} (esclusivo={detected_npc.get('exclusive')}, memoria_altri={len(npc_memory['others'])}, memoria_sé={len(npc_memory['own'])})")
 
+    tone_hint = await get_oracle_tone_hint()
+
     system_message = f"""Sei l'Oracolo di un LARP Vampire: The Masquerade. Questa è una SESSIONE DI ESPLORAZIONE INTERATTIVA.
 
 === REGOLE ESPLORAZIONE ===
@@ -1572,7 +1669,7 @@ TONO: Oscuro, gotico, atmosferico. Dialoghi realistici e cinici. Rispondi SEMPRE
 
 === CONTESTO DELL'EVENTO ===
 {context}
-=== FINE CONTESTO ==={clan_hint}{items_hint}{challenges_hint}{world_events_context}{conversation_context}{npc_block}"""
+=== FINE CONTESTO ==={clan_hint}{items_hint}{challenges_hint}{world_events_context}{conversation_context}{npc_block}{tone_hint}"""
     
     try:
         chat = LlmChat(
@@ -2066,7 +2163,8 @@ async def get_user_background(user_id: str, admin: dict = Depends(get_admin_user
 
 @api_router.put("/admin/background/{user_id}", response_model=Background)
 async def update_user_background(user_id: str, data: Background, admin: dict = Depends(get_admin_user)):
-    # L'admin può modificare liberamente, anche oltre i limiti
+    # L'admin può modificare liberamente, anche oltre i limiti (solo giocatori della propria regione)
+    await get_target_for_admin_action(user_id, admin)
     doc = data.model_dump()
     doc["user_id"] = user_id
     doc["locked_for_player"] = True
@@ -2116,12 +2214,23 @@ async def block_user(user_id: str, data: BlockUserRequest, admin: dict = Depends
     return {"message": "Utente bloccato" if data.blocked else "Utente sbloccato"}
 
 
+@api_router.put("/admin/users/{user_id}/region")
+async def update_user_region(user_id: str, data: UpdateUserRegion, admin: dict = Depends(get_admin_user)):
+    """Assegna/corregge la regione di un utente."""
+    if data.region not in REGIONS:
+        raise HTTPException(status_code=400, detail="Regione non valida")
+    await get_target_for_admin_action(user_id, admin)
+    await db.users.update_one({"id": user_id}, {"$set": {"region": data.region}})
+    return {"message": "Regione aggiornata"}
+
+
 @api_router.put("/admin/chat/{chat_id}/answer")
 async def edit_chat_answer(chat_id: str, data: EditAnswerRequest, admin: dict = Depends(get_admin_user)):
     """MODIFICA RISPOSTA: la Narrazione corregge una risposta dell'Oracolo. Resta nello storico con indicazione visibile."""
     chat = await db.chat_history.find_one({"id": chat_id}, {"_id": 0})
     if not chat:
         raise HTTPException(status_code=404, detail="Consultazione non trovata")
+    await get_target_for_admin_action(chat["user_id"], admin)
     old_answer = chat["answer"]
     now = datetime.now(timezone.utc).isoformat()
     await db.chat_history.update_one(

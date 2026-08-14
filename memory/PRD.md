@@ -103,6 +103,16 @@ Codice da inserire nel sito HTML:
 - [x] Template schede LUOGHI/PNG/OGGETTI/VOCI: /app/backend/uploads/TEMPLATE-SCHEDE-NOTTURNA.md (scaricabile da /api/uploads/TEMPLATE-SCHEDE-NOTTURNA.md)
 - [ ] In attesa: PDF Ambientazione Abruzzo e Lombardia + loghi da posizionare
 
+## Aggiornamenti (Giu 2026 - v6) - Regioni, FAMA, Informazioni Nazionali, Tono Oracolo, Loghi
+- [x] Campo REGIONE (Lazio/Abruzzo/Umbria/Lombardia) su utenti: scelto alla registrazione, correggibile dalla Narrazione (PUT /api/admin/users/{id}/region)
+- [x] Gating regionale: le Narrazioni regionali vedono tutti gli utenti (filtro regione nel pannello) ma modificano/bloccano/cancellano/editano background e risposte SOLO dei giocatori della propria regione (backend: get_target_for_admin_action). NARRAZIONE ITALIA gestisce tutto
+- [x] KB con Regione/Visibilità: documenti regionali (visibili solo ai PG di quella regione) o INFORMAZIONI NAZIONALI (tutti, con requisiti FAMA opzionali). Gestione doc: propria regione + Nazionali (check_kb_region_rights)
+- [x] Nuove statistiche background: FAMA TRA I VAMPIRI e FAMA MONDO OSCURO (0-5), gestite dalla Narrazione; gating RAG su documenti nazionali (is_doc_visible_to_player)
+- [x] Campo "Tono dell'Oracolo" nel tab Personalizza (settings.oracle_tone): vuoto = tono standard; se compilato ha priorità nel system prompt (chat singola e sessioni)
+- [x] Loghi: NOTTURNA centrato in landing (al posto delle scritte, sopra CTA), login, register, nav dashboard; Lucis nel footer landing
+- [x] Modal Background in sola lettura e Archivio senza pulsante Modifica per giocatori di altre regioni
+- [ ] In attesa: PDF Ambientazione Abruzzo e Lombardia; collegamento con Data Base esterno delle schede (l'utente lo caricherà)
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

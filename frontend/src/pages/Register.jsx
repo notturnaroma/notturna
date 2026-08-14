@@ -4,16 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Scroll } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useSettings } from "@/context/SettingsContext";
 
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"];
 
 export default function Register({ onLogin }) {
   const { settings } = useSettings();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [region, setRegion] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +37,11 @@ export default function Register({ onLogin }) {
       return;
     }
 
+    if (!region) {
+      toast.error("Errore", { description: "Seleziona la tua regione di gioco" });
+      return;
+    }
+
     if (password.length < 6) {
       toast.error("Errore", { description: "La password deve avere almeno 6 caratteri" });
       return;
@@ -39,7 +53,7 @@ export default function Register({ onLogin }) {
       const response = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username, email, password, region })
       });
 
       const data = await response.json();
@@ -66,8 +80,7 @@ export default function Register({ onLogin }) {
         {/* Logo */}
         <div className="text-center mb-8 fade-in">
           <Link to="/">
-            <Scroll className="w-16 h-16 text-gold mx-auto mb-4" />
-            <h1 className="font-gothic text-3xl text-gold">{settings.event_name}</h1>
+            <img src="/logo-notturna.png" alt="NOTTURNA Young Blood" className="h-32 mx-auto mb-2" data-testid="register-logo" />
           </Link>
         </div>
 
@@ -108,6 +121,22 @@ export default function Register({ onLogin }) {
                 className="input-gothic rounded-sm h-12"
                 data-testid="email-input"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-cinzel text-gold uppercase tracking-wide text-sm">
+                Regione di Gioco
+              </Label>
+              <Select value={region} onValueChange={setRegion}>
+                <SelectTrigger className="input-gothic rounded-sm h-12" data-testid="region-select">
+                  <SelectValue placeholder="Seleziona la tua cronaca" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  {REGIONS.map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

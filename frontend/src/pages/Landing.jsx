@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Scroll, Archive, Shield, Sparkles } from "lucide-react";
+import { Scroll, Archive, Shield } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
 
@@ -44,19 +44,14 @@ export default function Landing() {
         {/* Hero Content */}
         <main className="flex-1 flex items-center justify-center px-6 hero-gradient">
           <div className="max-w-4xl mx-auto text-center fade-in">
-            <div className="mb-8">
-              {settings.event_logo_url ? (
-                <img src={settings.event_logo_url} alt="" className="h-24 md:h-32 mx-auto" />
-              ) : (
-                <Sparkles className="w-16 h-16 text-gold mx-auto opacity-80" />
-              )}
+            <div className="mb-6">
+              <img
+                src="/logo-notturna.png"
+                alt="NOTTURNA Young Blood"
+                className="w-72 md:w-[420px] mx-auto drop-shadow-[0_0_30px_rgba(138,0,0,0.45)]"
+                data-testid="landing-logo"
+              />
             </div>
-            <h2 className="font-gothic text-5xl md:text-7xl lg:text-8xl text-parchment mb-6 leading-tight">
-              {settings.hero_title}
-            </h2>
-            <p className="font-cinzel text-gold text-lg md:text-xl mb-4 tracking-widest uppercase">
-              {settings.hero_subtitle}
-            </p>
             <p className="font-body text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
               {settings.hero_description}
             </p>
@@ -120,6 +115,7 @@ export default function Landing() {
         {/* Footer */}
         <footer className="py-8 px-6 border-t border-border/30">
           <div className="max-w-7xl mx-auto text-center">
+            <img src="/lucis.png" alt="Lucis" className="h-6 mx-auto mb-3 opacity-60" data-testid="lucis-logo" />
             <p className="font-cinzel text-muted-foreground text-sm tracking-widest">
               L'ARCHIVIO MALEDETTO © {new Date().getFullYear()}
             </p>

@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend E2E per feature: Regioni, KB regionale/FAMA, Background FAMA, Tono Oracolo, Loghi. Tutti i loghi (landing/lucis/login/register/nav-logo) caricano correttamente. Region gating admin utenti, KB region-select con FAMA, Archive readonly, Personalizza oracle-tone: OK. Trovati 2 BUG CRITICI: (1) Register.jsx non invia il campo 'region' al backend (registrazione non persiste la regione scelta); (2) EditBackgroundModal.jsx non renderizza gli input FAMA TRA I VAMPIRI e FAMA MONDO OSCURO (data-testid fama-vampiri-input e fama-mondo-input assenti dal DOM), pur avendo lo stato dei campi in useState/handleSave.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Register.jsx (handleSubmit)", "issue": "Il body di /api/auth/register non include 'region' (linea 56: JSON.stringify({username,email,password})). Nuovo utente creato con region=null. Ho verificato via GET /api/admin/users che TestUmbria_3mhpkz ha region=None dopo registrazione con Umbria selezionata.", "selector": "form submit -> POST /api/auth/register", "priority": "CRITICAL"},
+      {"component": "EditBackgroundModal.jsx", "issue": "Gli input FAMA TRA I VAMPIRI (data-testid='fama-vampiri-input') e FAMA MONDO OSCURO (data-testid='fama-mondo-input') NON sono renderizzati nel JSX. Lo stato background contiene fama_vampiri/fama_mondo_oscuro ma il template mostra solo CLAN/RISORSE/SEGUACI/RIFUGIO/MENTORE/NOTORIETA/CONTATTI. Impossibile modificare la FAMA di un giocatore dal modal admin.", "selector": "[data-testid='fama-vampiri-input']", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Register.jsx line 56: aggiungere 'region' al body -> JSON.stringify({username, email, password, region})",
+    "EditBackgroundModal.jsx: aggiungere due <Input type='number' min=0 max=5 data-testid='fama-vampiri-input' /> e 'fama-mondo-input' collegati a background.fama_vampiri / background.fama_mondo_oscuro (con handleChange), rispettando la prop readOnly"
+  ],
+  "critical_code_review_comments": [
+    "Register.jsx: campo region collezionato ma non trasmesso al backend (bug lampante nel payload).",
+    "EditBackgroundModal.jsx: state completo con fama_vampiri/fama_mondo_oscuro ma manca la sezione UI corrispondente.",
+    "Note positive: kb-region-select filtra correttamente per admin regionale (solo Nazionale + propria regione); Umbria PDF NON ha data-testid delete-kb per admin LAZIO; ViewArchiveModal rispetta canEdit=false (nessun edit-answer-btn per giocatore di altra regione); backend PUT /api/admin/users/{id}/region OK; POST /api/knowledge accetta region+fama e chip UI corretto (NAZIONALE + FAMA VAMPIRI 2+)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "~78% (2 bug critici bloccano registrazione region + edit FAMA background)"},
+  "test_credentials": "lazio@notturnaroma.com/Lazio!N0tturna26; downtime@notturnaroma.com/N@rraz1on3; player@test.com/player123",
+  "seed_data_creation": "Creato giocatore Umbria di test: email=testumbria_3mhpkz@test.com, password=test123, username=TestUmbria_3mhpkz, id=6e347ac5-654d-44b1-8b23-d09ec7b53d1d. Region impostata a 'Umbria' via PUT /api/admin/users/{id}/region (workaround per il bug #1 di registrazione). KB doc TEST NAZIONALE E2E creato e CANCELLATO. Oracle tone modificato temporaneamente e RIPRISTINATO a vuoto. FAMA di player@test.com NON modificata (impossibile per bug #2).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Dopo i fix: 1) verificare che registrando un utente con regione, GET /api/admin/users mostri quella region; 2) aprire EditBackgroundModal e verificare presenza input fama-vampiri-input/fama-mondo-input, valorizzarli e verificare persistenza via GET del background. 3) L'utente testumbria_3mhpkz@test.com è ancora in DB (regione ora Umbria) - può essere rimosso dal main agent dopo verifica.",
+  "rca of the issue": "Bug #1 (region non inviato in registrazione): Register.jsx handleSubmit costruisce il body senza includere 'region', quindi il backend riceve data.region=None e imposta region=None nel documento utente. Fix: includere region nel JSON.stringify. Reprod: registrazione /register con Umbria selezionata -> Network tab mostra payload senza region -> GET /api/admin/users restituisce region:null. Mitigazione temporanea: usare PUT /api/admin/users/{id}/region come super admin. Bug #2 (mancano input FAMA in EditBackgroundModal): il componente ha state.fama_vampiri/fama_mondo_oscuro ma il template JSX salta la sezione UI. Fix: aggiungere due Input numerici con data-testid corretti dopo il blocco NOTORIETA, con onChange handleChange e disabled={readOnly}."
+}
