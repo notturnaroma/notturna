@@ -229,6 +229,16 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           foundItems: data.found_items || []
         };
         setMessages(prev => [...prev, aiMessage]);
+
+        // Prova improvvisata dall'Oracolo
+        if (data.suggested_challenge) {
+          setChallenges(prev => [...prev, data.suggested_challenge]);
+          setMessages(prev => [...prev, {
+            type: "challenge",
+            challenge: data.suggested_challenge,
+            timestamp: new Date().toISOString()
+          }]);
+        }
         
         // Aggiorna conteggio solo se nuova sessione
         if (data.is_new_session) {

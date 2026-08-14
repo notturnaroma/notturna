@@ -42,7 +42,8 @@ import {
   UserCircle,
   Ban,
   Unlock,
-  Link2
+  Link2,
+  BarChart3
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
@@ -54,6 +55,7 @@ import EditBackgroundModal from "@/components/EditBackgroundModal";
 import ViewEquipmentModal from "@/components/ViewEquipmentModal";
 import ViewArchiveModal from "@/components/ViewArchiveModal";
 import LinkSheetModal from "@/components/LinkSheetModal";
+import KnowledgeProgressModal from "@/components/KnowledgeProgressModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"];
@@ -67,6 +69,7 @@ export default function AdminPanel({ user, token, onLogout }) {
   const [viewingEquipmentUser, setViewingEquipmentUser] = useState(null);
   const [viewingArchiveUser, setViewingArchiveUser] = useState(null);
   const [linkingSheetUser, setLinkingSheetUser] = useState(null);
+  const [viewingProgressUser, setViewingProgressUser] = useState(null);
   
   // Knowledge form
   const [kbTitle, setKbTitle] = useState("");
@@ -870,6 +873,20 @@ export default function AdminPanel({ user, token, onLogout }) {
                                 {u.blocked ? "Sblocca" : "Blocca"}
                               </Button>
                             )}
+                            {/* Conteggi Trimestrali (visibile a tutte le Narrazioni) */}
+                            {!targetIsAdmin && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setViewingProgressUser(u)}
+                                className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                                data-testid={`progress-btn-${u.id}`}
+                              >
+                                <BarChart3 className="w-3 h-3 mr-1" />
+                                Conteggi
+                              </Button>
+                            )}
+
                             {/* Link Sheet Button */}
                             {(canManage || isSelf) && (
                               <Button
@@ -1060,6 +1077,16 @@ export default function AdminPanel({ user, token, onLogout }) {
           token={token}
           onClose={() => setLinkingSheetUser(null)}
           onSaved={fetchData}
+        />
+      )}
+
+      {/* Knowledge Progress Modal */}
+      {viewingProgressUser && (
+        <KnowledgeProgressModal
+          userId={viewingProgressUser.id}
+          username={viewingProgressUser.username}
+          token={token}
+          onClose={() => setViewingProgressUser(null)}
         />
       )}
     </div>

@@ -130,6 +130,12 @@ Codice da inserire nel sito HTML:
 - [x] Endpoint admin GET /api/admin/knowledge-progress/{user_id} (conteggi visibili solo alla Narrazione)
 - [x] Testato E2E: registrazione match/no-match/duplicato, 5 prove vinte -> pop-up Occulto -> ack -> sync al login
 
+## Aggiornamenti (Giu 2026 - v9) - Pannello Conteggi + Prove Improvvisate
+- [x] Pannello Conteggi: pulsante "Conteggi" (BarChart3) su ogni giocatore nel tab Utenti, visibile a TUTTI gli account Narrazione (anche altre regioni). Modal KnowledgeProgressModal.jsx con trimestri, vittorie X/5 e pallini assegnati (GET /api/admin/knowledge-progress/{id})
+- [x] Prove improvvisate dall'Oracolo: se nessuna prova configurata è adatta e la scena lo rende STRETTAMENTE necessario (raramente), l'IA emette il marcatore [PROVA_IMPROVVISATA|nome|attributo|difficoltà|tipologia]. Il backend lo intercetta (regex tollerante in session_chat), lo rimuove dal testo, crea una prova one-shot in db.challenges (improvised=true, for_user_id, session_id, max 1 per sessione) e la ritorna come suggested_challenge: il frontend la mostra come card prova cliccabile. Le prove improvvisate contano nel conteggio trimestrale (knowledge_type) e sono visibili solo al giocatore destinatario (filtro in GET /challenges)
+- [x] Prompt aggiornato: l'IA privilegia le prove configurate, non usa più frasi "Effettua una prova contrapposta..." per prove non configurate
+- [x] Testato: marcatore reale emesso dall'IA e parsato (incluso caso "difficoltà 9" nel campo numerico), modal Conteggi via UI come NARRAZIONE UMBRIA
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

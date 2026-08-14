@@ -18,6 +18,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 import aiofiles
 import PyPDF2
 import io
+import re
 
 
 ROOT_DIR = Path(__file__).parent
@@ -929,10 +930,11 @@ Continua la narrazione in modo coerente con quanto detto sopra.
             ch_list.append(f"- {ch['name']} (keywords: {keywords}): {'; '.join(tests_desc)}")
         challenges_hint = f"""
 
-=== PROVE LARP DISPONIBILI ===
+=== PROVE LARP DISPONIBILI (configurate dalla Narrazione) ===
 Se la situazione lo richiede, puoi suggerire al giocatore di affrontare una di queste prove:
 {chr(10).join(ch_list)}
-Quando suggerisci una prova, usa il formato: "Effettua una prova contrapposta su [ATTRIBUTO] a difficoltà [X]"
+SOLO per queste prove configurate, suggeriscile citando il loro nome o le loro keywords.
+Per qualsiasi altra prova NON in questo elenco, NON usare mai frasi come "Effettua una prova contrapposta su...": usa ESCLUSIVAMENTE il marcatore [PROVA_IMPROVVISATA|...] descritto nelle regole.
 === FINE PROVE ===
 """
     
@@ -963,7 +965,9 @@ Clan: {player_clan}
 
 === REGOLE ESPLORAZIONE ===
 1. Il giocatore sta esplorando un luogo o situazione. Puoi fare domande, offrire scelte, suggerire direzioni.
-2. Se serve una PROVA (es. Percezione, Forza, etc.), indica chiaramente: "Effettua una prova contrapposta su [ATTRIBUTO]+[ABILITÀ] a difficoltà [X]"
+2. PROVE: privilegia SEMPRE le "PROVE LARP DISPONIBILI" configurate dalla Narrazione quando pertinenti alla scena. SOLO se nessuna prova configurata è adatta E la dinamica narrativa lo rende STRETTAMENTE NECESSARIO (raramente, non a ogni scena: la maggior parte delle interazioni NON richiede prove), puoi improvvisare UNA prova contrapposta aggiungendo alla FINE della risposta, su una riga a parte, ESATTAMENTE questo marcatore:
+[PROVA_IMPROVVISATA|Nome breve della prova|Attributo + Abilità|difficoltà da 1 a 10|Tipologia]
+dove Tipologia è UNA tra: Accademiche classiche, Criminalità, Etichetta, Militari, Occulto, Scienze, oppure "-" se non pertinente. Non usare mai il marcatore per le prove già configurate e non improvvisare più di una prova per sessione. IMPORTANTE: NON scrivere MAI al giocatore frasi come "Effettua una prova contrapposta su X a difficoltà Y" — se una prova non configurata è davvero necessaria, usa SOLO il marcatore: sarà il sistema a mostrarla al giocatore.
 3. Puoi chiedere al giocatore se possiede determinati poteri quando è rilevante (es. "Possiedi Auspex o poteri simili?")
 4. Se il giocatore trova un oggetto, descrivilo narrativamente. L'oggetto può essere preso gratuitamente se non ha costo.
 5. La sessione continua finché il giocatore non cambia zona o dice di voler terminare.
@@ -1029,7 +1033,44 @@ TONO: Oscuro, gotico, atmosferico. Dialoghi realistici e cinici. Rispondi SEMPRE
     except Exception as e:
         logger.error(f"OpenAI error: {e}")
         answer = "L'Oracolo è momentaneamente avvolto dalle tenebre. Riprova tra poco."
-    
+
+    # ==== PROVA IMPROVVISATA DALL'ORACOLO (rara, solo se strettamente necessario) ====
+    suggested_challenge = None
+    improv = re.search(r"\[PROVA_IMPROVVISATA\|([^|\]]+)\|([^|\]]+)\|[^|\]]*?(\d+)[^|\]]*\|([^\]]*)\]", answer)
+    if "[PROVA_IMPROVVISATA" in answer:
+        answer = re.sub(r"\s*\[PROVA_IMPROVVISATA[^\]]*\]?\s*", "\n", answer).strip()
+    if improv:
+        already = await db.challenges.find_one({"improvised": True, "session_id": session["id"]})
+        if not already and user.get("role") == "player":
+            kt = improv.group(4).strip()
+            if kt not in KNOWLEDGE_TYPES:
+                kt = derive_knowledge_from_attribute(improv.group(2)) or None
+            ch_doc = {
+                "id": str(uuid.uuid4()),
+                "name": improv.group(1).strip(),
+                "description": "Prova improvvisata dall'Oracolo per la scena in corso.",
+                "tests": [{
+                    "attribute": improv.group(2).strip(),
+                    "difficulty": max(1, min(10, int(improv.group(3)))),
+                    "success_text": "Riesci nell'intento: la scena prosegue a tuo favore.",
+                    "tie_text": "Esito incerto: ottieni solo in parte ciò che cercavi.",
+                    "failure_text": "Fallisci: le tenebre non ti assistono questa volta.",
+                    "knowledge_type": kt
+                }],
+                "keywords": [],
+                "improvised": True,
+                "session_id": session["id"],
+                "for_user_id": user["id"],
+                "allow_refuge_defense": False,
+                "allow_followers_help": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_by": "Oracolo"
+            }
+            await db.challenges.insert_one(ch_doc)
+            ch_doc.pop("_id", None)
+            suggested_challenge = ch_doc
+            logger.info(f"Prova improvvisata: '{ch_doc['name']}' ({kt}) per {user['email']}")
+
     # Salva risposta
     assistant_msg_id = str(uuid.uuid4())
     assistant_msg_doc = {
@@ -2306,3 +2347,4 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
