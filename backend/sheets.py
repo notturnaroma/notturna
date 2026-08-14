@@ -69,6 +69,8 @@ def map_sheet_to_background(data: dict) -> dict:
         "notoriety": backs.get("notorietà", backs.get("notorieta", 0)),
         "mentor": backs.get("mentore", 0),
         "seguaci": backs.get("seguaci", 0),
+        "alleati": backs.get("alleati", 0),
+        "gregge": backs.get("gregge", backs.get("armento", 0)),
         "fama_citta": _int(p.get("fama1")),
         "fama_vampiri": _int(p.get("fama2")),
         "fama_mondo_oscuro": _int(p.get("fama3")),

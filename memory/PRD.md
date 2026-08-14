@@ -136,6 +136,11 @@ Codice da inserire nel sito HTML:
 - [x] Prompt aggiornato: l'IA privilegia le prove configurate, non usa più frasi "Effettua una prova contrapposta..." per prove non configurate
 - [x] Testato: marcatore reale emesso dall'IA e parsato (incluso caso "difficoltà 9" nel campo numerico), modal Conteggi via UI come NARRAZIONE UMBRIA
 
+## Aggiornamenti (Giu 2026 - v10) - Cambia Password + Alleati/Gregge + fix landing
+- [x] Cambia Password: POST /api/auth/change-password (verifica password attuale, min 6 caratteri) + ChangePasswordModal.jsx, pulsante chiave nella nav Dashboard (tutti gli account). Testato E2E via curl e UI
+- [x] Background: nuove voci ALLEATI e GREGGE (model, EditBackgroundModal, sync dalla scheda esterna: backs 'alleati'/'gregge' o 'armento')
+- [x] Landing: rimossa la descrizione sotto il logo (richiesta edit visuale)
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

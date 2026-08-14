@@ -17,12 +17,14 @@ import {
   Sparkles,
   Coins,
   Package,
-  ScrollText
+  ScrollText,
+  KeyRound
 } from "lucide-react";
 import ChallengeModal from "@/components/ChallengeModal";
 import AidsModal from "@/components/AidsModal";
 import MySheetModal from "@/components/MySheetModal";
 import PallinoModal from "@/components/PallinoModal";
+import ChangePasswordModal from "@/components/ChangePasswordModal";
 import { useSettings } from "@/context/SettingsContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -37,6 +39,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [activeChallenge, setActiveChallenge] = useState(null);
   const [showAidsModal, setShowAidsModal] = useState(false);
   const [showSheetModal, setShowSheetModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [remainingActions, setRemainingActions] = useState(user ? user.max_actions - user.used_actions : 0);
   const [effectiveMaxActions, setEffectiveMaxActions] = useState(user?.max_actions || 0);
@@ -383,6 +386,18 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                 <span className="text-gold">{remainingActions}</span>/{effectiveMaxActions}
               </span>
             </div>
+
+            {/* Cambia Password Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPasswordModal(true)}
+              className="text-gold hover:bg-gold/10 font-cinzel"
+              data-testid="change-password-nav-btn"
+              title="Cambia Password"
+            >
+              <KeyRound className="w-4 h-4" />
+            </Button>
 
             {/* Scheda Button */}
             {user?.sheet_id && (
@@ -752,6 +767,11 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       {/* La Mia Scheda */}
       {showSheetModal && (
         <MySheetModal token={token} onClose={() => setShowSheetModal(false)} />
+      )}
+
+      {/* Cambia Password */}
+      {showPasswordModal && (
+        <ChangePasswordModal token={token} onClose={() => setShowPasswordModal(false)} />
       )}
 
       {/* Pop-up Pallino Conoscenze */}

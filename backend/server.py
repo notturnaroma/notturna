@@ -146,6 +146,19 @@ async def login(data: UserLogin):
     )
     return TokenResponse(access_token=token, user=user_response)
 
+@api_router.post("/auth/change-password")
+async def change_password(data: ChangePasswordRequest, user: dict = Depends(get_current_user)):
+    if not verify_password(data.old_password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="La password attuale non è corretta")
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="La nuova password deve avere almeno 6 caratteri")
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"password_hash": hash_password(data.new_password)}}
+    )
+    return {"message": "Password aggiornata con successo"}
+
+
 @api_router.get("/auth/me", response_model=UserResponse)
 async def get_me(user: dict = Depends(get_current_user)):
     return UserResponse(

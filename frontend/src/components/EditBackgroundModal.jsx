@@ -17,6 +17,8 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
     rifugio: 1,
     mentor: 0,
     notoriety: 0,
+    alleati: 0,
+    gregge: 0,
     fama_citta: 0,
     fama_vampiri: 0,
     fama_mondo_oscuro: 0,
@@ -42,6 +44,8 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
           rifugio: data.rifugio ?? 1,
           mentor: data.mentor ?? 0,
           notoriety: data.notoriety ?? 0,
+          alleati: data.alleati ?? 0,
+          gregge: data.gregge ?? 0,
           fama_citta: data.fama_citta ?? 0,
           fama_vampiri: data.fama_vampiri ?? 0,
           fama_mondo_oscuro: data.fama_mondo_oscuro ?? 0,
@@ -93,6 +97,8 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
         rifugio: parseInt(background.rifugio) || 1,
         mentor: parseInt(background.mentor) || 0,
         notoriety: parseInt(background.notoriety) || 0,
+        alleati: parseInt(background.alleati) || 0,
+        gregge: parseInt(background.gregge) || 0,
         fama_citta: parseInt(background.fama_citta) || 0,
         fama_vampiri: parseInt(background.fama_vampiri) || 0,
         fama_mondo_oscuro: parseInt(background.fama_mondo_oscuro) || 0,
@@ -212,6 +218,34 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
                   value={background.notoriety}
                   onChange={(e) => handleChange("notoriety", parseInt(e.target.value) || 0)}
                   className="input-gothic rounded-sm"
+                />
+              </div>
+            </div>
+
+            {/* Alleati e Gregge */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">ALLEATI</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={background.alleati}
+                  onChange={(e) => handleChange("alleati", parseInt(e.target.value) || 0)}
+                  disabled={readOnly}
+                  className="input-gothic rounded-sm"
+                  data-testid="alleati-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">GREGGE</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={background.gregge}
+                  onChange={(e) => handleChange("gregge", parseInt(e.target.value) || 0)}
+                  disabled={readOnly}
+                  className="input-gothic rounded-sm"
+                  data-testid="gregge-input"
                 />
               </div>
             </div>

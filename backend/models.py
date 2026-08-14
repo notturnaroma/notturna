@@ -101,6 +101,10 @@ class BlockUserRequest(BaseModel):
 class UpdateUserRegion(BaseModel):
     region: str
 
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
 class LinkSheetRequest(BaseModel):
     sheet_id: Optional[str] = None
 
@@ -364,6 +368,8 @@ class Background(BaseModel):
     rifugio: int = 1
     mentor: int = 0
     notoriety: int = 0
+    alleati: int = 0
+    gregge: int = 0
     fama_citta: int = 0
     fama_vampiri: int = 0
     fama_mondo_oscuro: int = 0
