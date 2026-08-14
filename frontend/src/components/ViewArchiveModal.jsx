@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Archive, X, MessageSquare, User } from "lucide-react";
+import { Archive, X, MessageSquare, User, Pencil, Check, Loader2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ViewArchiveModal({ userId, username, token, onClose }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchHistory();
@@ -32,6 +36,38 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
     }
   };
 
+  const startEdit = (item) => {
+    setEditingId(item.id);
+    setEditText(item.answer);
+  };
+
+  const saveEdit = async () => {
+    if (!editText.trim()) return;
+    setSaving(true);
+    try {
+      const response = await fetch(`${API}/admin/chat/${editingId}/answer`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ answer: editText })
+      });
+      if (response.ok) {
+        toast.success("Risposta modificata");
+        setEditingId(null);
+        fetchHistory();
+      } else {
+        const data = await response.json();
+        toast.error("Errore", { description: data.detail });
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const formatDate = (isoString) => {
     if (!isoString) return "-";
     return new Date(isoString).toLocaleDateString("it-IT", {
@@ -53,7 +89,7 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
               Archivio di {username}
             </h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground hover:text-white">
+          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground hover:text-white" data-testid="close-archive-modal">
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -78,7 +114,7 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
                   <div className="text-[10px] text-muted-foreground mb-2">
                     {formatDate(item.created_at)}
                   </div>
-                  
+
                   {/* Domanda */}
                   <div className="flex items-start gap-2 mb-3">
                     <User className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" />
@@ -87,15 +123,67 @@ export default function ViewArchiveModal({ userId, username, token, onClose }) {
                       <p className="font-body text-parchment text-sm">{item.question}</p>
                     </div>
                   </div>
-                  
+
                   {/* Risposta */}
-                  <div className="flex items-start gap-2 pl-6 border-l border-gold/30">
-                    <div>
-                      <p className="font-cinzel text-primary text-xs uppercase mb-1">Risposta</p>
+                  <div className="pl-6 border-l border-gold/30">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-cinzel text-primary text-xs uppercase">Risposta</p>
+                        {item.edited && (
+                          <span className="text-[10px] font-cinzel uppercase tracking-wide text-gold bg-gold/10 border border-gold/40 px-2 py-0.5 rounded-sm" data-testid={`edited-badge-${item.id}`}>
+                            ✦ Modificata dalla Narrazione{item.edited_by ? ` (${item.edited_by})` : ""}
+                          </span>
+                        )}
+                      </div>
+                      {editingId !== item.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(item)}
+                          className="text-gold hover:bg-gold/10 h-7 px-2"
+                          data-testid={`edit-answer-btn-${item.id}`}
+                        >
+                          <Pencil className="w-3 h-3 mr-1" />
+                          <span className="text-xs font-cinzel">Modifica</span>
+                        </Button>
+                      )}
+                    </div>
+
+                    {editingId === item.id ? (
+                      <div className="space-y-2">
+                        <Textarea
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="input-gothic rounded-sm min-h-[120px] text-sm"
+                          data-testid="edit-answer-textarea"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={saveEdit}
+                            disabled={saving}
+                            className="bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm font-cinzel text-xs"
+                            data-testid="save-answer-btn"
+                          >
+                            {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                            SALVA
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingId(null)}
+                            className="border-border/50 text-muted-foreground rounded-sm font-cinzel text-xs"
+                            data-testid="cancel-edit-btn"
+                          >
+                            ANNULLA
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
                       <p className="font-body text-muted-foreground text-sm whitespace-pre-wrap">
                         {item.answer}
                       </p>
-                    </div>
+                    )}
                   </div>
                 </div>
               ))}

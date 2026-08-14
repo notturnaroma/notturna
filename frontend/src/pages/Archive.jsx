@@ -302,6 +302,11 @@ export default function Archive({ user, token, onLogout }) {
                             <span className="font-cinzel text-gold uppercase tracking-widest text-xs">
                               Risposta dell'Oracolo
                             </span>
+                            {selectedChat.edited && (
+                              <span className="text-[10px] font-cinzel uppercase tracking-wide text-gold bg-gold/10 border border-gold/40 px-2 py-0.5 rounded-sm" data-testid="answer-edited-badge">
+                                ✦ Modificata dalla Narrazione
+                              </span>
+                            )}
                           </div>
                           <div className="chat-message-ai p-4 rounded-sm">
                             <p className="font-body text-parchment leading-relaxed whitespace-pre-wrap">

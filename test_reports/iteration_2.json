@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only regression testing for L'Archivio Maledetto new features: Narrazione account hierarchy (super admin vs regional), account block/unblock with login denial, admin edit of Oracle answers with visible badge, and Knowledge Base listing. All 6 test scenarios PASSED.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Login as NARRAZIONE ITALIA (super admin): 5 Blocca buttons + 5 delete buttons for other users, SUPER badge visible on own row, own row has NO Blocca/Elimina controls",
+    "Login as NARRAZIONE LAZIO: Blocca+delete only for player@test.com; role Select disabled for all Narrazione accounts (Italia, Lazio, Abruzzo, Umbria, Lombardia); role select enabled for player only",
+    "Edit Oracle answer flow as LAZIO: view-archive-{playerId} modal opens, edit-answer-btn works, textarea editable, save-answer-btn shows success toast 'Risposta modificata', edited-badge-{chatId} displays '✦ Modificata dalla Narrazione (NARRAZIONE LAZIO)', updated text visible",
+    "Player view of edited answer at /archive: answer-edited-badge shows '✦ Modificata dalla Narrazione' next to 'Risposta dell'Oracolo' with correct updated content",
+    "Block flow: super-admin blocks player -> blocked-badge-{id} appears (BLOCCATO); player login attempt returns error toast 'Account bloccato dalla Narrazione'; unblock via same button removes badge (blocked-badge count = 0)",
+    "Knowledge Base tab: lists 5 PDF documents (Design Document, I Doni del Sangue, Ambientazione, Cronaca Lazio, Guida alla cronaca dell Umbria) with visible category chips (Regole, Ambientazione, Cronaca Umbria...); category selector present in upload form. No documents were deleted."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: KB document titles in DB differ slightly from spec expectations ('Cronaca Lazio.pdf' vs 'Guida cronaca Lazio', 'Guida alla cronaca dell Umbria' vs 'Guida cronaca Umbria') - names appear correct in UI, just naming inconsistency, not a bug.",
+    "Backend server.py is 2755 lines - exceeds 700-line recommendation, should be modularized."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not-tested (per request)", "frontend": "100% (6/6 scenarios)"},
+  "test_credentials": "downtime@notturnaroma.com / N@rraz1on3 (super); lazio@notturnaroma.com / Lazio!N0tturna26; player@test.com / player123",
+  "seed_data_creation": "Created 1 consultation for player@test.com via POST /api/session/chat 'Chi governa Roma?' (needed to test edit-answer flow). Player consumed 1/20 actions. Answer was subsequently edited by LAZIO for testing (content is now 'Risposta modificata dalla Narrazione LAZIO per test.').",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Player has 1 chat in archive with content overwritten by LAZIO edit ('Risposta modificata dalla Narrazione LAZIO per test.'). Player was blocked then UNBLOCKED at end - confirmed via badge disappearance. KB has 5 PDFs intact (nothing deleted). All Narrazione accounts intact."
+}

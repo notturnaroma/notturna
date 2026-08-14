@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -80,6 +80,8 @@ class UserResponse(BaseModel):
     role: str
     max_actions: int
     used_actions: int
+    is_super_admin: bool = False
+    blocked: bool = False
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -129,12 +131,21 @@ class ChatResponse(BaseModel):
     type: Optional[str] = "chat"
     challenge_data: Optional[dict] = None
     found_items: Optional[List[FoundResourceItem]] = None  # Oggetti trovabili/acquistabili
+    edited: Optional[bool] = False
+    edited_by: Optional[str] = None
+    edited_at: Optional[str] = None
 
 class UpdateUserActions(BaseModel):
     max_actions: int
 
 class UpdateUserRole(BaseModel):
     role: str
+
+class BlockUserRequest(BaseModel):
+    blocked: bool
+
+class EditAnswerRequest(BaseModel):
+    answer: str
 
 class AppSettings(BaseModel):
     event_name: str = "L'Archivio Maledetto"
@@ -617,6 +628,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
         if not user:
             raise HTTPException(status_code=401, detail="Utente non trovato")
+        if user.get("blocked"):
+            raise HTTPException(status_code=403, detail="Account bloccato dalla Narrazione")
         # Controlla e applica reset mensile se necessario
         user = await check_monthly_reset(user)
         return user
@@ -629,6 +642,18 @@ async def get_admin_user(user: dict = Depends(get_current_user)):
     if user.get("role") not in ["admin", "Narrazione"]:
         raise HTTPException(status_code=403, detail="Accesso negato - Solo admin")
     return user
+
+async def get_target_for_admin_action(user_id: str, admin: dict) -> dict:
+    """Verifica gerarchia Narrazione: solo NARRAZIONE ITALIA (super admin) può agire su altri account admin."""
+    target = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    if target["id"] != admin["id"]:
+        if target.get("is_super_admin"):
+            raise HTTPException(status_code=403, detail="L'account NARRAZIONE ITALIA non può essere modificato da altri account")
+        if target.get("role") in ["admin", "Narrazione"] and not admin.get("is_super_admin"):
+            raise HTTPException(status_code=403, detail="Solo NARRAZIONE ITALIA può gestire gli altri account Narrazione")
+    return target
 
 @api_router.get("/followers/status", response_model=FollowerStatus)
 async def get_follower_status(user: dict = Depends(get_current_user)):
@@ -684,11 +709,14 @@ async def login(data: UserLogin):
     user = await db.users.find_one({"email": data.email}, {"_id": 0})
     if not user or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Credenziali non valide")
-    
+    if user.get("blocked"):
+        raise HTTPException(status_code=403, detail="Account bloccato dalla Narrazione")
+
     token = create_token(user["id"], user["role"])
     user_response = UserResponse(
         id=user["id"], email=user["email"], username=user["username"],
-        role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"]
+        role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"],
+        is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False)
     )
     return TokenResponse(access_token=token, user=user_response)
 
@@ -696,7 +724,8 @@ async def login(data: UserLogin):
 async def get_me(user: dict = Depends(get_current_user)):
     return UserResponse(
         id=user["id"], email=user["email"], username=user["username"],
-        role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"]
+        role=user["role"], max_actions=user["max_actions"], used_actions=user["used_actions"],
+        is_super_admin=user.get("is_super_admin", False), blocked=user.get("blocked", False)
     )
 
 # ==================== KNOWLEDGE BASE ROUTES ====================
@@ -740,7 +769,7 @@ async def delete_knowledge(kb_id: str, user: dict = Depends(get_admin_user)):
     return {"message": "Documento eliminato"}
 
 @api_router.post("/knowledge/upload")
-async def upload_document(file: UploadFile = File(...), user: dict = Depends(get_admin_user)):
+async def upload_document(file: UploadFile = File(...), category: str = Form("uploaded"), user: dict = Depends(get_admin_user)):
     """Upload file: testo, PDF, immagini o video"""
     filename = file.filename or "file"
     file_type = get_file_type(filename)
@@ -791,7 +820,7 @@ async def upload_document(file: UploadFile = File(...), user: dict = Depends(get
         "id": kb_id,
         "title": filename,
         "content": text_content,
-        "category": "uploaded",
+        "category": category or "uploaded",
         "file_type": file_type,
         "file_url": file_url,
         "file_path": str(file_path),
@@ -982,7 +1011,10 @@ async def get_chat_history(user: dict = Depends(get_current_user)):
         answer=h["answer"],
         created_at=h["created_at"],
         type=h.get("type", "chat"),
-        challenge_data=h.get("challenge_data")
+        challenge_data=h.get("challenge_data"),
+        edited=h.get("edited", False),
+        edited_by=h.get("edited_by"),
+        edited_at=h.get("edited_at")
     ) for h in history]
 
 # ==================== SESSIONI DI CONSULTAZIONE ROUTES ====================
@@ -1659,7 +1691,10 @@ async def get_user_chat_history_admin(user_id: str, admin: dict = Depends(get_ad
         answer=h["answer"],
         created_at=h["created_at"],
         type=h.get("type", "chat"),
-        challenge_data=h.get("challenge_data")
+        challenge_data=h.get("challenge_data"),
+        edited=h.get("edited", False),
+        edited_by=h.get("edited_by"),
+        edited_at=h.get("edited_at")
     ) for h in history]
 
 @api_router.get("/admin/users", response_model=List[UserResponse])
@@ -1669,6 +1704,7 @@ async def get_all_users(user: dict = Depends(get_admin_user)):
 
 @api_router.put("/admin/users/{user_id}/actions")
 async def update_user_actions(user_id: str, data: UpdateUserActions, admin: dict = Depends(get_admin_user)):
+    await get_target_for_admin_action(user_id, admin)
     result = await db.users.update_one(
         {"id": user_id},
         {"$set": {"max_actions": data.max_actions}}
@@ -2048,6 +2084,7 @@ async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
     # Non permettere di cancellare se stessi per sicurezza
     if admin["id"] == user_id:
         raise HTTPException(status_code=400, detail="Non puoi eliminare te stesso")
+    await get_target_for_admin_action(user_id, admin)
 
     result = await db.users.delete_one({"id": user_id})
     if result.deleted_count == 0:
@@ -2060,6 +2097,7 @@ async def delete_user(user_id: str, admin: dict = Depends(get_admin_user)):
 async def update_user_role(user_id: str, data: UpdateUserRole, admin: dict = Depends(get_admin_user)):
     if data.role not in ["player", "admin"]:
         raise HTTPException(status_code=400, detail="Ruolo non valido")
+    await get_target_for_admin_action(user_id, admin)
     result = await db.users.update_one(
         {"id": user_id},
         {"$set": {"role": data.role}}
@@ -2068,8 +2106,44 @@ async def update_user_role(user_id: str, data: UpdateUserRole, admin: dict = Dep
         raise HTTPException(status_code=404, detail="Utente non trovato")
     return {"message": "Ruolo aggiornato"}
 
+@api_router.put("/admin/users/{user_id}/block")
+async def block_user(user_id: str, data: BlockUserRequest, admin: dict = Depends(get_admin_user)):
+    """Blocca/sblocca un account. Gli account Narrazione possono essere bloccati solo da NARRAZIONE ITALIA."""
+    if admin["id"] == user_id:
+        raise HTTPException(status_code=400, detail="Non puoi bloccare te stesso")
+    await get_target_for_admin_action(user_id, admin)
+    await db.users.update_one({"id": user_id}, {"$set": {"blocked": data.blocked}})
+    return {"message": "Utente bloccato" if data.blocked else "Utente sbloccato"}
+
+
+@api_router.put("/admin/chat/{chat_id}/answer")
+async def edit_chat_answer(chat_id: str, data: EditAnswerRequest, admin: dict = Depends(get_admin_user)):
+    """MODIFICA RISPOSTA: la Narrazione corregge una risposta dell'Oracolo. Resta nello storico con indicazione visibile."""
+    chat = await db.chat_history.find_one({"id": chat_id}, {"_id": 0})
+    if not chat:
+        raise HTTPException(status_code=404, detail="Consultazione non trovata")
+    old_answer = chat["answer"]
+    now = datetime.now(timezone.utc).isoformat()
+    await db.chat_history.update_one(
+        {"id": chat_id},
+        {"$set": {"answer": data.answer, "edited": True, "edited_by": admin["username"], "edited_at": now}}
+    )
+    # Mantieni coerenza con la memoria della sessione e dei PNG
+    if chat.get("session_id"):
+        await db.consultation_messages.update_one(
+            {"session_id": chat["session_id"], "role": "assistant", "content": old_answer},
+            {"$set": {"content": data.answer, "edited": True, "edited_by": admin["username"], "edited_at": now}}
+        )
+    await db.npc_interactions.update_many(
+        {"user_id": chat["user_id"], "npc_response": old_answer},
+        {"$set": {"npc_response": data.answer}}
+    )
+    return {"message": "Risposta modificata", "edited_at": now}
+
+
 @api_router.post("/admin/users/{user_id}/reset-actions")
 async def reset_user_actions(user_id: str, admin: dict = Depends(get_admin_user)):
+    await get_target_for_admin_action(user_id, admin)
     result = await db.users.update_one(
         {"id": user_id},
         {"$set": {"used_actions": 0}}

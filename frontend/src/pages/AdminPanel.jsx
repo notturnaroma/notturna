@@ -39,7 +39,9 @@ import {
   Package,
   Archive,
   MapPin,
-  UserCircle
+  UserCircle,
+  Ban,
+  Unlock
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
@@ -253,6 +255,28 @@ export default function AdminPanel({ user, token, onLogout }) {
   };
 
 
+
+  const handleBlockUser = async (userId, blocked) => {
+    try {
+      const response = await fetch(`${API}/admin/users/${userId}/block`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ blocked })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+        fetchData();
+      } else {
+        toast.error(data.detail || "Errore");
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    }
+  };
 
   const handleUpdateRole = async (userId, role) => {
     try {
@@ -664,36 +688,67 @@ export default function AdminPanel({ user, token, onLogout }) {
                   </div>
                 ) : (
                   <div className="divide-y divide-border/30">
-                    {users.map((u) => (
+                    {users.map((u) => {
+                      const isSelf = u.id === user?.id;
+                      const targetIsAdmin = u.role === "admin" || u.role === "Narrazione";
+                      const canManage = !isSelf && !u.is_super_admin && (!targetIsAdmin || user?.is_super_admin);
+                      return (
                       <div key={u.id} className="p-4 hover:bg-gold/5 transition-colors">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${
-                              u.role === "admin" ? "bg-gold/20" : "bg-secondary/50"
+                              targetIsAdmin ? "bg-gold/20" : "bg-secondary/50"
                             }`}>
-                              {u.role === "admin" ? (
+                              {targetIsAdmin ? (
                                 <Crown className="w-5 h-5 text-gold" />
                               ) : (
                                 <Shield className="w-5 h-5 text-muted-foreground" />
                               )}
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteUser(u.id)}
-                              className="text-red-500 hover:bg-red-500/10"
-                              data-testid={`delete-user-${u.id}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {canManage && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteUser(u.id)}
+                                className="text-red-500 hover:bg-red-500/10"
+                                data-testid={`delete-user-${u.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
 
                             <div>
-                              <h3 className="font-cinzel text-parchment">{u.username}</h3>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-cinzel text-parchment">{u.username}</h3>
+                                {u.is_super_admin && (
+                                  <span className="text-[10px] font-cinzel uppercase text-gold bg-gold/10 border border-gold/40 px-2 py-0.5 rounded-sm">
+                                    SUPER
+                                  </span>
+                                )}
+                                {u.blocked && (
+                                  <span className="text-[10px] font-cinzel uppercase text-red-400 bg-red-500/10 border border-red-500/40 px-2 py-0.5 rounded-sm" data-testid={`blocked-badge-${u.id}`}>
+                                    BLOCCATO
+                                  </span>
+                                )}
+                              </div>
                               <p className="font-body text-muted-foreground text-sm">{u.email}</p>
                             </div>
                           </div>
 
                           <div className="flex flex-wrap items-center gap-3">
+                            {/* Block/Unblock Button */}
+                            {canManage && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleBlockUser(u.id, !u.blocked)}
+                                className={`rounded-sm font-cinzel ${u.blocked ? "border-green-500/50 text-green-400 hover:bg-green-500/10" : "border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
+                                data-testid={`block-btn-${u.id}`}
+                              >
+                                {u.blocked ? <Unlock className="w-3 h-3 mr-1" /> : <Ban className="w-3 h-3 mr-1" />}
+                                {u.blocked ? "Sblocca" : "Blocca"}
+                              </Button>
+                            )}
                             {/* Modifica Background Button */}
                             <Button
                               variant="outline"
@@ -734,6 +789,7 @@ export default function AdminPanel({ user, token, onLogout }) {
                             <Select
                               value={u.role}
                               onValueChange={(val) => handleUpdateRole(u.id, val)}
+                              disabled={!canManage}
                             >
                               <SelectTrigger className="w-[120px] input-gothic rounded-sm text-sm" data-testid={`role-select-${u.id}`}>
                                 <SelectValue />
@@ -754,6 +810,7 @@ export default function AdminPanel({ user, token, onLogout }) {
                                 min="0"
                                 defaultValue={u.max_actions}
                                 onBlur={(e) => handleUpdateActions(u.id, e.target.value)}
+                                disabled={!canManage && !isSelf}
                                 className="w-20 input-gothic rounded-sm text-sm"
                                 data-testid={`actions-input-${u.id}`}
                               />
@@ -761,6 +818,7 @@ export default function AdminPanel({ user, token, onLogout }) {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleResetActions(u.id)}
+                                disabled={!canManage && !isSelf}
                                 className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm"
                                 data-testid={`reset-btn-${u.id}`}
                               >
@@ -770,7 +828,8 @@ export default function AdminPanel({ user, token, onLogout }) {
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </ScrollArea>

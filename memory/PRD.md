@@ -92,8 +92,20 @@ Codice da inserire nel sito HTML:
 - `npcs`: {id, name, aliases, clan, location, mood_initial, personality, knowledge_public, knowledge_conditional, knowledge_secret, triggers_open, triggers_close, never_says, exclusive, exclusive_rules, created_at, updated_at}
 - `npc_interactions`: {id, npc_id, npc_name, user_id, user_name, user_message, npc_response, session_id, created_at}
 
+## Aggiornamenti (Giu 2026 - v5) - Gerarchia Narrazione + Modifica Risposta + Reset Dati
+- [x] Pulizia completa DB: file KB, storici chat, sessioni, eventi mondo, account di prova eliminati
+- [x] Account: NARRAZIONE ITALIA (super admin, downtime@notturnaroma.com) + 4 regionali (LAZIO, ABRUZZO, UMBRIA, LOMBARDIA) + player@test.com
+- [x] Gerarchia: solo NARRAZIONE ITALIA (is_super_admin) può bloccare/cancellare/modificare gli altri account Narrazione; i regionali non possono agire uno sull'altro
+- [x] Blocco account: PUT /api/admin/users/{id}/block, login negato se blocked=true
+- [x] MODIFICA RISPOSTA: PUT /api/admin/chat/{id}/answer - tutti gli admin possono correggere le risposte dell'Oracolo; badge "✦ Modificata dalla Narrazione" visibile nell'archivio giocatore e admin; aggiorna anche consultation_messages e npc_interactions per coerenza memoria
+- [x] Upload KB con categoria selezionabile (form param category)
+- [x] Caricati 5 PDF ufficiali: Design Document + I Doni del Sangue (Regole), Ambientazione, Cronaca Lazio, Cronaca Umbria
+- [x] Template schede LUOGHI/PNG/OGGETTI/VOCI: /app/backend/uploads/TEMPLATE-SCHEDE-NOTTURNA.md (scaricabile da /api/uploads/TEMPLATE-SCHEDE-NOTTURNA.md)
+- [ ] In attesa: PDF Ambientazione Abruzzo e Lombardia + loghi da posizionare
+
 ## Backlog corrente
-- P1: Refactoring `server.py` in moduli separati (>2600 righe)
+- P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice
-- P2: Validazione RAG con PDF categorizzati (LUOGHI/PERSONAGGI/TRAME) - richiede upload utente
+- P2: Inserimento loghi forniti dall'utente (in arrivo)
+- P2: Validazione RAG con le nuove schede LUOGHI/PNG/OGGETTI quando l'utente le caricherà
 
