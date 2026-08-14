@@ -52,10 +52,7 @@ export default function Landing() {
                 data-testid="landing-logo"
               />
             </div>
-            <p className="font-body text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-              {settings.hero_description}
-            </p>
-            
+
             <Link to="/register">
               <Button 
                 size="lg"
