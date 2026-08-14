@@ -41,7 +41,8 @@ import {
   MapPin,
   UserCircle,
   Ban,
-  Unlock
+  Unlock,
+  Link2
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
@@ -52,6 +53,7 @@ import NPCsPanel from "@/components/NPCsPanel";
 import EditBackgroundModal from "@/components/EditBackgroundModal";
 import ViewEquipmentModal from "@/components/ViewEquipmentModal";
 import ViewArchiveModal from "@/components/ViewArchiveModal";
+import LinkSheetModal from "@/components/LinkSheetModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const REGIONS = ["Lazio", "Abruzzo", "Umbria", "Lombardia"];
@@ -64,6 +66,7 @@ export default function AdminPanel({ user, token, onLogout }) {
   const [editingBackgroundUser, setEditingBackgroundUser] = useState(null);
   const [viewingEquipmentUser, setViewingEquipmentUser] = useState(null);
   const [viewingArchiveUser, setViewingArchiveUser] = useState(null);
+  const [linkingSheetUser, setLinkingSheetUser] = useState(null);
   
   // Knowledge form
   const [kbTitle, setKbTitle] = useState("");
@@ -843,6 +846,11 @@ export default function AdminPanel({ user, token, onLogout }) {
                                     {u.region}
                                   </span>
                                 )}
+                                {u.sheet_name && (
+                                  <span className="text-[10px] font-cinzel uppercase text-gold bg-gold/10 border border-gold/30 px-2 py-0.5 rounded-sm" data-testid={`sheet-badge-${u.id}`}>
+                                    ⛧ {u.sheet_name}
+                                  </span>
+                                )}
                               </div>
                               <p className="font-body text-muted-foreground text-sm">{u.email}</p>
                             </div>
@@ -862,6 +870,20 @@ export default function AdminPanel({ user, token, onLogout }) {
                                 {u.blocked ? "Sblocca" : "Blocca"}
                               </Button>
                             )}
+                            {/* Link Sheet Button */}
+                            {(canManage || isSelf) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setLinkingSheetUser(u)}
+                                className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                                data-testid={`link-sheet-${u.id}`}
+                              >
+                                <Link2 className="w-3 h-3 mr-1" />
+                                Scheda
+                              </Button>
+                            )}
+
                             {/* Modifica Background Button */}
                             <Button
                               variant="outline"
@@ -1025,6 +1047,19 @@ export default function AdminPanel({ user, token, onLogout }) {
           token={token}
           canEdit={Boolean(viewingArchiveUser.canEdit)}
           onClose={() => setViewingArchiveUser(null)}
+        />
+      )}
+
+      {/* Link Sheet Modal */}
+      {linkingSheetUser && (
+        <LinkSheetModal
+          userId={linkingSheetUser.id}
+          username={linkingSheetUser.username}
+          currentSheetId={linkingSheetUser.sheet_id}
+          currentSheetName={linkingSheetUser.sheet_name}
+          token={token}
+          onClose={() => setLinkingSheetUser(null)}
+          onSaved={fetchData}
         />
       )}
     </div>

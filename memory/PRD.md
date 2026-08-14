@@ -113,6 +113,15 @@ Codice da inserire nel sito HTML:
 - [x] Modal Background in sola lettura e Archivio senza pulsante Modifica per giocatori di altre regioni
 - [ ] In attesa: PDF Ambientazione Abruzzo e Lombardia; collegamento con Data Base esterno delle schede (l'utente lo caricherà)
 
+## Aggiornamenti (Giu 2026 - v7) - Collegamento Database Schede + Refactoring
+- [x] Integrazione DB esterno schede (https://www.roma-by-night.it/Notturna2/wsPHP/RESTquery.php, env SHEET_API_URL): GET /api/admin/sheets (lista PG), PUT /api/admin/users/{id}/sheet (collega/scollega, guard regionale)
+- [x] Sync automatico Background dalla scheda a ogni consultazione (cache 5 min): clan, risorse, rifugio, notorietà, mentore, seguaci, contatti, discipline+poteri, FAMA (fama1=Città, fama2=Vampiri, fama3=Mondo Oscuro). RISORSE: punteggio dalla scheda, meccaniche di spesa/lock invariate
+- [x] L'Oracolo conosce l'intera scheda (attributi, skill+specializzazioni, sentiero, status, alleati) e calibra profondità delle risposte (skill 3+ sbloccano dettagli)
+- [x] Nuova statistica FAMA IN CITTÀ nel Background (fama_citta)
+- [x] Frontend: LinkSheetModal (pulsante "Scheda" nel pannello Utenti), badge nome PG collegato
+- [x] REFACTORING server.py: estratti models.py (tutti i modelli Pydantic + REGIONS) e core.py (db, auth, permessi, visibilità KB, sync schede). server.py 2955→2199 righe. Regressione completa passata
+- Scheda test collegata: player@test.com ↔ idutente 133 (Rodion Raskolnikov)
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

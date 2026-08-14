@@ -17,6 +17,7 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
     rifugio: 1,
     mentor: 0,
     notoriety: 0,
+    fama_citta: 0,
     fama_vampiri: 0,
     fama_mondo_oscuro: 0,
     contacts: []
@@ -41,6 +42,7 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
           rifugio: data.rifugio ?? 1,
           mentor: data.mentor ?? 0,
           notoriety: data.notoriety ?? 0,
+          fama_citta: data.fama_citta ?? 0,
           fama_vampiri: data.fama_vampiri ?? 0,
           fama_mondo_oscuro: data.fama_mondo_oscuro ?? 0,
           contacts: data.contacts ?? []
@@ -91,6 +93,7 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
         rifugio: parseInt(background.rifugio) || 1,
         mentor: parseInt(background.mentor) || 0,
         notoriety: parseInt(background.notoriety) || 0,
+        fama_citta: parseInt(background.fama_citta) || 0,
         fama_vampiri: parseInt(background.fama_vampiri) || 0,
         fama_mondo_oscuro: parseInt(background.fama_mondo_oscuro) || 0,
         contacts: background.contacts
@@ -214,7 +217,20 @@ export default function EditBackgroundModal({ userId, username, token, onClose, 
             </div>
 
             {/* FAMA */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">FAMA IN CITTÀ</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="5"
+                  value={background.fama_citta}
+                  onChange={(e) => handleChange("fama_citta", parseInt(e.target.value) || 0)}
+                  disabled={readOnly}
+                  className="input-gothic rounded-sm"
+                  data-testid="fama-citta-input"
+                />
+              </div>
               <div className="space-y-2">
                 <Label className="font-cinzel text-gold text-xs uppercase">FAMA TRA I VAMPIRI</Label>
                 <Input
