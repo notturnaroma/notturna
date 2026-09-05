@@ -47,6 +47,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   
   // Stato per le sessioni di consultazione
   const [activeSession, setActiveSession] = useState(null);
+  const [sessionMsgCount, setSessionMsgCount] = useState(0);
   const [sessionMessages, setSessionMessages] = useState([]);
 
   // Funzione per aggiornare il conteggio azioni
@@ -83,6 +84,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           }));
           setSessionMessages(uiMessages);
           setMessages(uiMessages);
+          setSessionMsgCount(uiMessages.filter((m) => m.role === "user").length);
         }
       }
     } catch (error) {
@@ -224,6 +226,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
           setActiveSession({ id: data.session_id, context: data.context });
           toast.success("Nuova consultazione iniziata");
         }
+        setSessionMsgCount((c) => (data.is_new_session ? 1 : c + 1));
         
         const aiMessage = { 
           type: "ai", 
@@ -276,6 +279,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       
       if (response.ok) {
         setActiveSession(null);
+        setSessionMsgCount(0);
         setMessages([]);
         toast.success("Consultazione terminata");
       }
@@ -367,6 +371,14 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
               <div className="stat-card px-3 py-2 rounded-sm flex items-center gap-2 border border-green-500/30 bg-green-500/10">
                 <MessageSquare className="w-4 h-4 text-green-400" />
                 <span className="font-cinzel text-xs text-green-400 hidden sm:inline">SESSIONE ATTIVA</span>
+                {user?.role === "player" && (
+                  <span
+                    className={`font-cinzel text-xs hidden sm:inline ${sessionMsgCount >= 4 ? "text-red-400" : "text-gold"}`}
+                    data-testid="session-msg-counter"
+                  >
+                    · MESSAGGI {Math.min(sessionMsgCount, 4)}/4
+                  </span>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"

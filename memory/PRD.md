@@ -159,6 +159,11 @@ Codice da inserire nel sito HTML:
 - [x] Info billing Emergent (da supporto): PayPal solo via Paddle scrivendo a support@emergent.sh; nessun hard cap mensile automatico, esiste limite crediti giornaliero sulla Universal Key + monitoraggio in Account Settings
 - Stima costi con nuovi limiti: 35 giocatori ≈ max $42/mese (~210 crediti), realistico $25-30. 100 giocatori ≈ max $120. 150 ≈ max $180
 
+## Aggiornamenti (Set 2026 - v13) - Contatore messaggi sessione
+- [x] Contatore "MESSAGGI X/4" nel banner SESSIONE ATTIVA (solo giocatori, rosso a 4/4; data-testid session-msg-counter). Si aggiorna a ogni invio, si azzera a nuova sessione/chiusura, ricalcolato da /session/active al reload
+- [x] Confermato reset azioni mensile già esistente (check_monthly_reset: azioni ricaricate al primo accesso del nuovo mese) — nessun limite giornaliero
+- [x] Chiarito: link PayPal NON mostrato ai giocatori (resta solo campo interno per NARRAZIONE ITALIA); il pagamento crediti Emergent via PayPal va richiesto dall'utente a support@emergent.sh (Paddle)
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice
