@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 import bcrypt
 import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage
-import aiofiles
+from bson import Binary
 import PyPDF2
 import io
 import re
@@ -23,10 +23,24 @@ import re
 
 ROOT_DIR = Path(__file__).parent
 
-from sheets import fetch_sheet, fetch_sheet_list
-from models import *
+from sheets import fetch_sheet, fetch_sheet_list, compute_sheet_test_value
+from models import (
+    UserCreate, UserLogin, UserResponse, TokenResponse, ChangePasswordRequest,
+    UpdateUserActions, UpdateUserRole, UpdateUserRegion, BlockUserRequest,
+    LinkSheetRequest, EditAnswerRequest, REGIONS, KB_REGIONS,
+    KnowledgeBaseCreate, KnowledgeBaseResponse,
+    ChatRequest, ChatResponse, FoundResourceItem,
+    StartSessionRequest, EndSessionRequest, SessionChatRequest, SessionChatResponse,
+    Background, FollowerStatus,
+    ResourceItemCreate, ResourceItemUpdate, ResourceItemResponse,
+    ResourceAvailableResponse, ResourcePurchaseRequest,
+    AppSettings, AppSettingsResponse,
+    ChallengeCreate, ChallengeResponse, ChallengeAttempt,
+    AidCreate, AidResponse, UseAid,
+    NPCCreate, NPCUpdate, NPCResponse, NPCInteractionResponse,
+)
 from core import (
-    db, client, logger, UPLOAD_DIR, get_file_type, security,
+    db, client, logger, get_file_type, security,
     JWT_SECRET, JWT_ALGORITHM, EMERGENT_LLM_KEY,
     hash_password, verify_password, create_token, get_month_key,
     get_follower_spent_this_month, get_effective_max_actions, check_monthly_reset,
@@ -246,7 +260,6 @@ async def upload_document(
     file_id = str(uuid.uuid4())
     ext = Path(filename).suffix.lower()
     saved_filename = f"{file_id}{ext}"
-    file_path = UPLOAD_DIR / saved_filename
     
     # Read file content
     content = await file.read()
@@ -269,9 +282,18 @@ async def upload_document(
     elif file_type in ["image", "video"]:
         text_content = f"[File {file_type}: {filename}]"
     
-    # Save file to disk
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(content)
+    # Salva i byte del file su MongoDB (persistente anche in produzione)
+    if len(content) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File troppo grande (max 15MB)")
+    await db.upload_files.update_one(
+        {"filename": saved_filename},
+        {"$set": {
+            "filename": saved_filename,
+            "content_type": file.content_type or "application/octet-stream",
+            "data": Binary(content)
+        }},
+        upsert=True
+    )
     
     # File URL
     file_url = f"/api/uploads/{saved_filename}"
@@ -288,21 +310,20 @@ async def upload_document(
         "required_fama_mondo_oscuro": required_fama_mondo_oscuro,
         "file_type": file_type,
         "file_url": file_url,
-        "file_path": str(file_path),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": user["username"]
     }
     await db.knowledge_base.insert_one(kb_doc)
     
-    return KnowledgeBaseResponse(**{k: v for k, v in kb_doc.items() if k != "file_path"})
+    return KnowledgeBaseResponse(**{k: v for k, v in kb_doc.items() if k != "_id"})
 
 @api_router.get("/uploads/{filename}")
 async def get_uploaded_file(filename: str):
-    """Serve uploaded files"""
-    file_path = UPLOAD_DIR / filename
-    if not file_path.exists():
+    """Serve i file caricati (da MongoDB)"""
+    doc = await db.upload_files.find_one({"filename": filename})
+    if not doc:
         raise HTTPException(status_code=404, detail="File non trovato")
-    return FileResponse(file_path)
+    return Response(content=bytes(doc["data"]), media_type=doc.get("content_type", "application/octet-stream"))
 
 # ==================== CHAT ROUTES ====================
 
@@ -830,7 +851,6 @@ Continua la narrazione in modo coerente con quanto detto sopra.
     search_words = question_words - stop_words
     
     # Pulisci le parole dalla punteggiatura
-    import re
     search_words = {re.sub(r'[^\w]', '', w) for w in search_words if len(re.sub(r'[^\w]', '', w)) >= 3}
     
     # Rimuovi parole comuni aggiuntive
@@ -980,7 +1000,7 @@ Clan: {player_clan}
 1. Il giocatore sta esplorando un luogo o situazione. Puoi fare domande, offrire scelte, suggerire direzioni.
 2. PROVE: privilegia SEMPRE le "PROVE LARP DISPONIBILI" configurate dalla Narrazione quando pertinenti alla scena. SOLO se nessuna prova configurata è adatta E la dinamica narrativa lo rende STRETTAMENTE NECESSARIO (raramente, non a ogni scena: la maggior parte delle interazioni NON richiede prove), puoi improvvisare UNA prova contrapposta aggiungendo alla FINE della risposta, su una riga a parte, ESATTAMENTE questo marcatore:
 [PROVA_IMPROVVISATA|Nome breve della prova|Attributo + Abilità|difficoltà da 1 a 10|Tipologia]
-dove Tipologia è UNA tra: Accademiche classiche, Criminalità, Etichetta, Militari, Occulto, Scienze, oppure "-" se non pertinente. Non usare mai il marcatore per le prove già configurate e non improvvisare più di una prova per sessione. IMPORTANTE: NON scrivere MAI al giocatore frasi come "Effettua una prova contrapposta su X a difficoltà Y" — se una prova non configurata è davvero necessaria, usa SOLO il marcatore: sarà il sistema a mostrarla al giocatore.
+dove Tipologia è UNA tra: Accademiche classiche, Criminalità, Etichetta, Militari, Occulto, Scienze, oppure "-" se non pertinente. Se i documenti della Narrazione descrivono già una prova per la situazione in corso (con attributo e difficoltà), usa il marcatore con ESATTAMENTE quei valori. Non usare mai il marcatore per le prove già configurate nell'elenco e non improvvisare più di una prova per sessione. IMPORTANTE: NON scrivere MAI al giocatore frasi come "Effettua una prova contrapposta su X a difficoltà Y" — se una prova non configurata è davvero necessaria, usa SOLO il marcatore: sarà il sistema a mostrarla al giocatore.
 3. Puoi chiedere al giocatore se possiede determinati poteri quando è rilevante (es. "Possiedi Auspex o poteri simili?")
 4. Se il giocatore trova un oggetto, descrivilo narrativamente. L'oggetto può essere preso gratuitamente se non ha costo.
 5. La sessione continua finché il giocatore non cambia zona o dice di voler terminare.
@@ -1226,6 +1246,8 @@ async def get_my_background(user: dict = Depends(get_current_user)):
 
 @api_router.post("/background/me", response_model=Background)
 async def create_or_update_my_background(data: Background, user: dict = Depends(get_current_user)):
+    if user.get("role") not in ["admin", "Narrazione"]:
+        raise HTTPException(status_code=403, detail="Il background è sincronizzato dalla scheda ufficiale e può essere modificato solo dalla Narrazione")
     # Trova background esistente
     existing = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0})
     if existing and existing.get("locked_for_player", False):
@@ -1949,7 +1971,10 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     difficulty_roll = random.randint(1, 5)
     
     # Applica bonus/malus oggetto al valore del giocatore
-    effective_player_value = data.player_value + equipment_bonus - equipment_malus
+    # Punteggio calcolato dalla scheda ufficiale (anti-baro); fallback al valore dichiarato se scheda assente
+    sheet_value = compute_sheet_test_value(user.get("sheet_data"), test.get("attribute", ""))
+    base_player_value = sheet_value if sheet_value is not None else data.player_value
+    effective_player_value = base_player_value + equipment_bonus - equipment_malus
     effective_player_value = max(0, effective_player_value)  # Non può essere negativo
     
     player_result = effective_player_value * player_roll
@@ -1981,7 +2006,7 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
         "challenge_name": challenge["name"],
         "test_index": data.test_index,
         "test_attribute": test["attribute"],
-        "player_value": data.player_value,
+        "player_value": base_player_value,
         "player_roll": player_roll,
         "player_result": player_result,
         "difficulty": test["difficulty"],
@@ -2004,7 +2029,7 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
             "challenge_name": challenge["name"],
             "description": challenge["description"],
             "attribute": test["attribute"],
-            "player_value": data.player_value,
+            "player_value": base_player_value,
             "player_roll": player_roll,
             "player_result": player_result,
             "difficulty": test["difficulty"],
@@ -2057,7 +2082,7 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
     return {
         "challenge_name": challenge["name"],
         "attribute": test["attribute"],
-        "player_value": data.player_value,
+        "player_value": base_player_value,
         "player_roll": player_roll,
         "player_result": player_result,
         "difficulty": test["difficulty"],

@@ -747,6 +747,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       {/* Challenge Modal */}
       {activeChallenge && (
         <ChallengeModal
+          hasSheet={Boolean(user?.sheet_id)}
           challenge={activeChallenge}
           token={token}
           onClose={handleCloseChallenge}

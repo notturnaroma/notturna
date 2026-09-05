@@ -6,7 +6,7 @@ import { Swords, Loader2, Dices, Package, Users } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function ChallengeModal({ challenge, token, onClose, onResult }) {
+export default function ChallengeModal({ challenge, token, onClose, onResult, hasSheet = false }) {
   const [step, setStep] = useState("choose");
   const [selectedTest, setSelectedTest] = useState(null);
   const [playerValue, setPlayerValue] = useState("");
@@ -68,7 +68,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
   };
 
   const handleAttempt = async () => {
-    if (!playerValue || parseInt(playerValue) < 0) {
+    if (!hasSheet && (!playerValue || parseInt(playerValue) < 0)) {
       toast.error("Inserisci un valore valido");
       return;
     }
@@ -78,7 +78,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
       const payload = {
         challenge_id: challenge.id,
         test_index: selectedTest,
-        player_value: parseInt(playerValue),
+        player_value: hasSheet ? 0 : parseInt(playerValue),
         use_refuge: useRefuge,
         followers_to_use: parseInt(followersToUse) || 0,
         equipment_id: selectedEquipment || null
@@ -199,20 +199,28 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
             </div>
 
             <div className="space-y-2">
-              <label className="font-cinzel text-gold text-sm uppercase tracking-widest">
-                Inserisci il tuo punteggio di {challenge.tests[selectedTest].attribute}
-              </label>
-              <Input
-                type="number"
-                min="0"
-                max="20"
-                value={playerValue}
-                onChange={(e) => setPlayerValue(e.target.value)}
-                placeholder="es. 5"
-                className="input-gothic rounded-sm text-center text-xl h-14"
-                autoFocus
-                data-testid="player-value-input"
-              />
+              {hasSheet ? (
+                <p className="font-body text-gold text-sm text-center bg-gold/10 border border-gold/40 rounded-sm p-3" data-testid="sheet-value-note">
+                  Il tuo punteggio di {challenge.tests[selectedTest].attribute} viene calcolato automaticamente dalla tua scheda ufficiale.
+                </p>
+              ) : (
+                <>
+                  <label className="font-cinzel text-gold text-sm uppercase tracking-widest">
+                    Inserisci il tuo punteggio di {challenge.tests[selectedTest].attribute}
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="20"
+                    value={playerValue}
+                    onChange={(e) => setPlayerValue(e.target.value)}
+                    placeholder="es. 5"
+                    className="input-gothic rounded-sm text-center text-xl h-14"
+                    autoFocus
+                    data-testid="player-value-input"
+                  />
+                </>
+              )}
               
               {/* Mostra bonus dell'oggetto selezionato */}
               {selectedEquipment && (
@@ -330,7 +338,7 @@ export default function ChallengeModal({ challenge, token, onClose, onResult }) 
               </Button>
               <Button
                 onClick={handleAttempt}
-                disabled={loading || !playerValue}
+                disabled={loading || (!hasSheet && !playerValue)}
                 className="flex-1 bg-primary hover:bg-primary/80 border border-gold/30 rounded-sm btn-gothic font-cinzel"
                 data-testid="roll-dice-btn"
               >

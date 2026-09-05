@@ -141,6 +141,18 @@ Codice da inserire nel sito HTML:
 - [x] Background: nuove voci ALLEATI e GREGGE (model, EditBackgroundModal, sync dalla scheda esterna: backs 'alleati'/'gregge' o 'armento')
 - [x] Landing: rimossa la descrizione sotto il logo (richiesta edit visuale)
 
+## Aggiornamenti (Set 2026 - v11) - Anti-baro Prove + Background read-only giocatori
+- [x] Prove Contrapposte: il punteggio del PG è calcolato SERVER-SIDE dalla scheda ufficiale (compute_sheet_test_value in sheets.py: parsing "Attributo + Abilità" su attributi/skill/subskill). Il valore dichiarato dal client è ignorato se la scheda è collegata (fallback solo senza scheda). Verificato: dichiarato 99 → usato 8 (Int 3 + Occulto 5)
+- [x] ChallengeModal: con scheda collegata l'input punteggio è nascosto, mostra nota "calcolato automaticamente dalla scheda" (prop hasSheet)
+- [x] Background: POST /background/me bloccato per i giocatori (403), pagina Background in sola lettura per i player; solo la Narrazione modifica (admin endpoint invariato)
+- [x] Prompt: se i PDF della Narrazione descrivono una prova per la situazione, l'Oracolo usa il marcatore con quei valori esatti (oggetti/PNG/luoghi/prove nei PDF vengono letti dal RAG)
+- [x] Rimosso import re duplicato (lint)
+- Nota lint: F403/F405 da `from models import *` sono attesi (refactor a moduli), non bloccanti a runtime
+
+## Aggiornamenti (Set 2026 - v11b) - Fix lint bloccanti pre-deploy
+- [x] Import espliciti da models.py in server.py (rimosso `import *`, aggiunto UseAid)
+- [x] Upload file: storage su MongoDB (collezione upload_files, bson Binary, max 15MB) al posto del disco pod — persistente in produzione; /api/uploads/{filename} serve da DB; migrati i 6 file esistenti (5 PDF + template)
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

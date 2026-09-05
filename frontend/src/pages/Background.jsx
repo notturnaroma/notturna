@@ -19,7 +19,7 @@ export default function Background({ user, token, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const isLocked = background?.locked_for_player;
+  const isLocked = user?.role !== "admin" || background?.locked_for_player;
 
   useEffect(() => {
     fetchBackground();

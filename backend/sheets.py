@@ -79,6 +79,41 @@ def map_sheet_to_background(data: dict) -> dict:
     }
 
 
+def compute_sheet_test_value(sheet_data, attribute: str):
+    """Calcola il punteggio del PG per una prova (es. 'Intelligenza + Occulto') dalla scheda ufficiale.
+    Ritorna None se la scheda manca o nessuna parte dell'attributo è riconosciuta."""
+    if not sheet_data:
+        return None
+    p = sheet_data.get("personaggio") or {}
+    attr_fields = ["forza", "destrezza", "attutimento", "carisma", "persuasione", "saggezza", "prontezza", "intelligenza"]
+    total = 0
+    found = False
+    for part in (attribute or "").replace("×", "+").split("+"):
+        name = part.strip().lower()
+        if not name:
+            continue
+        if name in attr_fields:
+            total += _int(p.get(name))
+            found = True
+            continue
+        matched = False
+        for s in (sheet_data.get("skill") or []):
+            if s.get("nomeskill", "").strip().lower() == name:
+                total += _int(s.get("livello"))
+                matched = True
+                break
+            for ss in (s.get("subskill2") or []):
+                if (ss.get("nomeskill") or "").strip().lower() == name:
+                    total += _int(ss.get("livello"))
+                    matched = True
+                    break
+            if matched:
+                break
+        if matched:
+            found = True
+    return total if found else None
+
+
 def build_sheet_context(data: dict) -> str:
     """Blocco testuale della scheda ufficiale da iniettare nel prompt dell'Oracolo."""
     p = data.get("personaggio") or {}
