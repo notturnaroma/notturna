@@ -1006,7 +1006,7 @@ export default function AdminPanel({ user, token, onLogout }) {
 
           {/* Customize Tab */}
           <TabsContent value="customize">
-            <CustomizePanel token={token} />
+            <CustomizePanel token={token} user={user} />
           </TabsContent>
 
           {/* Challenges Tab */}

@@ -113,8 +113,8 @@ async def get_follower_spent_this_month(user_id: str) -> int:
     return sum(int(s.get("amount", 0)) for s in spends)
 
 async def get_effective_max_actions(user: dict) -> int:
-    """Calcola il limite effettivo di consultazioni per il mese corrente (20 + SEGUACI - SEGUACI_spesi)."""
-    base_max = int(user.get("max_actions", 20))
+    """Calcola il limite effettivo di consultazioni per il mese corrente (10 + SEGUACI - SEGUACI_spesi)."""
+    base_max = int(user.get("max_actions", 10))
     bg = await db.backgrounds.find_one({"user_id": user["id"]}, {"_id": 0, "seguaci": 1}) or {}
     seguaci = int(bg.get("seguaci", 0))
     spent = await get_follower_spent_this_month(user["id"])

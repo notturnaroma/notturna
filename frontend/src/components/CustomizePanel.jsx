@@ -38,10 +38,11 @@ const DEFAULT_SETTINGS = {
   background_image_url: null,
   event_window_start: null,
   event_window_end: null,
-  oracle_tone: ""
+  oracle_tone: "",
+  paypal_link: ""
 };
 
-export default function CustomizePanel({ token }) {
+export default function CustomizePanel({ token, user }) {
   const { settings, updateSettings } = useSettings();
   
   // Merge default settings with current settings
@@ -188,6 +189,21 @@ export default function CustomizePanel({ token }) {
                 Queste indicazioni hanno priorità sul tono standard dell'Oracolo in tutte le risposte.
               </p>
             </div>
+            {user?.is_super_admin && (
+              <div className="space-y-2">
+                <Label className="font-cinzel text-gold text-xs uppercase">Link PayPal (solo NARRAZIONE ITALIA)</Label>
+                <Input
+                  value={formData.paypal_link || ""}
+                  onChange={(e) => handleChange("paypal_link", e.target.value)}
+                  placeholder="https://paypal.me/..."
+                  className="input-gothic rounded-sm"
+                  data-testid="paypal-link-input"
+                />
+                <p className="font-body text-xs text-muted-foreground">
+                  Puoi inserirlo o cambiarlo in qualsiasi momento.
+                </p>
+              </div>
+            )}
             <div className="grid md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label className="font-cinzel text-gold text-xs uppercase">Nav: Archivio</Label>

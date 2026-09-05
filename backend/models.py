@@ -172,6 +172,8 @@ class AppSettings(BaseModel):
     event_window_end: Optional[str] = None
     # Tono personalizzato dell'Oracolo (vuoto = standard)
     oracle_tone: str = ""
+    # Link PayPal (gestito da NARRAZIONE ITALIA)
+    paypal_link: str = ""
 
 class AppSettingsResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -198,6 +200,7 @@ class AppSettingsResponse(BaseModel):
     event_window_start: Optional[str] = None
     event_window_end: Optional[str] = None
     oracle_tone: Optional[str] = ""
+    paypal_link: Optional[str] = ""
     aids_title: Optional[str] = "Focalizzazioni degli Attributi"
     aids_subtitle: Optional[str] = "Inserisci il valore del tuo attributo per vedere le focalizzazioni disponibili"
     aids_no_active: Optional[str] = "Nessuna focalizzazione attiva in questo momento"

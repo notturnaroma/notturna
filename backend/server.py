@@ -113,7 +113,7 @@ async def register(data: UserCreate):
         "region": region,
         "sheet_id": str(match["idutente"]),
         "sheet_name": match.get("nomepg"),
-        "max_actions": 20,
+        "max_actions": 10,
         "used_actions": 0,
         "created_at": now.isoformat(),
         "last_action_reset": now.isoformat()
@@ -134,7 +134,7 @@ async def register(data: UserCreate):
     token = create_token(user_id, "player")
     user_response = UserResponse(
         id=user_id, email=data.email, username=data.character_name.strip(),
-        role="player", max_actions=20, used_actions=0, region=region,
+        role="player", max_actions=10, used_actions=0, region=region,
         sheet_id=str(match["idutente"]), sheet_name=match.get("nomepg"), player_name=data.player_name.strip()
     )
     return TokenResponse(access_token=token, user=user_response)
@@ -728,7 +728,14 @@ async def session_chat(data: SessionChatRequest, user: dict = Depends(get_curren
             effective_max = await get_effective_max_actions(user)
             if user["used_actions"] >= effective_max:
                 raise HTTPException(status_code=403, detail="Hai esaurito le tue consultazioni disponibili")
+    else:
+        # Limite messaggi per sessione (controllo costi): max 4 messaggi del giocatore
+        if user.get("role") not in ["admin", "Narrazione"]:
+            user_msgs = await db.consultation_messages.count_documents({"session_id": session["id"], "role": "user"})
+            if user_msgs >= 4:
+                raise HTTPException(status_code=403, detail="Hai raggiunto il limite di 4 messaggi per questa sessione. Chiudi la sessione e aprine una nuova (consumerà un'azione).")
 
+    if not session:
         # Crea nuova sessione
         session_id = str(uuid.uuid4())
         session = {

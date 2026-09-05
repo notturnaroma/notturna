@@ -153,6 +153,12 @@ Codice da inserire nel sito HTML:
 - [x] Import espliciti da models.py in server.py (rimosso `import *`, aggiunto UseAid)
 - [x] Upload file: storage su MongoDB (collezione upload_files, bson Binary, max 15MB) al posto del disco pod — persistente in produzione; /api/uploads/{filename} serve da DB; migrati i 6 file esistenti (5 PDF + template)
 
+## Aggiornamenti (Set 2026 - v12) - Controllo costi + Link PayPal
+- [x] Limiti ridotti: 10 azioni/mese (default registrazione, get_effective_max_actions base 10, player esistenti aggiornati) × max 4 messaggi giocatore per sessione (blocco 403 in session_chat, admin esenti). Max 40 messaggi GPT-4o/giocatore/mese
+- [x] Campo "Link PayPal" nei settings (paypal_link), editabile SOLO da NARRAZIONE ITALIA nella tab Personalizza (attualmente vuoto, non mostrato altrove: definire dove esporlo)
+- [x] Info billing Emergent (da supporto): PayPal solo via Paddle scrivendo a support@emergent.sh; nessun hard cap mensile automatico, esiste limite crediti giornaliero sulla Universal Key + monitoraggio in Account Settings
+- Stima costi con nuovi limiti: 35 giocatori ≈ max $42/mese (~210 crediti), realistico $25-30. 100 giocatori ≈ max $120. 150 ≈ max $180
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice
