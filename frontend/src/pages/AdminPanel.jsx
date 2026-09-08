@@ -43,7 +43,8 @@ import {
   Ban,
   Unlock,
   Link2,
-  BarChart3
+  BarChart3,
+  KeyRound
 } from "lucide-react";
 import CustomizePanel from "@/components/CustomizePanel";
 import ChallengesPanel from "@/components/ChallengesPanel";
@@ -273,6 +274,27 @@ export default function AdminPanel({ user, token, onLogout }) {
   };
 
 
+
+  const handleResetPassword = async (userId, username) => {
+    if (!window.confirm(`Generare una nuova password temporanea per ${username}?`)) return;
+    try {
+      const response = await fetch(`${API}/admin/users/${userId}/reset-password`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        window.prompt(
+          `Password temporanea per ${username} (copiala e comunicagliela — dovrà cambiarla dal pulsante Cambia Password):`,
+          data.temp_password
+        );
+      } else {
+        toast.error(data.detail || "Errore");
+      }
+    } catch (error) {
+      toast.error("Errore di connessione");
+    }
+  };
 
   const handleBlockUser = async (userId, blocked) => {
     try {
@@ -873,6 +895,20 @@ export default function AdminPanel({ user, token, onLogout }) {
                                 {u.blocked ? "Sblocca" : "Blocca"}
                               </Button>
                             )}
+                            {/* Reset Password Button */}
+                            {canManage && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResetPassword(u.id, u.username)}
+                                className="border-gold/50 text-gold hover:bg-gold/10 rounded-sm font-cinzel"
+                                data-testid={`reset-password-${u.id}`}
+                                title="Reimposta password"
+                              >
+                                <KeyRound className="w-3 h-3" />
+                              </Button>
+                            )}
+
                             {/* Conteggi Trimestrali (visibile a tutte le Narrazioni) */}
                             {!targetIsAdmin && (
                               <Button

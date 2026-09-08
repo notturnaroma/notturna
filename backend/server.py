@@ -1642,6 +1642,20 @@ async def block_user(user_id: str, data: BlockUserRequest, admin: dict = Depends
     return {"message": "Utente bloccato" if data.blocked else "Utente sbloccato"}
 
 
+@api_router.post("/admin/users/{user_id}/reset-password")
+async def admin_reset_password(user_id: str, admin: dict = Depends(get_admin_user)):
+    """La Narrazione genera una password temporanea per un utente che ha smarrito le credenziali."""
+    await get_target_for_admin_action(user_id, admin)
+    import secrets
+    temp_password = "NT-" + secrets.token_urlsafe(6)
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password_hash": hash_password(temp_password)}}
+    )
+    logger.info(f"Password reimpostata per utente {user_id} da {admin['email']}")
+    return {"message": "Password temporanea generata. Comunicala al giocatore: dovrà cambiarla dal pulsante Cambia Password.", "temp_password": temp_password}
+
+
 @api_router.put("/admin/users/{user_id}/region")
 async def update_user_region(user_id: str, data: UpdateUserRegion, admin: dict = Depends(get_admin_user)):
     """Assegna/corregge la regione di un utente."""

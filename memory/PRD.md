@@ -164,6 +164,12 @@ Codice da inserire nel sito HTML:
 - [x] Confermato reset azioni mensile già esistente (check_monthly_reset: azioni ricaricate al primo accesso del nuovo mese) — nessun limite giornaliero
 - [x] Chiarito: link PayPal NON mostrato ai giocatori (resta solo campo interno per NARRAZIONE ITALIA); il pagamento crediti Emergent via PayPal va richiesto dall'utente a support@emergent.sh (Paddle)
 
+## Aggiornamenti (Set 2026 - v14) - Recupero credenziali
+- [x] Reset password dalla Narrazione: POST /api/admin/users/{id}/reset-password (guard regionale) genera password temporanea "NT-xxxx" mostrata alla Narrazione (window.prompt copiabile); pulsante chiave nel tab Utenti (reset-password-{id}). Testato E2E incluso 403 cross-regione
+- [x] Login: nota "Credenziali dimenticate? Contatta la Narrazione" (forgot-credentials-note)
+- [x] Refuso landing corretto ("Domandae" → "Domande") nelle settings
+- Costi ricapitolati all'utente: deploy 50 crediti una tantum + hosting ~50 crediti/mese (Starter) + consumo LLM; URL pubblico *.emergent.host dopo il deploy
+
 ## Backlog corrente
 - P1: Refactoring `server.py` in moduli separati (>2700 righe)
 - P2: Campo "Manifesto dell'Oracolo" nel pannello UI per modificare system prompt senza toccare codice

@@ -122,6 +122,9 @@ export default function Login({ onLogin }) {
                 Registrati
               </Link>
             </p>
+            <p className="font-body text-muted-foreground text-xs mt-3" data-testid="forgot-credentials-note">
+              Credenziali dimenticate? Contatta la Narrazione: potrà generarti una password temporanea.
+            </p>
           </div>
         </div>
       </div>
