@@ -907,11 +907,14 @@ Continua la narrazione in modo coerente con quanto detto sopra.
             score += 500
         
         if score > 0:
-            scored_docs.append((score, doc))
-            logger.info(f"Doc '{doc.get('title')}' score: {score} (title_matches: {title_matches}, region: {doc_region})")
+            # Il Design Document è SEMPRE l'ultima fonte da consultare
+            is_design_doc = 'design document' in title_lower
+            scored_docs.append((score, doc, is_design_doc))
+            logger.info(f"Doc '{doc.get('title')}' score: {score} (title_matches: {title_matches}, region: {doc_region}, design_doc: {is_design_doc})")
     
-    # Ordina per rilevanza e prendi i top documenti
-    scored_docs.sort(key=lambda x: x[0], reverse=True)
+    # Ordina per rilevanza; il Design Document va in fondo alla lista
+    scored_docs.sort(key=lambda x: (0 if x[2] else 1, x[0]), reverse=True)
+    scored_docs = [(s, d) for s, d, _ in scored_docs]
     
     # Limita il contesto a ~50000 caratteri (circa 12500 token)
     # Ogni documento contribuisce al massimo PER_DOC_CAP caratteri: i documenti enormi

@@ -1,0 +1,30 @@
+{
+  "summary": "Verified (1) NARRAZIONE ITALIA frontend login and (2) Design Document is-last-in-RAG ordering. Both PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_results": {
+    "TEST_1_login_frontend": {
+      "status": "PASS",
+      "details": "Filled email=downtime@notturnaroma.com and password=N@rraz1on3 in Login.jsx form. POST /api/auth/login returned 200 with access_token; user.username='NARRAZIONE ITALIA', is_super_admin=True, role=admin. Toast 'Accesso riuscito!' shown, redirected to /dashboard successfully. No UI/console errors. The user's reported issue 'Non riesco ad accedere con Narrazione Italia' is NOT reproducible from the frontend with the exact password N@rraz1on3 (N maiuscola, @, doppia r, 1 al posto della i, 3 finale). Root cause is almost certainly typo/keyboard/autocomplete on the user's side. Login form has no bugs."
+    },
+    "TEST_2_design_doc_last_in_rag": {
+      "status": "PASS",
+      "details": "Reset used_actions=0 for player@test.com (was 1). Started session 80a19d80-64e9-477a-ac90-bc0acb1b8fcc, sent single chat message 'Chi è il Principe di Roma e quali sono le regole della Corte?'. Backend log lines confirm design_doc flag: Design Document score=45 design_doc:True, Guida Lazio score=527 design_doc:False, Rituali Necromantici 112, Ambientazione 29, I Doni 19, Rituali Taumaturgici 3 (all False). With sort key=(0 if design else 1, score) reverse=True → non-design docs (1,x) come first ordered by score desc, Design Document (0,45) is ALWAYS placed LAST regardless of score. Response correctly cites Maria Anna Costaguti d'Ascanio come Principe di Roma (Nobiltà Nera, legame Vaticano) e le regole della Corte dalla Guida alla cronaca del Lazio."
+    }
+  },
+  "test_report_links": ["/app/backend/tests/test_oracle_rag_lazio.py (previous iteration)"],
+  "action_items": [
+    "Nessuna azione richiesta al main agent. Rispondere all'utente che la password è N@rraz1on3 (N maiuscola, @, doppia r, numero UNO al posto della i, numero TRE finale) e suggerire di usare il pulsante occhio (Eye/EyeOff) in Login.jsx per verificare i caratteri digitati. Il backend e il frontend funzionano correttamente."
+  ],
+  "critical_code_review_comments": [
+    "Login.jsx OK: usa REACT_APP_BACKEND_URL, gestione errori con toast, loading state. Nessun problema."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "downtime@notturnaroma.com / N@rraz1on3 (super admin), player@test.com / player123 (Lazio)",
+  "seed_data_creation": "Solo reset di used_actions=0 per player@test.com (era 1) come consentito dalla richiesta.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Login super admin verificato via UI (Playwright). RAG ordering con Design Document in fondo verificato tramite log backend con flag design_doc:True/False. Il consumo di crediti LLM è stato limitato a 1 sola chat call come richiesto.",
+  "rca of the issue": "Login 'non funziona' riportato dall'utente: NON riproducibile. Backend risponde 200, frontend Login.jsx invia correttamente le credenziali e naviga a /dashboard. Causa più probabile: errore di digitazione della password (i caratteri N@rraz1on3 sono facilmente confondibili: '1' con 'i/l', '3' con 'e/E', '@' con 'a'). Mitigazione consigliata: comunicare all'utente la password carattere per carattere e ricordargli di usare il toggle mostra-password nel form."
+}

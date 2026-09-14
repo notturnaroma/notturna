@@ -186,3 +186,8 @@ Codice da inserire nel sito HTML:
   - Dedup per titolo (le guide Lazio/Umbria erano state caricate 2 volte; duplicati categoria "general"/Nazionale rimossi dal DB - risolveva anche leak Umbria->Lazio).
   - Regola 8 "FEDELTÀ ALLE FONTI" nel system prompt: nomi/cariche/luoghi SOLO dai documenti, mai inventati.
 - TESTATO (iteration_4.json, 3/3 pass): player Lazio chiede del Siniscalco di Roma -> risposta cita il vero nome+clan (Lasombra) dal PDF; log confermano score Guida Lazio=523; nessun leak Umbria.
+
+## Aggiornamenti (Set 2026 - v16) - Design Document ultima fonte + verifica login
+- RAG: il Design Document è ora SEMPRE l'ultimo documento inserito nel contesto (flag is_design_doc nell'ordinamento), a prescindere dallo score. Le cronache regionali e gli altri documenti hanno priorità.
+- Login NARRAZIONE ITALIA: verificato funzionante sia via API sia via UI (testing agent, iteration_5.json 2/2 pass). Problema dell'utente non riproducibile: quasi certamente errore di digitazione della password.
+- ATTESA: l'utente caricherà il file "PNG, LUOGHI E QUEST" diviso per regione (valutare se suddividerlo per regione nella KB al caricamento).
