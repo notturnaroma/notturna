@@ -1,0 +1,22 @@
+{
+  "summary": "Backend E2E test del fix RAG per Oracolo: bug 'informazioni inventate' RISOLTO. Player Lazio (player@test.com) ha chiesto del Siniscalco di Roma via POST /api/session/chat: la risposta cita correttamente 'Francisco Carrillo Jose Luis Pasqual de Albornoz y Carvajal' clan 'Lasombra' (ground truth dal PDF 'Guida alla cronaca del Lazio'). Nessun nome inventato (no 'Vittorio Ambrosini'), nessun leak Umbria per player Lazio. Boost regionale confermato nei log backend: Guida Lazio score=523 (region=Lazio, +500) vs altri doc 6-40.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_oracle_rag_lazio.py",
+    "/app/test_reports/pytest/oracle_rag_lazio.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix RAG efficace: boost +500 regionale + dedup per titolo + cap 15K con extract_relevant_excerpts + regola 8 FEDELTÀ ALLE FONTI. Verificato end-to-end.",
+    "Nota: il messaggio 2 (leak Umbria check) ha consumato 1/4 messaggi della sessione oltre il messaggio primario; totale 2/4 messaggi usati, 1 azione mensile consumata su player@test.com (used_actions reset a 0 prima del test)."
+  ],
+  "updated_files": ["/app/backend/tests/test_oracle_rag_lazio.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "n/a (skipped)"},
+  "test_credentials": "player@test.com/player123 (Lazio)",
+  "seed_data_creation": "Reset used_actions=0 e chiuse sessioni attive per player@test.com prima del test (permesso dal request).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Fix RAG oracolo verificato. Log backend mostrano scoring corretto (region boost +500 attivo). Test file riutilizzabile: /app/backend/tests/test_oracle_rag_lazio.py. Attenzione: ogni run consuma 1 azione mensile e crediti LLM.",
+  "rca of the issue": "ROOT CAUSE originale: (a) context builder faceva break dopo troncare il primo doc grande (Design Doc 227K riempiva 50K, escludendo Guida Lazio); (b) nessuna priorità regionale; (c) nessuna regola anti-invenzione. FIX applicati dal main agent: boost +500 per doc regione player, PER_DOC_CAP=15K con extract_relevant_excerpts, dedup per titolo, regola 8 'FEDELTÀ ALLE FONTI' nel system prompt. VERIFICA: log score Guida Lazio=523 vs Design Doc=40; risposta AI cita nome+clan corretti dal PDF."
+}

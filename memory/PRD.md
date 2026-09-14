@@ -176,3 +176,13 @@ Codice da inserire nel sito HTML:
 - P2: Inserimento loghi forniti dall'utente (in arrivo)
 - P2: Validazione RAG con le nuove schede LUOGHI/PNG/OGGETTI quando l'utente le caricherà
 
+
+## Aggiornamenti (Set 2026 - v15) - Fix RAG: Oracolo non usava i PDF regionali
+- BUG: dopo upload PDF Lazio/Umbria, l'Oracolo inventava nomi (es. Siniscalco fittizio) invece di usare la KB.
+- ROOT CAUSE: (a) il context builder faceva `break` dopo il primo documento grande (Design Doc 227K riempiva tutti i 50K di contesto, escludendo la Guida Lazio); (b) nessuna priorità regionale nel ranking; (c) nessuna regola anti-invenzione nel prompt.
+- FIX (server.py sezione RAG + core.py):
+  - Boost +500 per documenti della regione del giocatore.
+  - Cap 15K caratteri per documento: i doc enormi contribuiscono con ESTRATTI attorno alle keyword (`extract_relevant_excerpts` in core.py), così più documenti entrano nel contesto.
+  - Dedup per titolo (le guide Lazio/Umbria erano state caricate 2 volte; duplicati categoria "general"/Nazionale rimossi dal DB - risolveva anche leak Umbria->Lazio).
+  - Regola 8 "FEDELTÀ ALLE FONTI" nel system prompt: nomi/cariche/luoghi SOLO dai documenti, mai inventati.
+- TESTATO (iteration_4.json, 3/3 pass): player Lazio chiede del Siniscalco di Roma -> risposta cita il vero nome+clan (Lasombra) dal PDF; log confermano score Guida Lazio=523; nessun leak Umbria.

@@ -236,6 +236,43 @@ def is_doc_visible_to_player(doc, bg, user):
             return False
     return has_required_background(doc, bg)
 
+def extract_relevant_excerpts(content: str, search_words: set, max_chars: int) -> str:
+    """Estrae finestre di testo attorno alle parole chiave, unendo quelle sovrapposte."""
+    content_lower = content.lower()
+    WINDOW = 1200
+    positions = []
+    for word in search_words:
+        start = 0
+        count = 0
+        while count < 5:
+            idx = content_lower.find(word, start)
+            if idx == -1:
+                break
+            positions.append(idx)
+            start = idx + len(word)
+            count += 1
+    if not positions:
+        return content[:max_chars] + "\n[...contenuto troncato...]"
+    positions.sort()
+    windows = []
+    for pos in positions:
+        s, e = max(0, pos - WINDOW), min(len(content), pos + WINDOW)
+        if windows and s <= windows[-1][1]:
+            windows[-1] = (windows[-1][0], e)
+        else:
+            windows.append((s, e))
+    parts = []
+    total = 0
+    for s, e in windows:
+        chunk = content[s:e]
+        if total + len(chunk) > max_chars:
+            chunk = chunk[:max_chars - total]
+        parts.append(("[...]\n" if s > 0 else "") + chunk)
+        total += len(chunk)
+        if total >= max_chars:
+            break
+    return "\n".join(parts) + "\n[...estratti rilevanti dal documento completo...]"
+
 async def get_oracle_tone_hint() -> str:
     s = await db.settings.find_one({"id": "app_settings"}, {"_id": 0, "oracle_tone": 1}) or {}
     tone = (s.get("oracle_tone") or "").strip()

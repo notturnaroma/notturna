@@ -48,6 +48,7 @@ from core import (
     check_kb_region_rights, has_required_contacts, has_required_background,
     is_doc_visible_to_player, get_oracle_tone_hint, apply_sheet_sync, get_sheet_block,
     ensure_sheet_synced, derive_knowledge_from_attribute, quarter_key, KNOWLEDGE_TYPES,
+    extract_relevant_excerpts,
 )
 
 app = FastAPI()
@@ -874,10 +875,15 @@ Continua la narrazione in modo coerente con quanto detto sopra.
     if user.get("role") not in ["admin", "Narrazione"]:
         kb_docs = [doc for doc in kb_docs if is_doc_visible_to_player(doc, bg, user)]
     
-    # Calcola rilevanza per ogni documento
+    # Calcola rilevanza per ogni documento (dedup per titolo)
     scored_docs = []
+    seen_titles = set()
+    player_region = user.get("region")
     for doc in kb_docs:
         title_lower = doc.get('title', '').lower()
+        if title_lower in seen_titles:
+            continue
+        seen_titles.add(title_lower)
         content_lower = doc.get('content', '').lower()
         
         # Punteggio basato su match di parole chiave
@@ -895,27 +901,36 @@ Continua la narrazione in modo coerente con quanto detto sopra.
         if title_matches > 1:
             score *= title_matches
         
+        # PRIORITÀ REGIONALE: la cronaca della regione del giocatore va sempre in cima
+        doc_region = doc.get("region") or ""
+        if score > 0 and player_region and doc_region == player_region:
+            score += 500
+        
         if score > 0:
             scored_docs.append((score, doc))
-            logger.info(f"Doc '{doc.get('title')}' score: {score} (title_matches: {title_matches})")
+            logger.info(f"Doc '{doc.get('title')}' score: {score} (title_matches: {title_matches}, region: {doc_region})")
     
     # Ordina per rilevanza e prendi i top documenti
     scored_docs.sort(key=lambda x: x[0], reverse=True)
     
     # Limita il contesto a ~50000 caratteri (circa 12500 token)
+    # Ogni documento contribuisce al massimo PER_DOC_CAP caratteri: i documenti enormi
+    # vengono ridotti a ESTRATTI attorno alle parole chiave, così i documenti più piccoli
+    # e specifici (es. cronache regionali) entrano SEMPRE nel contesto.
     MAX_CONTEXT_CHARS = 50000
+    PER_DOC_CAP = 15000
     context = ""
     context_chars = 0
     
     for score, doc in scored_docs:
-        doc_text = f"### {doc['title']}\n{doc['content']}\n\n"
-        if context_chars + len(doc_text) > MAX_CONTEXT_CHARS:
-            # Tronca il documento se necessario
-            remaining = MAX_CONTEXT_CHARS - context_chars
-            if remaining > 1000:  # Aggiungi solo se c'è spazio significativo
-                doc_text = doc_text[:remaining] + "\n[...contenuto troncato...]\n"
-                context += doc_text
+        remaining = MAX_CONTEXT_CHARS - context_chars
+        if remaining < 1500:
             break
+        cap = min(PER_DOC_CAP, remaining)
+        body = doc['content']
+        if len(body) > cap:
+            body = extract_relevant_excerpts(body, search_words, cap)
+        doc_text = f"### {doc['title']}\n{body}\n\n"
         context += doc_text
         context_chars += len(doc_text)
     
@@ -1013,6 +1028,7 @@ dove Tipologia è UNA tra: Accademiche classiche, Criminalità, Etichetta, Milit
 5. La sessione continua finché il giocatore non cambia zona o dice di voler terminare.
 6. Se il giocatore dice di aver superato o fallito una prova, continua la narrazione di conseguenza.
 7. Se un altro PG ha visitato questo luogo di recente (vedi eventi), tienine conto nella narrazione.
+8. FEDELTÀ ALLE FONTI (REGOLA ASSOLUTA): nomi propri di personaggi, cariche cittadine (Principe, Siniscalco, Primogeniti, Arpie, Sceriffo...), luoghi e fazioni DEVONO provenire ESCLUSIVAMENTE dai documenti nel CONTESTO DELL'EVENTO. NON inventare MAI nomi, clan o titolari di cariche non presenti nei documenti. Se l'informazione richiesta non è nei documenti, resta vago in modo narrativo (es. "Nessuno pronuncia quel nome a voce alta... dovrai guadagnarti questa informazione sul campo") e suggerisci al giocatore come scoprirla in gioco. Un nome inventato è un errore GRAVE che rompe la coerenza della cronaca.
 
 === REGOLE INCONTRI CON PNG (Personaggi Non Giocanti) ===
 Quando il giocatore incontra un PNG descritto nel contesto:
