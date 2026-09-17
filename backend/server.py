@@ -2413,6 +2413,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+NARRAZIONE_SEED = [
+    ("downtime@notturnaroma.com", "NARRAZIONE ITALIA", None, True, "SEED_PW_ITALIA"),
+    ("lazio@notturnaroma.com", "NARRAZIONE LAZIO", "Lazio", False, "SEED_PW_LAZIO"),
+    ("abruzzo@notturnaroma.com", "NARRAZIONE ABRUZZO", "Abruzzo", False, "SEED_PW_ABRUZZO"),
+    ("umbria@notturnaroma.com", "NARRAZIONE UMBRIA", "Umbria", False, "SEED_PW_UMBRIA"),
+    ("lombardia@notturnaroma.com", "NARRAZIONE LOMBARDIA", "Lombardia", False, "SEED_PW_LOMBARDIA"),
+]
+
+@app.on_event("startup")
+async def seed_narrazione_accounts():
+    """Seed idempotente: crea gli account Narrazione se mancanti, non tocca mai password esistenti."""
+    try:
+        await db.users.create_index("email", unique=True)
+    except Exception as e:
+        logger.warning(f"Indice email non creato: {e}")
+    for email, username, region, is_super, pw_key in NARRAZIONE_SEED:
+        password = os.environ.get(pw_key)
+        if not password:
+            logger.warning(f"Seed saltato per {email}: variabile {pw_key} mancante")
+            continue
+        existing = await db.users.find_one({"email": email})
+        if existing:
+            continue
+        try:
+            await db.users.insert_one({
+                "id": str(uuid.uuid4()),
+                "email": email,
+                "username": username,
+                "password_hash": hash_password(password),
+                "role": "admin",
+                "region": region,
+                "is_super_admin": is_super,
+                "max_actions": 20,
+                "used_actions": 0,
+                "last_action_reset": datetime.now(timezone.utc).isoformat(),
+                "blocked": False,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            logger.info(f"Account Narrazione creato: {username}")
+        except Exception as e:
+            logger.warning(f"Seed {email} non inserito (probabile replica concorrente): {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

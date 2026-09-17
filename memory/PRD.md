@@ -205,3 +205,8 @@ Codice da inserire nel sito HTML:
 - Falsi positivi del report NON applicati (motivati): "hardcoded secret" a server.py:1670 era già secrets.token_urlsafe; i 33 "is vs ==" erano tutti is None/is not None (corretti in Python).
 - Deliberatamente rinviati (alto rischio regressione su app funzionante): migrazione token da localStorage a cookie httpOnly, split di AdminPanel/Dashboard in sotto-componenti, refactoring di session_chat in service layer, useMemo/ternari annidati. In backlog.
 - Regression test iteration_6.json: 6/6 backend pass, frontend senza loop né errori console. Azioni test player azzerate.
+
+## Aggiornamenti (Set 2026 - v19) - Preparazione pubblicazione
+- Check deployment readiness: PASS (nessun blocker: env corrette, CORS ok, nessun hardcoding, compilazione ok).
+- Aggiunto SEED IDEMPOTENTE all'avvio (server.py @app.on_event startup): crea i 5 account Narrazione se mancanti (password da variabili SEED_PW_* in backend/.env), indice unico su email, MAI sovrascrive password esistenti. Testato su DB vuoto: 5 account creati, idempotente, password verificate; preview invariata (login 200).
+- IMPORTANTE per produzione: il DB di produzione parte vuoto -> gli account Narrazione si auto-creano al primo avvio, ma i PDF della Knowledge Base, le impostazioni personalizzate, i PNG e le prove vanno ricaricati/riconfigurati dal pannello admin sull'app pubblicata. I giocatori si registreranno direttamente sull'app live.
