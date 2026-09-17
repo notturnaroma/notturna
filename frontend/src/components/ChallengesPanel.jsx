@@ -482,7 +482,7 @@ export default function ChallengesPanel({ token }) {
                       {challenge.keywords.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
                           {challenge.keywords.map((kw, i) => (
-                            <span key={i} className="text-xs bg-black/30 px-2 py-0.5 rounded text-muted-foreground">
+                            <span key={`${kw}-${i}`} className="text-xs bg-black/30 px-2 py-0.5 rounded text-muted-foreground">
                               {kw}
                             </span>
                           ))}
@@ -502,7 +502,7 @@ export default function ChallengesPanel({ token }) {
                   {expandedChallenge === challenge.id && (
                     <div className="mt-4 pt-4 border-t border-border/30 space-y-3">
                       {challenge.tests.map((test, idx) => (
-                        <div key={idx} className="p-3 bg-black/20 rounded-sm">
+                        <div key={`${test.attribute}-${idx}`} className="p-3 bg-black/20 rounded-sm">
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-cinzel text-gold text-xs">PROVA {idx + 1}</span>
                             <span className="text-xs text-muted-foreground">

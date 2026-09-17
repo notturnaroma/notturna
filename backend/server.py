@@ -1,19 +1,13 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import Response
-from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
-import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel
 from typing import List, Optional
 import uuid
+import secrets
 from datetime import datetime, timezone
-import bcrypt
-import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from bson import Binary
 import PyPDF2
@@ -40,12 +34,11 @@ from models import (
     NPCCreate, NPCUpdate, NPCResponse, NPCInteractionResponse,
 )
 from core import (
-    db, client, logger, get_file_type, security,
-    JWT_SECRET, JWT_ALGORITHM, EMERGENT_LLM_KEY,
+    db, client, logger, get_file_type, EMERGENT_LLM_KEY,
     hash_password, verify_password, create_token, get_month_key,
-    get_follower_spent_this_month, get_effective_max_actions, check_monthly_reset,
+    get_follower_spent_this_month, get_effective_max_actions,
     get_current_user, get_admin_user, get_target_for_admin_action,
-    check_kb_region_rights, has_required_contacts, has_required_background,
+    check_kb_region_rights,
     is_doc_visible_to_player, get_oracle_tone_hint, apply_sheet_sync, get_sheet_block,
     ensure_sheet_synced, derive_knowledge_from_attribute, quarter_key, KNOWLEDGE_TYPES,
     extract_relevant_excerpts,
@@ -1181,7 +1174,7 @@ TONO: Oscuro, gotico, atmosferico. Dialoghi realistici e cinici. Rispondi SEMPRE
         response=answer,
         context=session["context"],
         found_items=found_items,
-        suggested_challenge=None,
+        suggested_challenge=suggested_challenge,
         session_ended=False
     )
 
@@ -1666,7 +1659,6 @@ async def block_user(user_id: str, data: BlockUserRequest, admin: dict = Depends
 async def admin_reset_password(user_id: str, admin: dict = Depends(get_admin_user)):
     """La Narrazione genera una password temporanea per un utente che ha smarrito le credenziali."""
     await get_target_for_admin_action(user_id, admin)
-    import secrets
     temp_password = "NT-" + secrets.token_urlsafe(6)
     await db.users.update_one(
         {"id": user_id},
@@ -1889,8 +1881,6 @@ async def update_challenge(challenge_id: str, data: ChallengeCreate, user: dict 
         raise HTTPException(status_code=404, detail="Prova non trovata")
     return {"message": "Prova aggiornata"}
 
-import random
-
 @api_router.post("/challenges/attempt")
 async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_current_user)):
     """Tenta una prova - calcola il risultato (una sola volta per utente)"""
@@ -2008,8 +1998,8 @@ async def attempt_challenge(data: ChallengeAttempt, user: dict = Depends(get_cur
                         )
     
     # Calcolo con fattori random
-    player_roll = random.randint(1, 5)
-    difficulty_roll = random.randint(1, 5)
+    player_roll = secrets.randbelow(5) + 1
+    difficulty_roll = secrets.randbelow(5) + 1
     
     # Applica bonus/malus oggetto al valore del giocatore
     # Punteggio calcolato dalla scheda ufficiale (anti-baro); fallback al valore dichiarato se scheda assente

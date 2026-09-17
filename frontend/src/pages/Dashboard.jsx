@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,7 +51,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const [sessionMessages, setSessionMessages] = useState([]);
 
   // Funzione per aggiornare il conteggio azioni
-  const refreshActionsCount = async () => {
+  const refreshActionsCount = useCallback(async () => {
     try {
       const response = await fetch(`${API}/followers/status`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -64,10 +64,10 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     } catch (error) {
       console.error("Error fetching actions count:", error);
     }
-  };
+  }, [token]);
 
   // Carica sessione attiva all'avvio
-  const fetchActiveSession = async () => {
+  const fetchActiveSession = useCallback(async () => {
     try {
       const response = await fetch(`${API}/session/active`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -90,9 +90,9 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     } catch (error) {
       console.error("Error fetching active session:", error);
     }
-  };
+  }, [token]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const response = await fetch(`${API}/notifications`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -103,20 +103,13 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
-  };
-
-  useEffect(() => {
-    fetchChallenges();
-    fetchAttemptedChallenges();
-    fetchActiveSession();
-    fetchNotifications();
-  }, []);
+  }, [token]);
 
   // Aggiorna il conteggio azioni tenendo conto dei SEGUACI
   useEffect(() => {
     if (!user) return;
     refreshActionsCount();
-  }, [user, token]);
+  }, [user, token, refreshActionsCount]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -124,7 +117,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     }
   }, [messages]);
 
-  const fetchChallenges = async () => {
+  const fetchChallenges = useCallback(async () => {
     try {
       const response = await fetch(`${API}/challenges`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -135,9 +128,9 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     } catch (error) {
       console.error("Error fetching challenges:", error);
     }
-  };
+  }, [token]);
 
-  const fetchAttemptedChallenges = async () => {
+  const fetchAttemptedChallenges = useCallback(async () => {
     try {
       const response = await fetch(`${API}/challenges/my-attempts`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -148,7 +141,14 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     } catch (error) {
       console.error("Error fetching attempted challenges:", error);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchChallenges();
+    fetchAttemptedChallenges();
+    fetchActiveSession();
+    fetchNotifications();
+  }, [fetchChallenges, fetchAttemptedChallenges, fetchActiveSession, fetchNotifications]);
 
   // Cerca prove che corrispondono alla domanda (escluse quelle già tentate)
   const findMatchingChallenge = (text) => {
@@ -185,11 +185,12 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
     // Controlla se la domanda corrisponde a una prova
     const matchedChallenge = findMatchingChallenge(question);
     if (matchedChallenge) {
-      const userMessage = { type: "user", text: question, timestamp: new Date().toISOString() };
+      const userMessage = { id: crypto.randomUUID(), type: "user", text: question, timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, userMessage]);
       
       // Mostra la prova trovata
       const challengeMessage = { 
+        id: crypto.randomUUID(),
         type: "challenge", 
         challenge: matchedChallenge,
         timestamp: new Date().toISOString() 
@@ -199,7 +200,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
       return;
     }
 
-    const userMessage = { type: "user", text: question, timestamp: new Date().toISOString() };
+    const userMessage = { id: crypto.randomUUID(), type: "user", text: question, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, userMessage]);
     setQuestion("");
     setLoading(true);
@@ -229,6 +230,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
         setSessionMsgCount((c) => (data.is_new_session ? 1 : c + 1));
         
         const aiMessage = { 
+          id: crypto.randomUUID(),
           type: "ai", 
           text: data.response, 
           timestamp: new Date().toISOString(),
@@ -240,6 +242,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
         if (data.suggested_challenge) {
           setChallenges(prev => [...prev, data.suggested_challenge]);
           setMessages(prev => [...prev, {
+            id: crypto.randomUUID(),
             type: "challenge",
             challenge: data.suggested_challenge,
             timestamp: new Date().toISOString()
@@ -295,6 +298,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
   const handleChallengeResult = (result) => {
     // Aggiungi il risultato alla chat
     const resultMessage = {
+      id: crypto.randomUUID(),
       type: "challenge-result",
       result: result,
       timestamp: new Date().toISOString()
@@ -315,6 +319,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
 
   const handleAidResult = (result) => {
     const aidMessage = {
+      id: crypto.randomUUID(),
       type: "aid-result",
       result: result,
       timestamp: new Date().toISOString()
@@ -339,6 +344,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
         toast.success(`Hai ottenuto: ${item.name}${costText}`);
         // Aggiungi messaggio nella chat
         const purchaseMsg = {
+          id: crypto.randomUUID(),
           type: "purchase-result",
           item: item,
           timestamp: new Date().toISOString()
@@ -530,7 +536,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
             ) : (
               <div className="space-y-4">
                 {messages.map((msg, idx) => (
-                  <div key={idx} className="fade-in">
+                  <div key={msg.id || idx} className="fade-in">
                     {/* Messaggio utente */}
                     {msg.type === "user" && (
                       <div className="flex justify-end">
@@ -627,7 +633,7 @@ export default function Dashboard({ user, token, onLogout, refreshUser }) {
                           </p>
                           <div className="space-y-2 mb-4">
                             {msg.challenge.tests.map((test, i) => (
-                              <div key={i} className="text-sm p-2 bg-black/30 rounded">
+                              <div key={`${test.attribute}-${i}`} className="text-sm p-2 bg-black/30 rounded">
                                 <span className="text-gold font-cinzel">PROVA {i + 1}:</span>{" "}
                                 <span className="text-parchment">{test.attribute}</span>{" "}
                                 <span className="text-muted-foreground">(difficoltà {test.difficulty})</span>

@@ -459,7 +459,7 @@ export default function NPCsPanel({ token }) {
               {form.aliases.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {form.aliases.map((a, i) => (
-                    <span key={i} className="text-xs px-2 py-1 border border-gold/30 rounded-sm text-gold/80 flex items-center gap-1">
+                    <span key={`${a}-${i}`} className="text-xs px-2 py-1 border border-gold/30 rounded-sm text-gold/80 flex items-center gap-1">
                       {a}
                       <button type="button" onClick={() => removeAlias(i)} className="hover:text-red-400">
                         <X className="w-3 h-3" />

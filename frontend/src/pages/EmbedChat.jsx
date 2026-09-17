@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,20 +31,12 @@ export default function EmbedChat() {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    if (token) {
-      checkAuth();
-    } else {
-      setAuthLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -62,7 +54,15 @@ export default function EmbedChat() {
     } finally {
       setAuthLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      checkAuth();
+    } else {
+      setAuthLoading(false);
+    }
+  }, [token, checkAuth]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -106,7 +106,7 @@ export default function EmbedChat() {
       return;
     }
 
-    const userMessage = { type: "user", text: question };
+    const userMessage = { id: crypto.randomUUID(), type: "user", text: question };
     setMessages(prev => [...prev, userMessage]);
     setQuestion("");
     setLoading(true);
@@ -123,7 +123,7 @@ export default function EmbedChat() {
 
       const data = await response.json();
       if (response.ok) {
-        setMessages(prev => [...prev, { type: "ai", text: data.answer }]);
+        setMessages(prev => [...prev, { id: crypto.randomUUID(), type: "ai", text: data.answer }]);
         setUser(prev => ({ ...prev, used_actions: prev.used_actions + 1 }));
       } else {
         toast.error(data.detail || "Errore");
@@ -278,7 +278,7 @@ export default function EmbedChat() {
           <div className="space-y-3">
             {messages.map((msg, idx) => (
               <div
-                key={idx}
+                key={msg.id || idx}
                 className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
