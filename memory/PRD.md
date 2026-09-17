@@ -197,3 +197,11 @@ Codice da inserire nel sito HTML:
 - Cronaca della REGIONE del giocatore sempre INTEGRALE (cap 25K); altri documenti come estratti keyword-centered (cap 8K ciascuno).
 - extract_relevant_excerpts migliorata: garantisce prima una finestra per OGNI keyword, poi le ripetizioni (evita che una keyword frequente consumi tutto il budget).
 - Testato e2e via curl: domanda sul Siniscalco -> risposta corretta (Albornoz y Carvajal, Lasombra) con contesto ridotto. Azioni del test player azzerate dopo il test.
+
+## Aggiornamenti (Set 2026 - v18) - Correzioni da code review
+- BUG REALE risolto: /api/session/chat restituiva sempre suggested_challenge=None (hardcoded) -> ora restituisce la prova improvvisata, così il popup appare subito al giocatore.
+- Backend: rimossi import inutilizzati (server.py, models.py); tiri prove con secrets.randbelow (crittograficamente sicuro) invece di random; import secrets a livello modulo.
+- Frontend: fetch functions di Dashboard/EmbedChat in useCallback con dipendenze corrette negli useEffect (niente stale closures, verificato NESSUN loop di fetch); messaggi chat con id univoci (crypto.randomUUID) come key React; key stabili in NPCsPanel/ChallengesPanel.
+- Falsi positivi del report NON applicati (motivati): "hardcoded secret" a server.py:1670 era già secrets.token_urlsafe; i 33 "is vs ==" erano tutti is None/is not None (corretti in Python).
+- Deliberatamente rinviati (alto rischio regressione su app funzionante): migrazione token da localStorage a cookie httpOnly, split di AdminPanel/Dashboard in sotto-componenti, refactoring di session_chat in service layer, useMemo/ternari annidati. In backlog.
+- Regression test iteration_6.json: 6/6 backend pass, frontend senza loop né errori console. Azioni test player azzerate.

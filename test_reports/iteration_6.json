@@ -1,0 +1,31 @@
+{
+  "summary": "Regression test iterazione 6 dopo refactoring code-quality (useCallback/useEffect, secrets, suggested_challenge fix, key univoche). Backend: 6/6 test PASS. Frontend: nessun loop infinito rilevato, nessun warning React key duplicate, nessun errore console.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_results": {
+    "TEST_1_player_login": {"status": "PASS", "details": "player@test.com/player123 login 200, JWT ricevuto."},
+    "TEST_2_admin_login": {"status": "PASS", "details": "downtime@notturnaroma.com/N@rraz1on3 login 200."},
+    "TEST_3_dashboard_endpoints_no_loop": {"status": "PASS", "details": "Playwright login+dashboard: dopo 8s di idle, ogni endpoint chiamato SOLO 2x (React StrictMode double-invoke, normale): /api/challenges, /api/challenges/my-attempts, /api/session/active, /api/notifications, /api/followers/status. NESSUN loop infinito, nessun warning key duplicate, nessun errore console. Refactoring useCallback/useEffect NON ha introdotto regressioni."},
+    "TEST_4_session_chat_suggested_challenge_field": {"status": "PASS", "details": "POST /api/session/chat con message 'Osservo la sala e ascolto i sussurri dei presenti' → 200. Campo 'suggested_challenge' presente nel JSON di risposta (null in questo caso, come atteso). Il bug in cui era hardcoded a None è stato risolto: ora il valore proviene dalla variabile suggested_challenge calcolata nel flusso RAG (linea 1177 server.py)."},
+    "TEST_5_challenge_attempt_secrets": {"status": "PASS", "details": "Admin crea challenge di test, player la tenta con test_index=0. Risposta contiene message='Con il risultato di (1×5) 5 contro (3×1) 3: Successo di test.', outcome='success'. I tiri random provengono ora da secrets.randbelow(5)+1. Challenge cancellata a fine test."},
+    "TEST_6_admin_reset_password_restore": {"status": "PASS", "details": "POST /api/admin/users/{id}/reset-password → temp_password con prefisso 'NT-' (secrets.token_urlsafe). Login con temp_password OK. Password ripristinata a 'player123' via POST /api/auth/change-password (old_password/new_password). Login finale con player123 OK."}
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_regression_iter6.py",
+    "/app/test_reports/pytest/iter6.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Nessuna regressione riscontrata. Refactoring corretto.",
+    "Note minori (non bloccanti): (1) il refactoring degli useCallback in Dashboard.jsx e EmbedChat.jsx risulta stabile - le fetch functions non innescano loop; (2) crypto.randomUUID è supportato solo in secure context (HTTPS) - va bene per l'ambiente di preview/prod ma può fallire su http://localhost non-HTTPS; (3) player used_actions è salito da 5 a 7 durante i test (consumati: 1 chat + 1 challenge attempt); si consiglia al main agent di resettarlo se necessario per iterazioni future."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_regression_iter6.py (nuovo file regression)"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (nessun loop, nessun errore console)"},
+  "test_credentials": "player@test.com / player123 (ripristinata a fine test - verificato), downtime@notturnaroma.com / N@rraz1on3",
+  "seed_data_creation": "Nessuna seed persistente. Il test crea temporaneamente 'TEST_regression_challenge_iter6' e la cancella. Player ora ha used_actions ~7/10 (era 5).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "File di regressione riutilizzabile: /app/backend/tests/test_regression_iter6.py copre login player+admin, dashboard endpoints, session/chat suggested_challenge field, challenges/attempt con secrets, admin reset-password + restore. Il test_challenge_attempt_flow consuma un'azione del player ad ogni run (non c'è modo di annullarla senza toccare direttamente MongoDB). Se le azioni si esauriscono, azzerare used_actions in db.users per player@test.com. Test finale funzionalità Playwright ha confermato assenza di loop infiniti - il rischio principale del refactoring useCallback/useEffect è mitigato."
+}
