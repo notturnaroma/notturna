@@ -916,12 +916,12 @@ Continua la narrazione in modo coerente con quanto detto sopra.
     scored_docs.sort(key=lambda x: (0 if x[2] else 1, x[0]), reverse=True)
     scored_docs = [(s, d) for s, d, _ in scored_docs]
     
-    # Limita il contesto a ~50000 caratteri (circa 12500 token)
-    # Ogni documento contribuisce al massimo PER_DOC_CAP caratteri: i documenti enormi
-    # vengono ridotti a ESTRATTI attorno alle parole chiave, così i documenti più piccoli
-    # e specifici (es. cronache regionali) entrano SEMPRE nel contesto.
-    MAX_CONTEXT_CHARS = 50000
-    PER_DOC_CAP = 15000
+    # Limita il contesto a ~30000 caratteri (circa 7500 token)
+    # La cronaca della regione del giocatore entra INTEGRALE (fino a 25K), è la fonte curata prioritaria.
+    # Gli altri documenti contribuiscono con ESTRATTI attorno alle parole chiave (max 8K ciascuno).
+    MAX_CONTEXT_CHARS = 30000
+    REGIONAL_DOC_CAP = 25000
+    PER_DOC_CAP = 8000
     context = ""
     context_chars = 0
     
@@ -929,7 +929,8 @@ Continua la narrazione in modo coerente con quanto detto sopra.
         remaining = MAX_CONTEXT_CHARS - context_chars
         if remaining < 1500:
             break
-        cap = min(PER_DOC_CAP, remaining)
+        is_regional = player_region and (doc.get("region") or "") == player_region
+        cap = min(REGIONAL_DOC_CAP if is_regional else PER_DOC_CAP, remaining)
         body = doc['content']
         if len(body) > cap:
             body = extract_relevant_excerpts(body, search_words, cap)

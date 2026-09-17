@@ -191,3 +191,9 @@ Codice da inserire nel sito HTML:
 - RAG: il Design Document è ora SEMPRE l'ultimo documento inserito nel contesto (flag is_design_doc nell'ordinamento), a prescindere dallo score. Le cronache regionali e gli altri documenti hanno priorità.
 - Login NARRAZIONE ITALIA: verificato funzionante sia via API sia via UI (testing agent, iteration_5.json 2/2 pass). Problema dell'utente non riproducibile: quasi certamente errore di digitazione della password.
 - ATTESA: l'utente caricherà il file "PNG, LUOGHI E QUEST" diviso per regione (valutare se suddividerlo per regione nella KB al caricamento).
+
+## Aggiornamenti (Set 2026 - v17) - Riduzione contesto RAG a 30K (controllo costi)
+- MAX_CONTEXT_CHARS 50K -> 30K (~7.5K token input di contesto, circa -40% costo per domanda).
+- Cronaca della REGIONE del giocatore sempre INTEGRALE (cap 25K); altri documenti come estratti keyword-centered (cap 8K ciascuno).
+- extract_relevant_excerpts migliorata: garantisce prima una finestra per OGNI keyword, poi le ripetizioni (evita che una keyword frequente consumi tutto il budget).
+- Testato e2e via curl: domanda sul Siniscalco -> risposta corretta (Albornoz y Carvajal, Lasombra) con contesto ridotto. Azioni del test player azzerate dopo il test.

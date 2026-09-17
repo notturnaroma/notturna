@@ -237,40 +237,48 @@ def is_doc_visible_to_player(doc, bg, user):
     return has_required_background(doc, bg)
 
 def extract_relevant_excerpts(content: str, search_words: set, max_chars: int) -> str:
-    """Estrae finestre di testo attorno alle parole chiave, unendo quelle sovrapposte."""
+    """Estrae finestre attorno alle keyword. Garantisce prima un estratto per OGNI keyword, poi le ripetizioni."""
     content_lower = content.lower()
     WINDOW = 1200
-    positions = []
+    first_positions, extra_positions = [], []
     for word in search_words:
-        start = 0
-        count = 0
+        start, count = 0, 0
         while count < 5:
             idx = content_lower.find(word, start)
             if idx == -1:
                 break
-            positions.append(idx)
+            (first_positions if count == 0 else extra_positions).append(idx)
             start = idx + len(word)
             count += 1
-    if not positions:
+    if not first_positions:
         return content[:max_chars] + "\n[...contenuto troncato...]"
-    positions.sort()
-    windows = []
-    for pos in positions:
-        s, e = max(0, pos - WINDOW), min(len(content), pos + WINDOW)
-        if windows and s <= windows[-1][1]:
-            windows[-1] = (windows[-1][0], e)
-        else:
-            windows.append((s, e))
-    parts = []
+    selected = []
     total = 0
-    for s, e in windows:
-        chunk = content[s:e]
-        if total + len(chunk) > max_chars:
-            chunk = chunk[:max_chars - total]
-        parts.append(("[...]\n" if s > 0 else "") + chunk)
-        total += len(chunk)
-        if total >= max_chars:
-            break
+    def try_add(pos):
+        nonlocal total
+        s, e = max(0, pos - WINDOW), min(len(content), pos + WINDOW)
+        for w in selected:
+            if s <= w[1] and e >= w[0]:
+                grow = max(0, w[0] - s) + max(0, e - w[1])
+                if total + grow <= max_chars:
+                    w[0], w[1] = min(w[0], s), max(w[1], e)
+                    total += grow
+                return
+        if total + (e - s) <= max_chars:
+            selected.append([s, e])
+            total += e - s
+    for pos in first_positions:
+        try_add(pos)
+    for pos in sorted(extra_positions):
+        try_add(pos)
+    selected.sort()
+    merged = []
+    for s, e in selected:
+        if merged and s <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], e)
+        else:
+            merged.append([s, e])
+    parts = [("[...]\n" if s > 0 else "") + content[s:e] for s, e in merged]
     return "\n".join(parts) + "\n[...estratti rilevanti dal documento completo...]"
 
 async def get_oracle_tone_hint() -> str:
