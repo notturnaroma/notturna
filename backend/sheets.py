@@ -132,7 +132,7 @@ def build_sheet_context(data: dict) -> str:
         f"Attributi: Forza {p.get('forza', 0)}, Destrezza {p.get('destrezza', 0)}, Attutimento {p.get('attutimento', 0)}, "
         f"Carisma {p.get('carisma', 0)}, Persuasione {p.get('persuasione', 0)}, Saggezza {p.get('saggezza', 0)}, "
         f"Prontezza {p.get('prontezza', 0)}, Intelligenza {p.get('intelligenza', 0)} | "
-        f"Forza di Volontà {p.get('fdv', 0)}/{p.get('fdvmax', 0)} | Punti Sangue {p.get('bloodp', 0)}"
+        f"Forza di Volontà {p.get('fdv', 0)}/{p.get('fdvmax', 0)} | Punti Sangue {_int(p.get('PScorrenti'))}/12"
     )
     lines.append(
         f"FAMA: in Città {_int(p.get('fama1'))}, tra i Vampiri {_int(p.get('fama2'))}, nel Mondo Oscuro {_int(p.get('fama3'))}"

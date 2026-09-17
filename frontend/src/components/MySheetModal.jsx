@@ -84,7 +84,7 @@ export default function MySheetModal({ token, onClose }) {
                   ))}
                 </div>
                 <p className="font-body text-muted-foreground text-xs mt-2">
-                  Forza di Volontà {p.fdv}/{p.fdvmax} · Punti Sangue {p.bloodp}
+                  Forza di Volontà {p.fdv}/{p.fdvmax} · Punti Sangue {p.PScorrenti ?? 0}/12
                 </p>
               </Section>
 
