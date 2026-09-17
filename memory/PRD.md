@@ -215,3 +215,7 @@ Codice da inserire nel sito HTML:
 - Il DB esterno ora espone PScorrenti (punti sangue correnti). Uniformato: Punti Sangue = PScorrenti/12 (massimo 12 per tutti) al posto del vecchio campo bloodp.
 - Modifiche: sheets.py build_sheet_context (contesto Oracolo) e MySheetModal.jsx (scheda giocatore).
 - Risincronizzate le schede salvate dei giocatori collegati (i vecchi snapshot non avevano il campo). Verificato via screenshot: "Punti Sangue 12/12" nella scheda.
+
+## Aggiornamenti (Set 2026 - v21) - Regola Punti Sangue per le Discipline (opzione A: consapevolezza narrativa)
+- Nuova regola 9 (OBBLIGATORIA) nel system prompt dell'Oracolo: ogni uso di Disciplina costa 1 PS (max 12, correnti da PScorrenti in scheda), salvo eccezioni da "I Doni del Sangue"; l'Oracolo chiude la risposta con la riga di costo o cita l'eccezione documentata; avverte narrativamente se PS <= 3. Il conteggio ufficiale resta sul gestionale (API esterna di sola lettura, scelta utente: opzione A).
+- Testato e2e: uso di "L'Ombra della mano che serve" -> l'Oracolo ha applicato l'eccezione ESATTA dal PDF (riduzione temporanea -1 FdV per 20 minuti) invece del costo standard. Azioni test player azzerate.
