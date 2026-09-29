@@ -219,3 +219,7 @@ Codice da inserire nel sito HTML:
 ## Aggiornamenti (Set 2026 - v21) - Regola Punti Sangue per le Discipline (opzione A: consapevolezza narrativa)
 - Nuova regola 9 (OBBLIGATORIA) nel system prompt dell'Oracolo: ogni uso di Disciplina costa 1 PS (max 12, correnti da PScorrenti in scheda), salvo eccezioni da "I Doni del Sangue"; l'Oracolo chiude la risposta con la riga di costo o cita l'eccezione documentata; avverte narrativamente se PS <= 3. Il conteggio ufficiale resta sul gestionale (API esterna di sola lettura, scelta utente: opzione A).
 - Testato e2e: uso di "L'Ombra della mano che serve" -> l'Oracolo ha applicato l'eccezione ESATTA dal PDF (riduzione temporanea -1 FdV per 20 minuti) invece del costo standard. Azioni test player azzerate.
+
+## Aggiornamenti (Set 2026 - v22) - Template Word Quest
+- Creato TEMPLATE-QUEST-NOTTURNA.docx (compilabile): sezioni Spiegazione Quest, PNG, Luoghi, Oggetti, Prove Contrapposte con tabelle campo/valore e istruzioni (duplicare tabelle, regione obbligatoria, parole chiave, esportare in PDF e caricare in KB).
+- Generato con /app/backend/scripts/genera_template_quest.py (python-docx aggiunto a requirements), salvato in MongoDB (upload_files) e scaricabile da /api/uploads/TEMPLATE-QUEST-NOTTURNA.docx. Verificato download e struttura (5 tabelle).
