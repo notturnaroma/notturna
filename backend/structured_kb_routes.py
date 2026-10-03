@@ -1,14 +1,9 @@
-"""Admin API routes for the structured regional Knowledge Base pilot.
-
-Wire with `api_router.include_router(structured_kb_router)` in server.py after the
-main APIRouter is created. Kept isolated during the Lazio pilot so legacy routes
-remain unchanged until testing is complete.
-"""
+"""Admin API routes for the structured regional Knowledge Base pilot."""
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from core import db, get_admin_user
+from core import db, get_admin_user, check_kb_region_rights
 from structured_kb import (
     import_regional_payload,
     render_structured_context,
@@ -19,12 +14,18 @@ from structured_kb import (
 structured_kb_router = APIRouter(prefix="/structured-kb", tags=["structured-kb"])
 
 
+def _check_region(user: dict, region: str) -> None:
+    """Reuse the same regional authorization rules as the legacy KB."""
+    check_kb_region_rights(user, region)
+
+
 @structured_kb_router.post("/import")
 async def import_structured_region(payload: Dict[str, Any], user: dict = Depends(get_admin_user)):
-    """Import/upsert a JSON regional export. Admin/Narrazione only."""
     errors = validate_regional_payload(payload)
     if errors:
         raise HTTPException(status_code=400, detail={"errors": errors})
+    region = str(payload.get("region", "")).strip()
+    _check_region(user, region)
     try:
         return await import_regional_payload(db, payload, imported_by=user.get("username", "admin"))
     except ValueError as exc:
@@ -33,6 +34,7 @@ async def import_structured_region(payload: Dict[str, Any], user: dict = Depends
 
 @structured_kb_router.get("/stats/{region}")
 async def structured_region_stats(region: str, user: dict = Depends(get_admin_user)):
+    _check_region(user, region)
     pipeline = [
         {"$match": {"region": region}},
         {"$group": {"_id": "$kind", "count": {"$sum": 1}}},
@@ -44,7 +46,8 @@ async def structured_region_stats(region: str, user: dict = Depends(get_admin_us
 
 @structured_kb_router.get("/preview/{region}")
 async def preview_structured_retrieval(region: str, q: str, user: dict = Depends(get_admin_user)):
-    """Safe admin-only preview: does not call the LLM and does not consume PG actions."""
+    """Does not call the LLM and does not consume PG actions."""
+    _check_region(user, region)
     records = await retrieve_structured_context(db, q, [region], limit=10)
     return {
         "region": region,
