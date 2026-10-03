@@ -9,9 +9,11 @@ import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Archive from "@/pages/Archive";
 import AdminPanel from "@/pages/AdminPanel";
+import StructuredAdmin from "@/pages/StructuredAdmin";
 import EmbedChat from "@/pages/EmbedChat";
 import Background from "@/pages/Background";
 import EquipmentPage from "@/pages/EquipmentPage";
+import OracleV2 from "@/pages/OracleV2";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -24,63 +26,29 @@ function App() {
       if (savedToken) {
         try {
           const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-          const response = await fetch(`${API}/auth/me`, {
-            headers: { Authorization: `Bearer ${savedToken}` }
-          });
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-            setToken(savedToken);
-          } else {
-            localStorage.removeItem("token");
-            setToken(null);
-          }
-        } catch (e) {
-          localStorage.removeItem("token");
-          setToken(null);
-        }
+          const response = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${savedToken}` } });
+          if (response.ok) { const userData = await response.json(); setUser(userData); setToken(savedToken); }
+          else { localStorage.removeItem("token"); setToken(null); }
+        } catch (e) { localStorage.removeItem("token"); setToken(null); }
       }
       setLoading(false);
     };
     checkAuth();
   }, []);
 
-  const handleLogin = (newToken, userData) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
-  };
-
+  const handleLogin = (newToken, userData) => { localStorage.setItem("token", newToken); setToken(newToken); setUser(userData); };
+  const handleLogout = () => { localStorage.removeItem("token"); setToken(null); setUser(null); };
   const refreshUser = async () => {
-    if (token) {
-      try {
-        const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-        const response = await fetch(`${API}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        }
-      } catch (e) {
-        console.error("Error refreshing user:", e);
-      }
-    }
+    if (!token) return;
+    try {
+      const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+      const response = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.ok) setUser(await response.json());
+    } catch (e) { console.error("Error refreshing user:", e); }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-void flex items-center justify-center">
-        <div className="text-gold font-cinzel text-xl animate-pulse">Caricamento...</div>
-      </div>
-    );
-  }
+  const isNarration = token && (user?.role === "admin" || user?.role === "Narrazione");
+  if (loading) return <div className="min-h-screen bg-void flex items-center justify-center"><div className="text-gold font-cinzel text-xl animate-pulse">Caricamento...</div></div>;
 
   return (
     <SettingsProvider>
@@ -91,10 +59,12 @@ function App() {
             <Route path="/login" element={!token ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
             <Route path="/register" element={!token ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
             <Route path="/dashboard" element={token ? <Dashboard user={user} token={token} onLogout={handleLogout} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
+            <Route path="/oracle-v2" element={token ? <OracleV2 user={user} token={token} refreshUser={refreshUser} /> : <Navigate to="/login" />} />
             <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/background" element={token ? <Background user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/equipment" element={token ? <EquipmentPage user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-            <Route path="/admin" element={token && (user?.role === "admin" || user?.role === "Narrazione") ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin" element={isNarration ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin/structured-kb" element={isNarration ? <StructuredAdmin user={user} token={token} /> : <Navigate to="/dashboard" />} />
             <Route path="/embed" element={<EmbedChat />} />
           </Routes>
         </BrowserRouter>
@@ -103,5 +73,4 @@ function App() {
     </SettingsProvider>
   );
 }
-
 export default App;
