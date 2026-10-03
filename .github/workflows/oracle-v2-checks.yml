@@ -1,0 +1,40 @@
+name: Oracle v2 checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [migration/structured-kb-lazio]
+
+jobs:
+  backend-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install minimal test dependencies
+        run: pip install pytest
+      - name: Run pure structured KB tests
+        working-directory: backend
+        run: pytest -q test_structured_kb.py tests/test_oracle_v2_contract.py
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - name: Install frontend
+        working-directory: frontend
+        run: yarn install --frozen-lockfile
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          CI: 'false'
+          REACT_APP_BACKEND_URL: http://localhost:8001
+        run: yarn build
