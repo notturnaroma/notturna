@@ -9,6 +9,7 @@ import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Archive from "@/pages/Archive";
 import AdminPanel from "@/pages/AdminPanel";
+import StructuredAdmin from "@/pages/StructuredAdmin";
 import EmbedChat from "@/pages/EmbedChat";
 import Background from "@/pages/Background";
 import EquipmentPage from "@/pages/EquipmentPage";
@@ -26,10 +27,8 @@ function App() {
         try {
           const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
           const response = await fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${savedToken}` } });
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData); setToken(savedToken);
-          } else { localStorage.removeItem("token"); setToken(null); }
+          if (response.ok) { const userData = await response.json(); setUser(userData); setToken(savedToken); }
+          else { localStorage.removeItem("token"); setToken(null); }
         } catch (e) { localStorage.removeItem("token"); setToken(null); }
       }
       setLoading(false);
@@ -48,6 +47,7 @@ function App() {
     } catch (e) { console.error("Error refreshing user:", e); }
   };
 
+  const isNarration = token && (user?.role === "admin" || user?.role === "Narrazione");
   if (loading) return <div className="min-h-screen bg-void flex items-center justify-center"><div className="text-gold font-cinzel text-xl animate-pulse">Caricamento...</div></div>;
 
   return (
@@ -63,7 +63,8 @@ function App() {
             <Route path="/archive" element={token ? <Archive user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/background" element={token ? <Background user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/equipment" element={token ? <EquipmentPage user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-            <Route path="/admin" element={token && (user?.role === "admin" || user?.role === "Narrazione") ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin" element={isNarration ? <AdminPanel user={user} token={token} onLogout={handleLogout} /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin/structured-kb" element={isNarration ? <StructuredAdmin user={user} token={token} /> : <Navigate to="/dashboard" />} />
             <Route path="/embed" element={<EmbedChat />} />
           </Routes>
         </BrowserRouter>
